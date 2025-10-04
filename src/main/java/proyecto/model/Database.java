@@ -1,4 +1,4 @@
-package proyecto;
+package proyecto.model;
 import java.io.FileInputStream;
 import java.io.IOException;
 

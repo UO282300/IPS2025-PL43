@@ -1,6 +1,9 @@
-package proyecto;
+package proyecto.view;
 
 import javax.swing.JFrame;
+
+import proyecto.model.Database;
+
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;

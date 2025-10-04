@@ -1,6 +1,8 @@
-package proyecto;
+package proyecto.main;
 
 import java.awt.EventQueue;
+
+import proyecto.view.VentanaPrincipal;
 
 public class Main {
 	public static void main(String[] args) {
