@@ -1,6 +1,6 @@
 --Primero se deben borrar todas las tablas
 DROP TABLE IF EXISTS Matricula;
-DROP TABLE IF EXISTS Curso;
+DROP TABLE IF EXISTS Actividad;
 DROP TABLE IF EXISTS Alumno;
 DROP TABLE IF EXISTS Profesor;
 DROP TABLE IF EXISTS Administrador;
@@ -30,14 +30,24 @@ CREATE TABLE Alumno (
     es_interno BOOLEAN NOT NULL DEFAULT 1
 );
 
-CREATE TABLE Curso (
-    id_curso INTEGER PRIMARY KEY,
+CREATE TABLE Actividad (
+    id_actividad INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre VARCHAR(150) NOT NULL,
-    descripcion TEXT,
-    precio DECIMAL(10,2) NOT NULL,
-    id_profesor INTEGER NOT NULL,
+    objetivos TEXT,
+    contenidos TEXT,
+    id_profesor INTEGER,
+    remuneracion DECIMAL(10,2),
+    espacio VARCHAR(100),
+    fecha DATE,
+    hora_inicio TIME,
+    hora_fin TIME,
+    inicio_inscripcion DATE,
+    fin_inscripcion DATE,
+    cuota DECIMAL(10,2) DEFAULT 0,
+    es_gratuita BOOLEAN DEFAULT 0,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
 );
+
 
 CREATE TABLE Matricula (
     id_matricula INTEGER PRIMARY KEY AUTOINCREMENT,
