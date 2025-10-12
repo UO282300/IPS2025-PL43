@@ -7,6 +7,9 @@ import proyecto.service.UserService;
 
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.awt.event.ActionEvent;
 
 public class VentanaResponsable extends JFrame {
@@ -15,7 +18,10 @@ public class VentanaResponsable extends JFrame {
     private JPanel contentPane;
 
     private JTextField txtNombre;
-    private JTextField txtProfesor;
+    
+    private JComboBox<String> cmbProfesor;
+    private Map<String, Integer> mapaProfesores = new HashMap<>();
+    
     private JTextField txtRemuneracion;
     private JTextField txtEspacio;
     private JTextField txtFecha;
@@ -46,8 +52,8 @@ public class VentanaResponsable extends JFrame {
     	
         setTitle("PLANIFICACIÓN DE ACTIVIDADES");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 900, 800);
-        setMinimumSize(new Dimension(950, 700));
+        setBounds(100, 100, 800, 700);
+        setMinimumSize(new Dimension(950, 600));
         setLocationRelativeTo(null);
 
         contentPane = new JPanel();
@@ -171,7 +177,7 @@ public class VentanaResponsable extends JFrame {
             pnProfesorEspacio.setBackground(new Color(250, 252, 255));
 
             pnProfesorEspacio.add(new JLabel("Profesor:"));
-            pnProfesorEspacio.add(getTxtProfesor());
+            pnProfesorEspacio.add(getCmbProfesor());
 
             pnProfesorEspacio.add(new JLabel("Remuneración (€):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
@@ -182,14 +188,32 @@ public class VentanaResponsable extends JFrame {
         return pnProfesorEspacio;
     }
     
-    private JTextField getTxtProfesor() {
-        if (txtProfesor == null) {
-            txtProfesor = new JTextField(25);
+    private JComboBox<String> getCmbProfesor() {
+        if (cmbProfesor == null) {
+        	cmbProfesor = new JComboBox<>();
+            cargarProfesores();
         }
-        return txtProfesor;
+        return cmbProfesor;
     }
     
-    private JTextField getTxtRemuneracion() {
+    private void cargarProfesores() {
+    	cmbProfesor.removeAllItems();
+        mapaProfesores.clear();
+
+        List<Map<String, Object>> profesores = service.listarProfesores();
+
+        for (Map<String, Object> prof : profesores) {
+            int id = ((Number) prof.get("id_profesor")).intValue();
+            String nombre = (String) prof.get("nombre");
+            String apellido = (String) prof.get("apellido");
+            String texto = nombre + " " + apellido + "";
+            cmbProfesor.addItem(texto);
+            mapaProfesores.put(texto, id);
+        }
+		
+	}
+
+	private JTextField getTxtRemuneracion() {
         if (txtRemuneracion == null) {
         	txtRemuneracion = new JTextField(10);
         }
@@ -294,9 +318,15 @@ public class VentanaResponsable extends JFrame {
     }
     
     private void cargarActividad() {
-    	service.cargarActividad(getTxtNombre().getText(),getTxtProfesor().getText(), getTxtRemuneracion().getText(), getTxtEspacio().getText(),
-    			getTxtFecha().getText(), getTxtHoraInicio().getText(),getTxtHoraFin().getText(), getTxtInicioInscripcion().getText(), getTxtFinInscripcion().getText(),
-    			getTxtCuota().getText(), getTxtObjetivos().getText());
+    	String profesorSeleccionado = (String) cmbProfesor.getSelectedItem();
+    	int idProfesor = mapaProfesores.get(profesorSeleccionado);
+    	
+    	if (service.cargarActividad(getTxtNombre().getText(), idProfesor, getTxtRemuneracion().getText(), getTxtEspacio().getText(),
+    			getTxtFecha().getText(), getTxtHoraInicio().getText(),getTxtHoraFin().getText(), getTxtInicioInscripcion().getText(),
+    			getTxtFinInscripcion().getText(), getTxtCuota().getText(), getTxtObjetivos().getText(), getTxtContenidos().getText())) {
+    		
+    		dispose();
+    	}
     }
 
     private void cancelarActividad() {

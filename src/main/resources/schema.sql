@@ -52,10 +52,10 @@ CREATE TABLE Actividad (
 CREATE TABLE Matricula (
     id_matricula INTEGER PRIMARY KEY AUTOINCREMENT,
     id_alumno INTEGER NOT NULL,
-    id_curso INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
     fecha_matricula DATE NOT NULL,
     monto_pagado DECIMAL(10,2) DEFAULT 0,
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
-    FOREIGN KEY (id_curso) REFERENCES Curso(id_curso)
+    FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 );
