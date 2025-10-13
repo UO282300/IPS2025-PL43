@@ -52,10 +52,10 @@ public class VentanaPrincipal {
 		});
 		frame.getContentPane().add(btnQueryDePrueba);
 		
-		JButton btnResponsable = new JButton("Responsable añade actividad");
+		JButton btnResponsable = new JButton("Consultar el estado de una actividad de formación");
 		btnResponsable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				mostrarVentanaResponsable();
+				mostrarVentanaEstadoAF();
 			}
 		});
 		frame.getContentPane().add(btnResponsable);
@@ -63,10 +63,10 @@ public class VentanaPrincipal {
 		frame.setVisible(true);
 	}
 	
-	private void mostrarVentanaResponsable() {
-		VentanaResponsable vR = new VentanaResponsable(service);
-		vR.setLocationRelativeTo(null);
-		vR.setVisible(true);
+	private void mostrarVentanaEstadoAF() {
+		VentanaEstadoAF vE = new VentanaEstadoAF(service);
+		vE.setLocationRelativeTo(null);
+		vE.setVisible(true);
 	}
 	
 }
