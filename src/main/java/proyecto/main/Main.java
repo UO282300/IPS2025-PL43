@@ -2,6 +2,8 @@ package proyecto.main;
 
 import java.awt.EventQueue;
 
+import javax.swing.UIManager;
+
 import proyecto.view.VentanaPrincipal;
 
 public class Main {
@@ -10,6 +12,7 @@ public class Main {
         EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 					new VentanaPrincipal();
 				} catch (Exception e) {
 					e.printStackTrace(); 

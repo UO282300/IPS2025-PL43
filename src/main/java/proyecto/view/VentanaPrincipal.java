@@ -2,26 +2,25 @@ package proyecto.view;
 
 import javax.swing.JFrame;
 
-import proyecto.model.Database;
+import proyecto.service.UserService;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.util.List;
-import java.util.Map;
 import java.awt.event.ActionEvent;
 
 public class VentanaPrincipal {
 
 	private JFrame frame;
+	UserService service;
 	
 	public VentanaPrincipal() {
+		service = new UserService();
 		initialize();
 	}
 
 	private void initialize() {
 		frame = new JFrame();
-		frame.setVisible(true);
 		frame.setTitle("Main");
 		frame.setBounds(0, 0, 500, 500);
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
@@ -32,8 +31,7 @@ public class VentanaPrincipal {
 		JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
 		btnInicializarBaseDeDatos.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Database db = new Database();
-		        db.createDatabase(false); 
+		        service.crearDataBase();
 			}
 		});
 		frame.getContentPane().add(btnInicializarBaseDeDatos);
@@ -41,9 +39,7 @@ public class VentanaPrincipal {
 		JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
 		btnCargarDatosIniciales.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Database db=new Database();
-				db.createDatabase(false);
-				db.loadDatabase();
+				service.cargarDataBase();
 			}
 		});
 		frame.getContentPane().add(btnCargarDatosIniciales);
@@ -51,22 +47,26 @@ public class VentanaPrincipal {
 		JButton btnQueryDePrueba = new JButton("Ejemplo de consulta");
 		btnQueryDePrueba.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Database db=new Database();
-				db.createDatabase(false);
-				db.loadDatabase();
-			    List<Map<String, Object>> alumnos = db.executeQueryMap("SELECT * FROM Alumno");
-			    for (Map<String, Object> alumno : alumnos) {
-			        System.out.println(alumno);
-			    }
+				service.ejemploConsulta();
 			}
 		});
 		frame.getContentPane().add(btnQueryDePrueba);
+		
+		JButton btnResponsable = new JButton("Consultar el estado de una actividad de formación");
+		btnResponsable.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mostrarVentanaEstadoAF();
+			}
+		});
+		frame.getContentPane().add(btnResponsable);
+		
+		frame.setVisible(true);
 	}
 	
-	
-	public JFrame getFrame() { 
-		return this.frame; 
+	private void mostrarVentanaEstadoAF() {
+		VentanaEstadoAF vE = new VentanaEstadoAF(service);
+		vE.setLocationRelativeTo(null);
+		vE.setVisible(true);
 	}
-	
 	
 }
