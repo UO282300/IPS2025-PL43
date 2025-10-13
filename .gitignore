@@ -1,2 +1,33 @@
 /target/
-/bin/
+########################
+# Archivos de Eclipse  #
+########################
+.classpath
+.project
+.settings/
+
+########################
+# Maven / Build        #
+########################
+target/
+build/
+out/
+bin/
+
+########################
+# Archivos binarios    #
+########################
+*.class
+*.jar
+*.war
+*.ear
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+########################
+# Archivos del sistema #
+########################
+.DS_Store
+Thumbs.db
