@@ -33,6 +33,7 @@ public class VentanaResponsable extends JFrame {
     private JTextArea txtObjetivos;
     private JTextArea txtContenidos;
     private JCheckBox chkGratuita;
+    private JTextField txtPlazas;
 
     private JButton btnCargar;
     private JButton btnCancelar;
@@ -172,7 +173,7 @@ public class VentanaResponsable extends JFrame {
 
     private JPanel getPnProfesorEspacio() {
         if (pnProfesorEspacio == null) {
-        	pnProfesorEspacio = new JPanel(new GridLayout(3, 2, 10, 10));
+        	pnProfesorEspacio = new JPanel(new GridLayout(4, 2, 10, 10));
             pnProfesorEspacio.setBorder(new TitledBorder("Profesorado y Espacio"));
             pnProfesorEspacio.setBackground(new Color(250, 252, 255));
 
@@ -182,13 +183,22 @@ public class VentanaResponsable extends JFrame {
             pnProfesorEspacio.add(new JLabel("Remuneración (€):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
 
-            pnProfesorEspacio.add(new JLabel("Espacio (aula, sala, etc.):"));
+            pnProfesorEspacio.add(new JLabel("Espacio:"));
             pnProfesorEspacio.add(getTxtEspacio());
+            
+            pnProfesorEspacio.add(new JLabel("Plazas:"));
+            pnProfesorEspacio.add(getTxtPlazas());
         }
         return pnProfesorEspacio;
     }
     
-    private JComboBox<String> getCmbProfesor() {
+    private JTextField getTxtPlazas() {
+        if (txtPlazas == null) {
+            txtPlazas = new JTextField(10);
+        }
+        return txtPlazas;
+    }
+	private JComboBox<String> getCmbProfesor() {
         if (cmbProfesor == null) {
         	cmbProfesor = new JComboBox<>();
             cargarProfesores();
@@ -233,7 +243,7 @@ public class VentanaResponsable extends JFrame {
             pnProgramacion.setBorder(new TitledBorder("Programación"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
-            pnProgramacion.add(new JLabel("Fecha (dd/mm/aaaa):"));
+            pnProgramacion.add(new JLabel("Fecha (yyyy-MM-dd):"));
             pnProgramacion.add(getTxtFecha());
 
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
@@ -273,16 +283,16 @@ public class VentanaResponsable extends JFrame {
             pnInscripcionCuota.setBorder(new TitledBorder("Inscripción y Cuota"));
             pnInscripcionCuota.setBackground(new Color(250, 252, 255));
 
-            pnInscripcionCuota.add(new JLabel("Inicio inscripción (dd/mm/aaaa):"));
+            pnInscripcionCuota.add(new JLabel("Inicio inscripción (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtInicioInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cierre inscripción (dd/mm/aaaa):"));
+            pnInscripcionCuota.add(new JLabel("Cierre inscripción (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtFinInscripcion());
 
             pnInscripcionCuota.add(new JLabel("Cuota (€):"));
             pnInscripcionCuota.add(getTxtCuota());
 
-            pnInscripcionCuota.add(new JLabel("")); // celda vacía
+            pnInscripcionCuota.add(new JLabel(""));
             pnInscripcionCuota.add(getChkGratuita());
         }
         return pnInscripcionCuota;
@@ -313,6 +323,18 @@ public class VentanaResponsable extends JFrame {
         if (chkGratuita == null) {
             chkGratuita = new JCheckBox("Actividad gratuita");
             chkGratuita.setOpaque(false);
+            chkGratuita.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    boolean seleccionada = chkGratuita.isSelected();
+                    getTxtCuota().setEnabled(!seleccionada);
+                    if (seleccionada) {
+                        getTxtCuota().setText("0");
+                    } else {
+                        getTxtCuota().setText("");
+                    }
+                }
+            });
         }
         return chkGratuita;
     }
@@ -323,7 +345,8 @@ public class VentanaResponsable extends JFrame {
     	
     	if (service.cargarActividad(getTxtNombre().getText(), idProfesor, getTxtRemuneracion().getText(), getTxtEspacio().getText(),
     			getTxtFecha().getText(), getTxtHoraInicio().getText(),getTxtHoraFin().getText(), getTxtInicioInscripcion().getText(),
-    			getTxtFinInscripcion().getText(), getTxtCuota().getText(), getTxtObjetivos().getText(), getTxtContenidos().getText())) {
+    			getTxtFinInscripcion().getText(), getTxtCuota().getText(), getTxtObjetivos().getText(), getTxtContenidos().getText(), 
+    			getTxtPlazas().getText(), getChkGratuita().isSelected())) {
     		
     		dispose();
     	}

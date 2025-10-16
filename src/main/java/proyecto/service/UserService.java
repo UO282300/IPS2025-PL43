@@ -1,7 +1,7 @@
 package proyecto.service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +13,7 @@ import proyecto.util.ApplicationException;
 
 public class UserService {
 	private Database db;
+	private LocalDate fechaHoy;
 
     public UserService() {
         this.db = new Database();
@@ -34,43 +35,111 @@ public class UserService {
 	}
 
 	public boolean cargarActividad(String nombre, int idProfesor, String remuneracion,
-			String espacio, String fecha ,String horaI, String horaF, String inscripcionI,
-			String inscripcionF, String cuota, String objetivos, String contenidos) {
+			String espacio, String fecha ,String horaInicio, String horaFinal, String inscripcionI,
+			String inscripcionF, String cuota, String objetivos, String contenidos, String plazas, boolean esGratuita) {
 		
 		try {
-	        if (nombre == null || nombre.isBlank() || fecha == null 
+	        if (nombre == null || nombre.isBlank() || fecha == null || plazas == null
 	        	|| fecha.isBlank() || espacio == null || espacio.isBlank()) {
 	            JOptionPane.showMessageDialog(null,
-	                    "Debe completar al menos: nombre, fecha y espacio.",
+	                    "Debe completar al menos: nombre, fecha, espacio y plazas.",
 	                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
+	        
+	        int plazasN;
+	        try {
+	        	plazasN = Integer.parseInt(plazas);
+	        } catch (Exception e) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de plazas invalido, usa un decimal", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
 
-	        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 	        LocalDate fechaActividad;
 	        LocalDate inicioIns;
 	        LocalDate finIns;
 	        
 	        try {
-		        fechaActividad = LocalDate.parse(fecha, df);
-		        inicioIns = LocalDate.parse(inscripcionI, df);
-		        finIns = LocalDate.parse(inscripcionF, df);
+		        fechaActividad = LocalDate.parse(fecha);
+		        inicioIns = LocalDate.parse(inscripcionI);
+		        finIns = LocalDate.parse(inscripcionF);
 	        } catch (DateTimeParseException e) {
-	            throw new ApplicationException("Formato de fecha inválido. Usa el formato dd/MM/yyyy");
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de fecha inválido. Usa el formato yyyy-MM-dd", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	            return false;
+	        }
+	        
+	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"No puedes iniciar una actividad antes de la fecha de hoy", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        if (inicioIns.isAfter(finIns)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La fecha de inicio de inscripción no puede ser posterior a la de cierre", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        if (fechaActividad.isBefore(finIns)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La fecha de la actividad debe ser posterior al fin de inscripción", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
 	        }
 
+	        LocalTime horaI;
+	        LocalTime horaF;
+	        try {
+	        	horaI = LocalTime.parse(horaInicio);
+	        	horaF = LocalTime.parse(horaFinal);
+	        } catch (DateTimeParseException e) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de hora inválido. Usa HH:mm", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }	        
+	        
+	        if (horaI.isAfter(horaF)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La hora inicial no puede ser después de la final", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        
 	        double remuneracionNum = Double.parseDouble(remuneracion);
 	        double cuotaNum = Double.parseDouble(cuota);
-	        boolean esGratuita = false;
+	        
+	        if (esGratuita) {
+	        	cuotaNum = 0;
+	        }
+	        
+	        if (plazasN < 0 || remuneracionNum < 0 || cuotaNum < 0) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"No se pueden rellenar campos con decimales negativos", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
 
 	        db.executeUpdate("""
 	            INSERT INTO Actividad
-	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha,
+	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, plazas, fecha,
 	             hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita)
-	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	            """,
 	            nombre, objetivos, contenidos, idProfesor, remuneracionNum, espacio,
-	            fechaActividad.toString(), horaI, horaF,
+	            plazasN, fechaActividad.toString(), horaI, horaF,
 	            inicioIns.toString(), finIns.toString(),
 	            cuotaNum, esGratuita ? 1 : 0
 	        );
@@ -84,13 +153,33 @@ public class UserService {
 	    } catch (ApplicationException ex) {
 	    	JOptionPane.showMessageDialog(null,
 	                "Error al registrar actividad",
-	                "Registro falledio", JOptionPane.ERROR_MESSAGE);
+	                "Registro fallido", JOptionPane.ERROR_MESSAGE);
 	        throw new ApplicationException("Error al cargar la actividad");
 	    }
 	}
 	
 	public List<Map<String, Object>> listarProfesores() {
 	    return db.executeQueryMap("SELECT id_profesor, nombre, apellido FROM Profesor ORDER BY nombre");
+	}
+
+	public LocalDate getFecha() {
+		return fechaHoy;
+	}
+
+	public void setFecha(LocalDate fecha) {
+		this.fechaHoy = fecha;
+	}
+	
+	public void setFecha(String fechaS) {
+		LocalDate fechaL;
+		
+        try {
+	        fechaL = LocalDate.parse(fechaS);
+        } catch (DateTimeParseException e) {
+            throw new ApplicationException("Formato de fecha inválido. Usa el formato yyyy-MM-dd");
+        }
+        
+        this.fechaHoy = fechaL;
 	}
 
     
