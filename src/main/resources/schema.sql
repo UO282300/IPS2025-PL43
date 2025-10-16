@@ -38,6 +38,7 @@ CREATE TABLE Actividad (
     id_profesor INTEGER,
     remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
+    plazas INTEGER,
     fecha DATE,
     hora_inicio TIME,
     hora_fin TIME,
