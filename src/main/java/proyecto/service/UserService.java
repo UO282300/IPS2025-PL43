@@ -81,6 +81,7 @@ public class UserService {
 	        }
 	        
 	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
+	        	System.out.println("fecha hoy: "+ fechaHoy + " fecha inicio insc actividad: "+ inicioIns.toString() + " fecha fin insc: "+ finIns.toString() + " fecha actividad: " + fechaActividad.toString());
 	        	JOptionPane.showMessageDialog(null,
 	        			"No puedes iniciar una actividad antes de la fecha de hoy", 
 		                "Error al registrar actividad",
