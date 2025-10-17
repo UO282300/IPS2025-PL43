@@ -38,6 +38,7 @@ CREATE TABLE Actividad (
     id_profesor INTEGER,
     remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
+    plazas INTEGER,
     fecha DATE,
     hora_inicio TIME,
     hora_fin TIME,
@@ -45,7 +46,6 @@ CREATE TABLE Actividad (
     fin_inscripcion DATE,
     cuota DECIMAL(10,2) DEFAULT 0,
     es_gratuita BOOLEAN DEFAULT 0,
-    total_plazas INTEGER,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
 );
 
