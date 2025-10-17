@@ -18,6 +18,7 @@ public class Actividad {
 	private double cuota;
 	private boolean es_gratuita;
 	private int id_profesor;
+	private int plazas;
 	
 	public int getId_Actividad() {
 		return id_Actividad;
@@ -106,6 +107,10 @@ public class Actividad {
 	
 	public String toString() {
 		return "Nombre: " + getNombre() + " --------------  Objetivo : " + getObjetivos() + " -------------- FECHA : " + getFecha() + " | " + getHoraInicio()+"--"+getHoraFin();
+	}
+	public void setPlazas(Number number) {
+		// TODO Auto-generated method stub
+		plazas=(int) number;
 	}
 	
 

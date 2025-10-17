@@ -43,7 +43,6 @@ public class VentanaInscripcion extends JFrame {
 	private JLabel lbFecha;
 	private JPanel pnBotones;
 	private JButton btSelect;
-	private JButton btFiltrar;
 	private JScrollPane scrollPane;
 	private JList<Actividad> list;
 	private JPanel pnPertenece;
@@ -68,29 +67,15 @@ public class VentanaInscripcion extends JFrame {
 	private UserService service;
 	
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					
-					VentanaInscripcion frame = new VentanaInscripcion();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	
 
 	/**
 	 * Create the frame.
+	 * @param service2 
 	 */
-	public VentanaInscripcion() {
+	public VentanaInscripcion(UserService service2) {
 		setBackground(new Color(255, 128, 128));
-		service = new UserService();
+		service = service2;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 915, 824);
 		setMinimumSize(new Dimension(1500, 600));
@@ -156,7 +141,6 @@ public class VentanaInscripcion extends JFrame {
 			pnBotones.setBackground(new Color(255, 128, 128));
 			pnBotones.setLayout(new BorderLayout(0, 0));
 			pnBotones.add(getBtSelect(), BorderLayout.EAST);
-			pnBotones.add(getBtFiltrar(), BorderLayout.WEST);
 		}
 		return pnBotones;
 	}
@@ -185,18 +169,6 @@ public class VentanaInscripcion extends JFrame {
 		}
 		
 		
-	}
-
-	private JButton getBtFiltrar() {
-		if (btFiltrar == null) {
-			btFiltrar = new JButton("Actualizar");
-			btFiltrar.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					cargarActividades();
-				}
-			});
-		}
-		return btFiltrar;
 	}
 	protected void cargarActividades() {
 		modelo.removeAllElements();
@@ -349,7 +321,7 @@ public class VentanaInscripcion extends JFrame {
 		service.guardarApellidos(getTxApellido().getText());
 		service.guardarTf(getTxTf().getText());
 		service.guardarCorreo(getTxCorreo().getText());
-		service.guardarPertenece(getRdbtNo().isSelected());
+		service.guardarPertenece(!getRdbtNo().isSelected());
 		
 	}
 	private JPanel getPnCorreo() {

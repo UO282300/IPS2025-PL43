@@ -140,7 +140,7 @@ public class UserService {
 
 	        db.executeUpdate("""
 	            INSERT INTO Actividad
-	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, plazas, fecha,
+	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, total_plazas, fecha,
 	             hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita)
 	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	            """,
@@ -308,7 +308,10 @@ public class UserService {
 	}
 
 	public boolean introduce() {
-		if(!comprobarPlazos()) return false;
+		if(!comprobarPlazos()) {
+			System.out.println("Fuera de plazo");
+			return false;
+		}
 		insertarAlumno();
 		
 		
@@ -317,7 +320,7 @@ public class UserService {
 	}
 
 	private boolean comprobarPlazos() {
-		LocalDate hoy = LocalDate.now();
+		LocalDate hoy = getFecha();
 	    LocalDate inicio = ac.getInicio_insc();
 	    LocalDate fin = ac.getFin_inscr();
 
@@ -353,7 +356,7 @@ public class UserService {
 	
 	public List<Actividad> recuperarActividades(){
 		List<Actividad> listaActividades = new ArrayList<>();
-		LocalDate hoy = LocalDate.now();
+		LocalDate hoy = fechaHoy;
 	    String fechaFiltro = hoy.toString();
 	    String fechaMax = hoy.plusYears(1).toString();
 	    
@@ -376,6 +379,7 @@ public class UserService {
 	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
 	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
 	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
+	        act.setPlazas((Number) fila.get("total_plazas"));
 
 	        listaActividades.add(act);
 	    }
@@ -408,7 +412,7 @@ public class UserService {
 	            ac.getId_Actividad(),
 	            false,
 	            0.0,
-	            LocalDate.now()
+	            fechaHoy
 	        );
 				
 	}
@@ -421,8 +425,8 @@ public class UserService {
 
 		if (resultados.isEmpty()) {
 			db.executeUpdate(
-			        "INSERT INTO Alumno (nombre, apellido, email, telefono) VALUES (?, ?, ?, ?)",
-			        a.getNombre(), a.getApellido(), a.getCorreo(), a.getTelefono()
+			        "INSERT INTO Alumno (nombre, apellido, email, telefono, es_interno) VALUES (?, ?, ?, ?, ?)",
+			        a.getNombre(), a.getApellido(), a.getCorreo(), a.getTelefono(), a.pertenece()
 			    );
 			  List<Map<String, Object>> nuevo = db.executeQueryMap(
 			            "SELECT id_alumno FROM Alumno WHERE email = ?", correoBuscado

@@ -111,6 +111,14 @@ public class VentanaPrincipal {
 
         frame.getContentPane().add(pnCentro, BorderLayout.CENTER);
         
+        JButton btInscripcion = new JButton("Inscribirse a actividad");
+        btInscripcion.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaInscripcion();
+        	}
+        });
+        pnCentro.add(btInscripcion);
+        
         JLabel label = new JLabel("");
         pnCentro.add(label);
         
@@ -132,4 +140,10 @@ public class VentanaPrincipal {
         vR.setLocationRelativeTo(null);
         vR.setVisible(true);
     }
+	
+	private void mostrarVentanaInscripcion() {
+		VentanaInscripcion vI = new VentanaInscripcion(service);
+		vI.setLocationRelativeTo(null);
+		vI.setVisible(true);
+	}
 }

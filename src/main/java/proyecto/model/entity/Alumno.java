@@ -69,7 +69,11 @@ public class Alumno {
 		this.pertenece = selected;
 		
 	}
-
+	
+	public boolean pertenece() {
+		return pertenece;
+	}
+	
 	public Object getCorreo() {
 		return correo;
 	}
