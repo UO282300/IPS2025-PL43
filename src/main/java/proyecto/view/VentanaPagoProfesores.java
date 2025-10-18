@@ -118,7 +118,6 @@ public class VentanaPagoProfesores extends JFrame {
         btnVolver.addActionListener(e -> dispose());
         btnRegistrar.addActionListener(e -> registrarPago());
 
-        // Listener único del combo
         comboActividades.addActionListener(e -> {
             if (cargandoActividades) return;
             String key = (String) comboActividades.getSelectedItem();
@@ -127,7 +126,6 @@ public class VentanaPagoProfesores extends JFrame {
             autocompletarDatosProfesor(idActividad);
         });
 
-        // Cargar datos iniciales
         cargarActividadesActivas();
     }
 
@@ -217,9 +215,9 @@ public class VentanaPagoProfesores extends JFrame {
         }
 
         int idProfesor = ((Number) profesor.get("id_profesor")).intValue();
-        int idFactura = us.crearFacturaSiNoExiste(idProfesor, idActividad, tfFecha.getText(), cantidadIntroducida);
-
-        us.registrarPagoProfesor(idProfesor, idFactura, tfFecha.getText(), cantidadIntroducida);
+        int idFactura = us.obtenerIdFactura(idProfesor, idActividad);
+        
+        us.registrarPagoProfesor(idProfesor, idFactura, idActividad, tfFecha.getText(), cantidadIntroducida);
 
         JOptionPane.showMessageDialog(this, "Pago registrado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
         us.imprimirPagosProfesor();

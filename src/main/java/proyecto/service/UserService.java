@@ -1081,6 +1081,7 @@ public class UserService {
 	            SELECT 1
 	            FROM PagoProfesor pp
 	            WHERE pp.id_profesor = p.id_profesor
+	              AND pp.id_actividad = a.id_actividad
 	              AND pp.estado_pago = 'Pagado'
 	        )
 	        ORDER BY a.fecha
@@ -1134,48 +1135,26 @@ public class UserService {
 	    return fechaHoy;
 	}
 	
-	public int crearFacturaSiNoExiste(int idProfesor, int idActividad, String fechaFactura, double cantidad) {
-	    // Verificar si ya existe factura para este profesor y actividad
+	public int obtenerIdFactura(int idProfesor, int idActividad) {
 	    List<Map<String, Object>> facturas = db.executeQueryMap(
-	        "SELECT id_factura FROM FacturaP WHERE id_profesor = ? ORDER BY fecha_factura DESC LIMIT 1",
-	        idProfesor
+	        "SELECT id_factura FROM FacturaP WHERE id_profesor = ? AND id_actividad = ?",
+	        idProfesor,
+	        idActividad
 	    );
 
-	    if (!facturas.isEmpty()) {
-	        return ((Number) facturas.get(0).get("id_factura")).intValue();
+	    if (facturas.isEmpty()) {
+	        throw new RuntimeException("No existe factura para este profesor y actividad.");
 	    }
 
-	    // Crear factura
-	    db.executeUpdate(
-	        "INSERT INTO FacturaP (id_profesor, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion) VALUES (?, ?, ?, ?, ?, ?, ?)",
-	        idProfesor,
-	        "FACT-" + System.currentTimeMillis(), // número de factura generado
-	        fechaFactura,
-	        cantidad,
-	        "", // emisor_nombre
-	        "", // emisor_nif
-	        ""  // emisor_direccion
-	    );
-
-	    // Obtener id_factura insertado
-	    List<Map<String, Object>> resultado = db.executeQueryMap(
-	        "SELECT last_insert_rowid() AS id_factura"
-	    );
-
-	    return ((Number) resultado.get(0).get("id_factura")).intValue();
+	    return ((Number) facturas.get(0).get("id_factura")).intValue();
 	}
 	
-	public void registrarPagoProfesor(int idProfesor, int idFactura, String fechaPago, double cantidad) {
+	public void registrarPagoProfesor(int idProfesor, int idFactura, int idActividad, String fechaPago, double cantidad) {
 	    db.executeUpdate(
-	        "INSERT INTO PagoProfesor (id_profesor, id_factura, fecha_pago, cantidad, estado_pago) VALUES (?, ?, ?, ?, ?)",
-	        idProfesor,
-	        idFactura,
-	        fechaPago,
-	        cantidad,
-	        "Pendiente"
+	        "INSERT INTO PagoProfesor (id_profesor, id_factura, id_actividad, fecha_pago, cantidad, estado_pago) VALUES (?, ?, ?, ?, ?, ?)",
+	        idProfesor, idFactura, idActividad, fechaPago, cantidad, "Pagado"
 	    );
 	}
-
 	public void imprimirPagosProfesor() {
 	    List<Map<String, Object>> pagos = db.executeQueryMap("SELECT * FROM PagoProfesor");
 
@@ -1192,9 +1171,5 @@ public class UserService {
 	    }
 	    System.out.println("==========================");
 	}
-
-
-
-
 
 }
