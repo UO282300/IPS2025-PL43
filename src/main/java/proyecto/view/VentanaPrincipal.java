@@ -10,8 +10,11 @@ import proyecto.service.UserService;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 import java.awt.event.ActionEvent;
@@ -24,8 +27,11 @@ public class VentanaPrincipal {
 	private JFrame frame;
 	UserService service;
 <<<<<<< HEAD
+<<<<<<< HEAD
 	private JTextField txtFechaHoy;
 	JLabel lblFechaCargada;
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	
@@ -36,6 +42,7 @@ public class VentanaPrincipal {
 
 	private void initialize() {
 		frame = new JFrame();
+<<<<<<< HEAD
 <<<<<<< HEAD
 		frame.getContentPane().setBackground(Color.DARK_GRAY);
         frame.setTitle("Main");
@@ -81,6 +88,8 @@ public class VentanaPrincipal {
         pnDaFecha.add(lblFechaCargada);
         frame.getContentPane().add(pnNorte, BorderLayout.NORTH);
 =======
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 		frame.setTitle("Main");
 		frame.setBounds(0, 0, 500, 500);
 		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
@@ -191,9 +200,13 @@ public class VentanaPrincipal {
 		frame.getContentPane().add(btnResponsable);
 		
 		frame.setVisible(true);
+<<<<<<< HEAD
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
+=======
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	}
 	
+<<<<<<< HEAD
 <<<<<<< HEAD
 	private void mostrarVentanaBalance() {
 		VentanaVerBalance vB = new VentanaVerBalance(service);
@@ -205,14 +218,23 @@ public class VentanaPrincipal {
 		vR.setLocationRelativeTo(null);
 		vR.setVisible(true);
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
+=======
+	private void mostrarVentanaResponsable() {
+		VentanaResponsable vR = new VentanaResponsable(service);
+		vR.setLocationRelativeTo(null);
+		vR.setVisible(true);
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	}
 	
+<<<<<<< HEAD
 <<<<<<< HEAD
 	private void mostrarVentanaRegistrarPagos() {
 		VentanaRegistrarPagos vP = new VentanaRegistrarPagos();
 		vP.getFrame().setLocationRelativeTo(null);
 		vP.getFrame().setVisible(true);
 	}
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 }

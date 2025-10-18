@@ -24,6 +24,7 @@ INSERT INTO Alumno(nombre, apellido, email, telefono, es_interno) VALUES
 ('Luis', 'Fernandez', 'luis.fernandez@gmail.com', '678912345', 0);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 -- Actividades
 INSERT INTO Actividad(nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha, hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita, total_plazas) VALUES
 ('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis básica y funciones', 1, 250.00, 'L-31', '2025-11-05', '10:00', '13:00', '2025-10-10', '2025-11-09', 100.00, 0, 2),
@@ -47,7 +48,13 @@ INSERT INTO Actividad (nombre, objetivos, contenidos, id_profesor, remuneracion,
 ('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis basica y funciones', 1, 250.00, 'L-31', '2025-11-05', '10:00', '13:00', '2025-10-19', '2025-11-09', 100.00, 0),
 ('Java Avanzado', 'Profundizar en conceptos avanzados de Java', 'Colecciones, excepciones y patrones', 2, 300.00, 'A-S-02', '2025-12-01', '09:00', '14:00', '2025-11-10', '2025-11-30', 150.00, 0);
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
+=======
+INSERT INTO Actividad (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha, hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita) VALUES
+('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis basica y funciones', 1, 250.00, 'L-31', '2025-11-05', '10:00', '13:00', '2025-10-19', '2025-11-09', 100.00, 0),
+('Java Avanzado', 'Profundizar en conceptos avanzados de Java', 'Colecciones, excepciones y patrones', 2, 300.00, 'A-S-02', '2025-12-01', '09:00', '14:00', '2025-11-10', '2025-11-30', 150.00, 0);
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 -- Matrículas
 INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
@@ -62,6 +69,11 @@ INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, es
 (2, 2, '2025-10-15', 150.00, 1),
 (3, 5, '2025-10-16', 0.00, 0);
 
+=======
+INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
+(1, 2, '2025-10-08', 100.00, 1),
+(2, 1, '2025-10-08', 200.00, 1);
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
 INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
 (1, 2, '2025-10-08', 100.00, 1),

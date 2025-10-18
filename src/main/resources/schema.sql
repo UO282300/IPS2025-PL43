@@ -39,7 +39,10 @@ CREATE TABLE Actividad (
     remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
 <<<<<<< HEAD
+<<<<<<< HEAD
     total_plazas INTEGER,
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
     fecha DATE,
@@ -62,7 +65,11 @@ CREATE TABLE Matricula (
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
 <<<<<<< HEAD
+<<<<<<< HEAD
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+=======
+    FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 =======
     FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 >>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
