@@ -1,13 +1,13 @@
 package proyecto.view;
 
-import javax.swing.JFrame;
-
-import proyecto.service.UserService;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import javax.swing.JFrame;
+
+import proyecto.service.UserService;
 
 public class VentanaPrincipal {
 
@@ -52,13 +52,24 @@ public class VentanaPrincipal {
 		});
 		frame.getContentPane().add(btnQueryDePrueba);
 		
-		JButton btnResponsable = new JButton("Consultar el estado de una actividad de formación");
+		JButton btnRegistrarPagos = new JButton("Registrar Pagos");
+		btnRegistrarPagos.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				VentanaRegistrarPagos ventanaPagos = new VentanaRegistrarPagos();
+                ventanaPagos.getFrame().setVisible(true);
+			}
+		});
+		frame.getContentPane().add(btnRegistrarPagos);
+
+		
+		JButton btnResponsable = new JButton("Consultar el estado de una actividad de formaciï¿½n");
 		btnResponsable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				mostrarVentanaEstadoAF();
 			}
 		});
 		frame.getContentPane().add(btnResponsable);
+	
 		
 		frame.setVisible(true);
 	}
