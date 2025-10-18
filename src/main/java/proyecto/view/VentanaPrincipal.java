@@ -9,8 +9,11 @@ import proyecto.service.UserService;
 
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+<<<<<<< HEAD
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 import java.awt.event.ActionEvent;
 import java.awt.GridLayout;
 import java.awt.Color;
@@ -20,8 +23,11 @@ public class VentanaPrincipal {
 
 	private JFrame frame;
 	UserService service;
+<<<<<<< HEAD
 	private JTextField txtFechaHoy;
 	JLabel lblFechaCargada;
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	
 	public VentanaPrincipal() {
 		service = new UserService();
@@ -30,6 +36,7 @@ public class VentanaPrincipal {
 
 	private void initialize() {
 		frame = new JFrame();
+<<<<<<< HEAD
 		frame.getContentPane().setBackground(Color.DARK_GRAY);
         frame.setTitle("Main");
         frame.setBounds(100, 100, 600, 600);
@@ -73,7 +80,13 @@ public class VentanaPrincipal {
         lblFechaCargada.setFont(new Font("Arial", Font.BOLD, 13));
         pnDaFecha.add(lblFechaCargada);
         frame.getContentPane().add(pnNorte, BorderLayout.NORTH);
+=======
+		frame.setTitle("Main");
+		frame.setBounds(0, 0, 500, 500);
+		frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 
+<<<<<<< HEAD
         // === PANEL CENTRO ===
         JPanel pnCentro = new JPanel();
         pnCentro.setBackground(Color.GRAY);
@@ -141,17 +154,65 @@ public class VentanaPrincipal {
 		VentanaInscripcion vI = new VentanaInscripcion(service);
 		vI.setLocationRelativeTo(null);
 		vI.setVisible(true);
+=======
+		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+		frame.setLocationRelativeTo(null);
+		
+		JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
+		btnInicializarBaseDeDatos.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+		        service.crearDataBase();
+			}
+		});
+		frame.getContentPane().add(btnInicializarBaseDeDatos);
+			
+		JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
+		btnCargarDatosIniciales.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				service.cargarDataBase();
+			}
+		});
+		frame.getContentPane().add(btnCargarDatosIniciales);
+		
+		JButton btnQueryDePrueba = new JButton("Ejemplo de consulta");
+		btnQueryDePrueba.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				service.ejemploConsulta();
+			}
+		});
+		frame.getContentPane().add(btnQueryDePrueba);
+		
+		JButton btnResponsable = new JButton("Responsable añade actividad");
+		btnResponsable.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mostrarVentanaResponsable();
+			}
+		});
+		frame.getContentPane().add(btnResponsable);
+		
+		frame.setVisible(true);
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	}
 	
+<<<<<<< HEAD
 	private void mostrarVentanaBalance() {
 		VentanaVerBalance vB = new VentanaVerBalance(service);
 		vB.setLocationRelativeTo(null);
 		vB.setVisible(true);
+=======
+	private void mostrarVentanaResponsable() {
+		VentanaResponsable vR = new VentanaResponsable(service);
+		vR.setLocationRelativeTo(null);
+		vR.setVisible(true);
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 	}
 	
+<<<<<<< HEAD
 	private void mostrarVentanaRegistrarPagos() {
 		VentanaRegistrarPagos vP = new VentanaRegistrarPagos();
 		vP.getFrame().setLocationRelativeTo(null);
 		vP.getFrame().setVisible(true);
 	}
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 }

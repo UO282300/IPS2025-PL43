@@ -13,7 +13,10 @@ public class Main {
 			public void run() {
 				try {
 					UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+<<<<<<< HEAD
 					
+=======
+>>>>>>> branch '#30621' of https://github.com/UO282300/IPS2025-PL43.git
 					new VentanaPrincipal();
 					
 				} catch (Exception e) {
