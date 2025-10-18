@@ -61,3 +61,26 @@ CREATE TABLE Matricula (
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
     FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 );
+
+CREATE TABLE Factura (
+    id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    numero_factura VARCHAR(50) NOT NULL,
+    fecha_factura DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    emisor_nombre VARCHAR(100) NOT NULL,
+    emisor_nif VARCHAR(20) NOT NULL,
+    emisor_direccion VARCHAR(255) NOT NULL,
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
+);
+
+CREATE TABLE PagoProfesor (
+    id_pago INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    id_factura INTEGER NOT NULL,
+    fecha_pago DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    estado_pago VARCHAR(20) DEFAULT 'Pendiente',
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
+    FOREIGN KEY (id_factura) REFERENCES Factura(id_factura)
+);
