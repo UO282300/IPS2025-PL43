@@ -13,6 +13,8 @@ import javax.swing.JOptionPane;
 import proyecto.model.Database;
 import proyecto.model.entity.Actividad;
 import proyecto.model.entity.Alumno;
+import proyecto.model.entity.Factura;
+import proyecto.model.entity.FechaFiltrado;
 import proyecto.util.ApplicationException;
 
 public class UserService {
@@ -20,6 +22,7 @@ public class UserService {
 	private Alumno a = new Alumno();
 	private Actividad ac;
 	private LocalDate fechaHoy;
+	private FechaFiltrado fechaFiltrado;
 
     public UserService() {
         this.db = new Database();
@@ -207,7 +210,7 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
-            java.time.LocalDate hoy = java.time.LocalDate.now();
+            java.time.LocalDate hoy = fechaHoy;
             java.time.LocalDate inicio = java.time.LocalDate.parse((String) act.get("inicio_inscripcion"));
             java.time.LocalDate fin = java.time.LocalDate.parse((String) act.get("fin_inscripcion"));
             java.time.LocalDate fecha = java.time.LocalDate.parse((String) act.get("fecha"));
@@ -452,4 +455,184 @@ public class UserService {
 	public Object getAct() {
 		return ac;
 	}
+	
+	
+	public List<Factura> recuperarActividadesEnRango() {
+	   
+	    List<Factura> listaActividades = new ArrayList<>();
+	    LocalDate fechaMax = LocalDate.of(fechaHoy.getYear(), 12, 31);
+	    LocalDate fechaMin = LocalDate.of(fechaHoy.getYear(), 1, 1);
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= ? AND fecha <= ? ORDER BY fecha ASC";
+	    
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, fechaMin.toString(),fechaMax.toString());
+
+	    for (Map<String, Object> fila : resultados) {
+	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        f.setId_actividad((int) fila.get("id_actividad"));
+	        f.setNombre((String) fila.get("nombre"));
+	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
+	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
+	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
+	        
+	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
+	        System.out.println("Estado "+ f.getEstado());
+
+	        listaActividades.add(f);
+	    }
+	    
+	    return listaActividades;
+	}
+	
+	public List<Factura> recuperarActividadesEnRango(LocalDate min, LocalDate max) {
+		   
+	    List<Factura> listaActividades = new ArrayList<>();
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= ? AND fecha <= ? ORDER BY fecha ASC";
+	    
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, min.toString(),max.toString());
+
+	    for (Map<String, Object> fila : resultados) {
+	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        f.setId_actividad((int) fila.get("id_actividad"));
+	        f.setNombre((String) fila.get("nombre"));
+	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
+	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
+	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
+	        
+	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
+	        System.out.println("Estado "+ f.getEstado());
+
+	        listaActividades.add(f);
+	    }
+	    
+	    return listaActividades;
+	}
+	
+	
+	private int recuperarPlazasLibres(int id) {
+		
+
+		 Map<String, Object> resultados = getActividadDetalles(id);
+		 if (resultados.isEmpty()) {
+			
+			 return Integer.MAX_VALUE;
+		 }
+		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
+		 int plazas_libres = plazasObj.intValue();
+		 return plazas_libres;
+   
+	}
+	
+	public List<Factura> recuperaAcabadas(){
+		List<Factura> lista= recuperarActividadesEnRango();
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaCerrada()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+	
+	
+	public List<Factura> recuperaSinAcabar(){
+		List<Factura> lista= recuperarActividadesEnRango();
+		List<Factura> sinAcabar = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaAbierta()) {
+				sinAcabar.add(f);
+			}
+		}
+		System.out.println("Sin acabar = " + sinAcabar.size());
+		return sinAcabar;
+	}
+	
+	public String getFacturasTextoAcabadas() {
+	    List<Factura> lista = recuperaAcabadas();
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	        sb.append(f);
+	    }
+
+	    return sb.toString();
+	}
+	
+	public String getFacturasTextoSinAcabar() {
+	    List<Factura> lista = recuperaSinAcabar();
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	    	sb.append(f.toStringSin());
+	    }
+
+	    return sb.toString();
+	}
+
+	public void setFechaFiltrado(String fechaIn, String fechaFin) {
+		fechaFiltrado = new FechaFiltrado(fechaIn, fechaFin);
+		
+	}
+
+	public boolean compruebaFormatoFecha(String fecha) {
+		try {
+	        LocalDate.parse(fecha);
+	        return true;
+	    } catch (DateTimeParseException e) {
+	        return false;
+	    }
+        
+	}
+
+	public String getFacturasTextoAcabadasEnRango() {
+		List<Factura> lista = recuperaAcabadasEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	        sb.append(f);
+	    }
+
+	    return sb.toString();
+	}
+
+	private List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaCerrada()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+
+	public String getFacturasTextoSinAcabarEnRango() {
+		List<Factura> lista = recuperaSinAcabarEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	    	sb.append(f.toStringSin());
+	    }
+
+	    return sb.toString();
+	}
+
+	private List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaAbierta()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+	
+	
 }

@@ -119,6 +119,14 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btInscripcion);
         
+        JButton btnBalance = new JButton("Ver Balance");
+        btnBalance.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaBalance();
+        	}
+        });
+        pnCentro.add(btnBalance);
+        
         JLabel label = new JLabel("");
         pnCentro.add(label);
         
@@ -145,5 +153,11 @@ public class VentanaPrincipal {
 		VentanaInscripcion vI = new VentanaInscripcion(service);
 		vI.setLocationRelativeTo(null);
 		vI.setVisible(true);
+	}
+	
+	private void mostrarVentanaBalance() {
+		VentanaVerBalance vB = new VentanaVerBalance(service);
+		vB.setLocationRelativeTo(null);
+		vB.setVisible(true);
 	}
 }
