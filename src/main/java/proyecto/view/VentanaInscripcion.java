@@ -247,7 +247,7 @@ public class VentanaInscripcion extends JFrame {
 		if(service.getAct()==null) {
 			JOptionPane.showMessageDialog(
 			        null, 
-			        "Actividad sin escoger.\nNo se ha realizado la inscripción.", 
+			        "Actividad sin escoger.\nNo se ha realizado la inscripciï¿½n.", 
 			        "Error", 
 			        JOptionPane.ERROR_MESSAGE
 			    );
@@ -265,7 +265,7 @@ public class VentanaInscripcion extends JFrame {
 			if (!CheckearData()) {
 			    JOptionPane.showMessageDialog(
 			        null, 
-			        "Los datos ingresados no son correctos.\nNo se ha realizado la inscripción.", 
+			        "Los datos ingresados no son correctos.\nNo se ha realizado la inscripciï¿½n.", 
 			        "Error", 
 			        JOptionPane.ERROR_MESSAGE
 			    );
@@ -296,7 +296,7 @@ public class VentanaInscripcion extends JFrame {
 		if(service.introduce()) {
 			JOptionPane.showMessageDialog(
 			        null,
-			        "Inscripción realizada correctamente.\nSe ha enviado un correo con la información de pago.",
+			        "Inscripciï¿½n realizada correctamente.\nSe ha enviado un correo con la informaciï¿½n de pago.",
 			        "Correo enviado",JOptionPane.INFORMATION_MESSAGE);
 			
 		}
@@ -429,3 +429,4 @@ public class VentanaInscripcion extends JFrame {
 
 	
 }
+

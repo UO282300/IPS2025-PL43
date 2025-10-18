@@ -242,7 +242,7 @@ public class VentanaVerBalance extends JFrame {
 	    return rdBtSinFin;
 	}
 
-	// Panel del botón Filtrar
+	// Panel del botï¿½n Filtrar
 	private JPanel getPnBotonFiltrar() {
 	    if (pnBotonFiltrar == null) {
 	        pnBotonFiltrar = new JPanel();
