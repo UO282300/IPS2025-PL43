@@ -23,7 +23,6 @@ INSERT INTO Alumno(nombre, apellido, email, telefono, es_interno) VALUES
 ('Ana', 'Torres', 'ana.torres@gmail.com', '567891234', 0),
 ('Luis', 'Fernandez', 'luis.fernandez@gmail.com', '678912345', 0);
 
-<<<<<<< HEAD
 -- Actividades
 INSERT INTO Actividad(nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha, hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita, total_plazas) VALUES
 ('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis básica y funciones', 1, 250.00, 'L-31', '2025-11-05', '10:00', '13:00', '2025-10-10', '2025-11-09', 100.00, 0, 2),
@@ -32,7 +31,6 @@ INSERT INTO Actividad(nombre, objetivos, contenidos, id_profesor, remuneracion, 
 ('Diseño Web Básico', 'HTML, CSS y JS', 'Construcción de páginas web', 2, 220.00, 'C-05', '2025-11-25', '09:00', '12:00', '2025-10-01', '2025-10-31', 90.00, 0, 20),
 ('React Avanzado', 'React avanzado', 'Hooks, Context, Redux', 1, 250.00, 'D-01', '2025-12-10', '10:00', '13:00', '2025-11-01', '2025-12-05', 120.00, 0, 15),
 ('Node.js Intermedio', 'Backend Node', 'Express, API REST', 2, 230.00, 'E-02', '2025-11-22', '09:00', '12:00', '2025-10-01', '2025-10-20', 100.00, 0, 15);
-=======
 INSERT INTO Actividad (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha, hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita,total_plazas) VALUES
 ('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis basica y funciones', 1, 250.00, 'L-31', '2025-11-05', '10:00', '13:00', '2025-10-19', '2025-11-09', 100.00, 0,10),
 ('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis basica y funciones', 1, 250.00, 'L-31', '2024-11-05', '10:00', '13:00', '2024-10-19', '2024-11-09', 100.00, 0,10),
@@ -43,7 +41,6 @@ INSERT INTO Actividad (nombre, objetivos, contenidos, id_profesor, remuneracion,
 ('Java Avanzado', 'Profundizar en conceptos avanzados de Java', 'Colecciones, excepciones y patrones', 2, 300.00, 'A-S-02', '2028-12-01', '09:00', '14:00', '2029-11-10', '2028-11-30', 150.00, 0,12),
 ('Java Avanzado', 'Profundizar en conceptos avanzados de Java', 'Colecciones, excepciones y patrones', 2, 300.00, 'A-S-02', '2028-12-01', '09:00', '14:00', '2027-11-10', '2028-11-30', 150.00, 0,12),
 ('Java Avanzado', 'Profundizar en conceptos avanzados de Java', 'Colecciones, excepciones y patrones', 2, 300.00, 'A-S-02', '3000-12-01', '09:00', '14:00', '3000-11-10', '3000-11-30', 150.00, 0,12);
->>>>>>> refs/remotes/origin/develop
 
 -- Matrículas
 INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
