@@ -51,7 +51,7 @@ public class VentanaResponsable extends JFrame {
     public VentanaResponsable(UserService service) {
     	this.service = service;
     	
-        setTitle("PLANIFICACIÓN DE ACTIVIDADES");
+        setTitle("PLANIFICACIï¿½N DE ACTIVIDADES");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 800, 700);
         setMinimumSize(new Dimension(950, 600));
@@ -72,7 +72,7 @@ public class VentanaResponsable extends JFrame {
             pnNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 15));
             pnNorte.setBackground(new Color(230, 235, 250));
 
-            JLabel lblTitulo = new JLabel("Planificación de Actividad Formativa", SwingConstants.CENTER);
+            JLabel lblTitulo = new JLabel("Planificaciï¿½n de Actividad Formativa", SwingConstants.CENTER);
             lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
             lblTitulo.setForeground(new Color(30, 50, 90));
             lblTitulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -180,7 +180,7 @@ public class VentanaResponsable extends JFrame {
             pnProfesorEspacio.add(new JLabel("Profesor:"));
             pnProfesorEspacio.add(getCmbProfesor());
 
-            pnProfesorEspacio.add(new JLabel("Remuneración (€):"));
+            pnProfesorEspacio.add(new JLabel("Remuneraciï¿½n (ï¿½):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
 
             pnProfesorEspacio.add(new JLabel("Espacio:"));
@@ -240,7 +240,7 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnProgramacion() {
         if (pnProgramacion == null) {
         	pnProgramacion = new JPanel(new GridLayout(3, 2, 10, 10));
-            pnProgramacion.setBorder(new TitledBorder("Programación"));
+            pnProgramacion.setBorder(new TitledBorder("Programaciï¿½n"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
             pnProgramacion.add(new JLabel("Fecha (yyyy-MM-dd):"));
@@ -249,7 +249,7 @@ public class VentanaResponsable extends JFrame {
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
             pnProgramacion.add(getTxtHoraInicio());
 
-            pnProgramacion.add(new JLabel("Hora de finalización (hh:mm):"));
+            pnProgramacion.add(new JLabel("Hora de finalizaciï¿½n (hh:mm):"));
             pnProgramacion.add(getTxtHoraFin());
            
         }
@@ -280,16 +280,16 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnInscripcionCuota() {
         if (pnInscripcionCuota == null) {
         	pnInscripcionCuota = new JPanel(new GridLayout(4, 2, 10, 10));
-            pnInscripcionCuota.setBorder(new TitledBorder("Inscripción y Cuota"));
+            pnInscripcionCuota.setBorder(new TitledBorder("Inscripciï¿½n y Cuota"));
             pnInscripcionCuota.setBackground(new Color(250, 252, 255));
 
-            pnInscripcionCuota.add(new JLabel("Inicio inscripción (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Inicio inscripciï¿½n (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtInicioInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cierre inscripción (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Cierre inscripciï¿½n (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtFinInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cuota (€):"));
+            pnInscripcionCuota.add(new JLabel("Cuota (ï¿½):"));
             pnInscripcionCuota.add(getTxtCuota());
 
             pnInscripcionCuota.add(new JLabel(""));
@@ -343,10 +343,22 @@ public class VentanaResponsable extends JFrame {
     	String profesorSeleccionado = (String) cmbProfesor.getSelectedItem();
     	int idProfesor = mapaProfesores.get(profesorSeleccionado);
     	
-    	if (service.cargarActividad(getTxtNombre().getText(), idProfesor, getTxtRemuneracion().getText(), getTxtEspacio().getText(),
-    			getTxtFecha().getText(), getTxtHoraInicio().getText(),getTxtHoraFin().getText(), getTxtInicioInscripcion().getText(),
-    			getTxtFinInscripcion().getText(), getTxtCuota().getText(), getTxtObjetivos().getText(), getTxtContenidos().getText(), 
-    			getTxtPlazas().getText(), getChkGratuita().isSelected())) {
+    	 if (service.cargarActividad(
+    	            getTxtNombre().getText(),
+    	            idProfesor,
+    	            getTxtRemuneracion().getText(),
+    	            getTxtEspacio().getText(),
+    	            getTxtFecha().getText(),
+    	            getTxtHoraInicio().getText(),
+    	            getTxtHoraFin().getText(),
+    	            getTxtInicioInscripcion().getText(),
+    	            getTxtFinInscripcion().getText(),
+    	            getTxtCuota().getText(),
+    	            getTxtObjetivos().getText(),
+    	            getTxtContenidos().getText(),
+    	            getTxtPlazas().getText(),
+    	            getChkGratuita().isSelected())) {
+
     		
     		dispose();
     	}

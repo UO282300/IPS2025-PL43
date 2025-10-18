@@ -59,4 +59,5 @@ CREATE TABLE Matricula (
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+    FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 );
