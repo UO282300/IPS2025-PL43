@@ -1,197 +1,231 @@
 package proyecto.view;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 
 import proyecto.service.UserService;
 
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.List;
+public class VentanaPagoProfesores extends JFrame {
 
-public class VentanaPagoProfesores {
-
-    private JFrame frame;
+    private static final long serialVersionUID = 1L;
     private JComboBox<String> comboActividades;
     private JTextField tfCantidad;
-    private JTextField tfFechaFactura;
-    private JTextField tfNumeroFactura;
-    private JTextField tfNombreProfesor;
-    private JTextField tfNifProfesor;
-    private JTextField tfDireccionProfesor;
+    private JTextField tfFecha;
     private UserService us;
 
     private Map<String, Integer> actividadMap = new HashMap<>();
-    private double remuneracionSeleccionada = 0;
+    private JTextField txtprofesor;
+    private JTextField txtNIF;
+    private JTextField txtDireccion;
 
-    public VentanaPagoProfesores(UserService us) {
-        this.us = us;
+    // Flag para evitar eventos durante la carga
+    private boolean cargandoActividades = false;
+
+    public VentanaPagoProfesores(UserService service) {
+        this.us = service;
         initialize();
     }
 
     private void initialize() {
-        frame = new JFrame();
-        frame.setTitle("Pago a Profesores");
-        frame.setBounds(100, 100, 600, 450);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.getContentPane().setLayout(null);
-        frame.setLocationRelativeTo(null);
+        setTitle("Registro de Pagos a Profesores");
+        setBounds(100, 100, 550, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+        setLocationRelativeTo(null);
 
-        JLabel lblTitulo = new JLabel("Registro de Factura y Pago al Profesor");
-        lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 16));
+        JLabel lblTitulo = new JLabel("Pago a profesores");
+        lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 18));
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTitulo.setBounds(50, 20, 500, 30);
-        frame.getContentPane().add(lblTitulo);
+        lblTitulo.setBounds(100, 20, 330, 30);
+        getContentPane().add(lblTitulo);
 
         // --- ACTIVIDADES ---
-        JLabel lblActividades = new JLabel("Actividad:");
-        lblActividades.setBounds(50, 70, 120, 25);
-        frame.getContentPane().add(lblActividades);
+        JLabel lblICursos = new JLabel("Cursos:");
+        lblICursos.setBounds(50, 60, 120, 25);
+        getContentPane().add(lblICursos);
 
         comboActividades = new JComboBox<>();
-        comboActividades.setBounds(180, 70, 350, 25);
-        frame.getContentPane().add(comboActividades);
+        comboActividades.setBounds(180, 60, 280, 25);
+        getContentPane().add(comboActividades);
 
-        cargarActividadesConPagosPendientes();
+        // --- PROFESOR ---
+        JLabel lblProfeso = new JLabel("Profesor:");
+        lblProfeso.setBounds(50, 98, 120, 25);
+        getContentPane().add(lblProfeso);
 
-        comboActividades.addActionListener(e -> cargarDatosProfesor());
+        txtprofesor = new JTextField();
+        txtprofesor.setEditable(false);
+        txtprofesor.setBounds(180, 98, 150, 25);
+        getContentPane().add(txtprofesor);
 
-        // --- DATOS DEL PROFESOR ---
-        JLabel lblNombre = new JLabel("Nombre:");
-        lblNombre.setBounds(50, 110, 120, 25);
-        frame.getContentPane().add(lblNombre);
+        txtNIF = new JTextField();
+        txtNIF.setEditable(false);
+        txtNIF.setBounds(180, 133, 150, 25);
+        getContentPane().add(txtNIF);
 
-        tfNombreProfesor = new JTextField();
-        tfNombreProfesor.setBounds(180, 110, 350, 25);
-        tfNombreProfesor.setEditable(false);
-        frame.getContentPane().add(tfNombreProfesor);
+        txtDireccion = new JTextField();
+        txtDireccion.setEditable(false);
+        txtDireccion.setBounds(180, 167, 150, 25);
+        getContentPane().add(txtDireccion);
 
-        JLabel lblNif = new JLabel("NIF:");
-        lblNif.setBounds(50, 150, 120, 25);
-        frame.getContentPane().add(lblNif);
+        JLabel Nif = new JLabel("NIF:");
+        Nif.setBounds(50, 133, 120, 25);
+        getContentPane().add(Nif);
 
-        tfNifProfesor = new JTextField();
-        tfNifProfesor.setBounds(180, 150, 150, 25);
-        tfNifProfesor.setEditable(false);
-        frame.getContentPane().add(tfNifProfesor);
-
-        JLabel lblDireccion = new JLabel("Dirección:");
-        lblDireccion.setBounds(50, 190, 120, 25);
-        frame.getContentPane().add(lblDireccion);
-
-        tfDireccionProfesor = new JTextField();
-        tfDireccionProfesor.setBounds(180, 190, 350, 25);
-        tfDireccionProfesor.setEditable(false);
-        frame.getContentPane().add(tfDireccionProfesor);
-
-        // --- FACTURA ---
-        JLabel lblNumeroFactura = new JLabel("Número de factura:");
-        lblNumeroFactura.setBounds(50, 230, 120, 25);
-        frame.getContentPane().add(lblNumeroFactura);
-
-        tfNumeroFactura = new JTextField();
-        tfNumeroFactura.setBounds(180, 230, 150, 25);
-        frame.getContentPane().add(tfNumeroFactura);
-
-        JLabel lblFechaFactura = new JLabel("Fecha factura:");
-        lblFechaFactura.setBounds(50, 270, 120, 25);
-        frame.getContentPane().add(lblFechaFactura);
-
-        tfFechaFactura = new JTextField();
-        tfFechaFactura.setBounds(180, 270, 150, 25);
-        frame.getContentPane().add(tfFechaFactura);
+        JLabel Direccion = new JLabel("Dirección:");
+        Direccion.setBounds(50, 167, 120, 25);
+        getContentPane().add(Direccion);
 
         // --- CANTIDAD ---
         JLabel lblCantidad = new JLabel("Cantidad (€):");
-        lblCantidad.setBounds(50, 310, 120, 25);
-        frame.getContentPane().add(lblCantidad);
+        lblCantidad.setBounds(50, 210, 120, 25);
+        getContentPane().add(lblCantidad);
 
         tfCantidad = new JTextField();
-        tfCantidad.setBounds(180, 310, 150, 25);
-        frame.getContentPane().add(tfCantidad);
+        tfCantidad.setBounds(180, 210, 150, 25);
+        getContentPane().add(tfCantidad);
+
+        // --- FECHA ---
+        JLabel lblFecha = new JLabel("Fecha de pago:");
+        lblFecha.setBounds(50, 245, 120, 25);
+        getContentPane().add(lblFecha);
+
+        tfFecha = new JTextField();
+        tfFecha.setBounds(180, 245, 150, 25);
+        getContentPane().add(tfFecha);
+
+        if (us.getFechaHoy() != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            tfFecha.setText(us.getFechaHoy().format(formatter));
+        }
 
         // --- BOTONES ---
-        JButton btnRegistrarPago = new JButton("Registrar Pago");
-        btnRegistrarPago.setBounds(350, 360, 180, 35);
-        btnRegistrarPago.setBackground(new Color(128, 255, 0));
-        frame.getContentPane().add(btnRegistrarPago);
+        JButton btnRegistrar = new JButton("Registrar Pago");
+        btnRegistrar.setBackground(new Color(128, 255, 0));
+        btnRegistrar.setBounds(280, 297, 180, 35);
+        getContentPane().add(btnRegistrar);
 
         JButton btnVolver = new JButton("Volver");
-        btnVolver.setBounds(80, 360, 150, 35);
         btnVolver.setBackground(new Color(255, 0, 0));
-        frame.getContentPane().add(btnVolver);
+        btnVolver.setBounds(82, 297, 150, 35);
+        getContentPane().add(btnVolver);
 
-        btnRegistrarPago.addActionListener(e -> registrarPagoProfesor());
-        btnVolver.addActionListener(e -> frame.dispose());
+        btnVolver.addActionListener(e -> dispose());
+        btnRegistrar.addActionListener(e -> registrarPago());
+
+        // Listener único del combo
+        comboActividades.addActionListener(e -> {
+            if (cargandoActividades) return;
+            String key = (String) comboActividades.getSelectedItem();
+            if (key == null || !actividadMap.containsKey(key)) return;
+            int idActividad = actividadMap.get(key);
+            autocompletarDatosProfesor(idActividad);
+        });
+
+        // Cargar datos iniciales
+        cargarActividadesActivas();
     }
 
-    private void cargarActividadesConPagosPendientes() {
+    private void cargarActividadesActivas() {
+        cargandoActividades = true;
         comboActividades.removeAllItems();
         actividadMap.clear();
 
-        List<Map<String, Object>> actividades = us.listarActividadesConPagosPendientesProfesores();
+        List<Map<String, Object>> actividades = us.listarActividadesConProfesoresConPagosPendientes();
+
+        if (actividades.isEmpty()) {
+            comboActividades.addItem("No hay cursos con pagos pendientes");
+            comboActividades.setEnabled(false);
+            txtprofesor.setText("");
+            txtNIF.setText("");
+            txtDireccion.setText("");
+            cargandoActividades = false;
+            return;
+        }
 
         for (Map<String, Object> act : actividades) {
             String nombre = (String) act.get("nombre");
             int id = ((Number) act.get("id_actividad")).intValue();
-            comboActividades.addItem(id + " - " + nombre);
-            actividadMap.put(id + " - " + nombre, id);
+            String key = id + " - " + nombre;
+            comboActividades.addItem(key);
+            actividadMap.put(key, id);
         }
 
-        if (comboActividades.getItemCount() == 0) {
-            comboActividades.addItem("No hay actividades pendientes");
-            comboActividades.setEnabled(false);
+        comboActividades.setEnabled(true);
+        comboActividades.setSelectedIndex(0);
+
+        String primerKey = (String) comboActividades.getSelectedItem();
+        if (primerKey != null && actividadMap.containsKey(primerKey)) {
+            autocompletarDatosProfesor(actividadMap.get(primerKey));
+        }
+
+        cargandoActividades = false;
+    }
+
+    private void autocompletarDatosProfesor(int idActividad) {
+        Map<String, Object> profesor = us.obtenerDatosProfesorPorActividad(idActividad);
+        if (profesor != null) {
+            txtprofesor.setText(profesor.get("profesor_nombre") + " " + profesor.get("profesor_apellido"));
+            txtNIF.setText((String) profesor.get("profesor_nif"));
+            txtDireccion.setText((String) profesor.get("profesor_direccion"));
         } else {
-            comboActividades.setEnabled(true);
-            cargarDatosProfesor();
+            txtprofesor.setText("");
+            txtNIF.setText("");
+            txtDireccion.setText("");
         }
     }
 
-    private void cargarDatosProfesor() {
-        String seleccion = (String) comboActividades.getSelectedItem();
-        if (seleccion == null || seleccion.contains("No hay")) return;
-
-        int idActividad = actividadMap.get(seleccion);
-        Map<String, Object> datos = us.getProfesorDeActividad(idActividad);
-
-        tfNombreProfesor.setText((String) datos.get("nombre") + " " + (String) datos.get("apellido"));
-        tfNifProfesor.setText((String) datos.get("nif"));
-        tfDireccionProfesor.setText((String) datos.get("direccion"));
-
-        remuneracionSeleccionada = ((Number) datos.get("remuneracion")).doubleValue();
-        tfCantidad.setText(String.valueOf(remuneracionSeleccionada));
-    }
-
-    private void registrarPagoProfesor() {
-        String seleccion = (String) comboActividades.getSelectedItem();
-        if (seleccion == null || seleccion.contains("No hay")) return;
-
-        int idActividad = actividadMap.get(seleccion);
-
-        double cantidad = Double.parseDouble(tfCantidad.getText());
-        if (Math.abs(cantidad - remuneracionSeleccionada) > 0.01) {
-            JOptionPane.showMessageDialog(frame,
-                    "La cantidad debe ser exactamente la remuneración del profesor (" + remuneracionSeleccionada + " €).",
-                    "Cantidad incorrecta", JOptionPane.ERROR_MESSAGE);
+    private void registrarPago() {
+        if (comboActividades.getSelectedItem() == null || !comboActividades.isEnabled()) {
+            JOptionPane.showMessageDialog(this, "No hay actividad seleccionada.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String numeroFactura = tfNumeroFactura.getText();
-        LocalDate fechaFactura = LocalDate.parse(tfFechaFactura.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String key = (String) comboActividades.getSelectedItem();
+        Integer idActividad = actividadMap.get(key);
+        if (idActividad == null) {
+            JOptionPane.showMessageDialog(this, "Selecciona una actividad válida.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        us.registrarFacturaYPago(idActividad, numeroFactura, fechaFactura, cantidad);
+        double remuneracion = us.obtenerRemuneracionActividad(idActividad);
+        double cantidadIntroducida;
+        try {
+            cantidadIntroducida = Double.parseDouble(tfCantidad.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Introduce un número válido para la cantidad.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        JOptionPane.showMessageDialog(frame, "Pago registrado correctamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        if (cantidadIntroducida != remuneracion) {
+            JOptionPane.showMessageDialog(this,
+                    "La cantidad introducida no coincide con la remuneración del profesor.\nCantidad correcta: " + remuneracion + " €",
+                    "Cantidad incorrecta",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        tfNumeroFactura.setText("");
-        tfFechaFactura.setText("");
+        Map<String, Object> profesor = us.obtenerDatosProfesorPorActividad(idActividad);
+        if (profesor == null) {
+            JOptionPane.showMessageDialog(this, "No se encontraron datos del profesor.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int idProfesor = ((Number) profesor.get("id_profesor")).intValue();
+        int idFactura = us.crearFacturaSiNoExiste(idProfesor, idActividad, tfFecha.getText(), cantidadIntroducida);
+
+        us.registrarPagoProfesor(idProfesor, idFactura, tfFecha.getText(), cantidadIntroducida);
+
+        JOptionPane.showMessageDialog(this, "Pago registrado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        us.imprimirPagosProfesor();
+
         tfCantidad.setText("");
-
-        cargarActividadesConPagosPendientes();
-    }
-
-    public JFrame getFrame() {
-        return frame;
+        cargarActividadesActivas();
     }
 }
+

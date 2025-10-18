@@ -4,6 +4,8 @@ DROP TABLE IF EXISTS Actividad;
 DROP TABLE IF EXISTS Alumno;
 DROP TABLE IF EXISTS Profesor;
 DROP TABLE IF EXISTS Administrador;
+DROP TABLE IF EXISTS FacturaP;
+DROP TABLE IF EXISTS PagoProfesor;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -62,7 +64,7 @@ CREATE TABLE Matricula (
     FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 );
 
-CREATE TABLE Factura (
+CREATE TABLE FacturaP (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
     id_profesor INTEGER NOT NULL,
     numero_factura VARCHAR(50) NOT NULL,

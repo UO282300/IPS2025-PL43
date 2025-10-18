@@ -1,20 +1,20 @@
 package proyecto.view;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import proyecto.service.UserService;
-
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.GridLayout;
-import java.awt.Color;
-import java.awt.Font;
 
 public class VentanaPrincipal {
 
@@ -132,6 +132,26 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btnBalance);
         
+      JButton btnRegistrarPagos = new JButton("Registrar Pagos");
+      btnRegistrarPagos.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+        	  mostrarVentanaRegistrarPagos();
+          }
+      });
+      
+      pnCentro.add(btnRegistrarPagos);
+        
+        
+        JButton btnPagoProfesores = new JButton("Registrar Pago a Profesores");
+        btnPagoProfesores.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaPagoProfesores();
+            }
+        });
+        
+        pnCentro.add(btnPagoProfesores);
+        
+        
         JLabel label = new JLabel("");
         pnCentro.add(label);
         
@@ -164,5 +184,16 @@ public class VentanaPrincipal {
 		VentanaVerBalance vB = new VentanaVerBalance(service);
 		vB.setLocationRelativeTo(null);
 		vB.setVisible(true);
+	}
+	private void mostrarVentanaRegistrarPagos() {
+		VentanaRegistrarPagos vB = new VentanaRegistrarPagos(service);
+		vB.setLocationRelativeTo(null);
+		vB.setVisible(true);
+	}
+	
+	private void mostrarVentanaPagoProfesores() {
+	    VentanaPagoProfesores vPP = new VentanaPagoProfesores(service);
+	    vPP.setLocationRelativeTo(null); 
+	    vPP.setVisible(true);             
 	}
 }

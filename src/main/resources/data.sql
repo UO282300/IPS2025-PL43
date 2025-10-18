@@ -55,4 +55,13 @@ INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, es
 (2, 2, '2025-10-15', 150.00, 1),
 (3, 5, '2025-10-16', 0.00, 0);
 
+-- Facturas de ejemplo
+INSERT INTO FacturaP(id_profesor, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion) VALUES
+(1, 'F001', '2025-11-06', 250.00, 'Juan Perez', '12345678A', 'Calle Falsa 123'),
+(2, 'F002', '2025-12-02', 300.00, 'Ana Gomez', '87654321B', 'Avenida Siempre Viva 45'),
+(1, 'F003', '2025-11-21', 200.00, 'Juan Perez', '12345678A', 'Calle Falsa 123'),
+(2, 'F004', '2025-11-26', 220.00, 'Ana Gomez', '87654321B', 'Avenida Siempre Viva 45'),
+(1, 'F005', '2025-12-11', 250.00, 'Juan Perez', '12345678A', 'Calle Falsa 123'),
+(2, 'F006', '2025-11-23', 230.00, 'Ana Gomez', '87654321B', 'Avenida Siempre Viva 45');
+
 

@@ -1069,5 +1069,132 @@ public class UserService {
 		return acabadas;
 	}
 	
+	//Metodos Pagos profesores
 	
+	public List<Map<String, Object>> listarActividadesConProfesoresConPagosPendientes() {
+	    List<Map<String, Object>> actividades = db.executeQueryMap(
+	        """
+	        SELECT a.id_actividad, a.nombre, p.id_profesor, p.nombre AS profesor_nombre, p.apellido AS profesor_apellido
+	        FROM Actividad a
+	        JOIN Profesor p ON a.id_profesor = p.id_profesor
+	        WHERE NOT EXISTS (
+	            SELECT 1
+	            FROM PagoProfesor pp
+	            WHERE pp.id_profesor = p.id_profesor
+	              AND pp.estado_pago = 'Pagado'
+	        )
+	        ORDER BY a.fecha
+	        """
+	    );
+
+	    return actividades;
+	}
+
+
+
+	
+	public Map<String, Object> obtenerDatosProfesorPorActividad(int idActividad) {
+	    List<Map<String, Object>> resultados = db.executeQueryMap(
+	        """
+	        SELECT DISTINCT p.id_profesor,
+	               p.nombre AS profesor_nombre,
+	               p.apellido AS profesor_apellido,
+	               f.emisor_nombre AS profesor_nif,
+	               f.emisor_direccion AS profesor_direccion
+	        FROM Profesor p
+	        JOIN Actividad a ON a.id_profesor = p.id_profesor
+	        LEFT JOIN FacturaP f ON f.id_profesor = p.id_profesor
+	        WHERE a.id_actividad = ?
+	        ORDER BY f.fecha_factura DESC
+	        LIMIT 1
+	        """,
+	        idActividad
+	    );
+
+	    if (resultados.isEmpty()) {
+	        return null;
+	    }
+
+	    return resultados.get(0);
+	}
+
+	
+	public double obtenerRemuneracionActividad(int idActividad) {
+	    List<Map<String, Object>> resultados = db.executeQueryMap(
+	        "SELECT remuneracion FROM Actividad WHERE id_actividad = ?",
+	        idActividad
+	    );
+	    if (resultados.isEmpty()) {
+	        return 0;
+	    }
+	    return ((Number) resultados.get(0).get("remuneracion")).doubleValue();
+	}
+	
+	public LocalDate getFechaHoy() {
+	    return fechaHoy;
+	}
+	
+	public int crearFacturaSiNoExiste(int idProfesor, int idActividad, String fechaFactura, double cantidad) {
+	    // Verificar si ya existe factura para este profesor y actividad
+	    List<Map<String, Object>> facturas = db.executeQueryMap(
+	        "SELECT id_factura FROM FacturaP WHERE id_profesor = ? ORDER BY fecha_factura DESC LIMIT 1",
+	        idProfesor
+	    );
+
+	    if (!facturas.isEmpty()) {
+	        return ((Number) facturas.get(0).get("id_factura")).intValue();
+	    }
+
+	    // Crear factura
+	    db.executeUpdate(
+	        "INSERT INTO FacturaP (id_profesor, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	        idProfesor,
+	        "FACT-" + System.currentTimeMillis(), // número de factura generado
+	        fechaFactura,
+	        cantidad,
+	        "", // emisor_nombre
+	        "", // emisor_nif
+	        ""  // emisor_direccion
+	    );
+
+	    // Obtener id_factura insertado
+	    List<Map<String, Object>> resultado = db.executeQueryMap(
+	        "SELECT last_insert_rowid() AS id_factura"
+	    );
+
+	    return ((Number) resultado.get(0).get("id_factura")).intValue();
+	}
+	
+	public void registrarPagoProfesor(int idProfesor, int idFactura, String fechaPago, double cantidad) {
+	    db.executeUpdate(
+	        "INSERT INTO PagoProfesor (id_profesor, id_factura, fecha_pago, cantidad, estado_pago) VALUES (?, ?, ?, ?, ?)",
+	        idProfesor,
+	        idFactura,
+	        fechaPago,
+	        cantidad,
+	        "Pendiente"
+	    );
+	}
+
+	public void imprimirPagosProfesor() {
+	    List<Map<String, Object>> pagos = db.executeQueryMap("SELECT * FROM PagoProfesor");
+
+	    System.out.println("=== Tabla PagoProfesor ===");
+	    for (Map<String, Object> p : pagos) {
+	        System.out.println(
+	            "id_pago=" + p.get("id_pago") +
+	            ", id_profesor=" + p.get("id_profesor") +
+	            ", id_factura=" + p.get("id_factura") +
+	            ", fecha_pago=" + p.get("fecha_pago") +
+	            ", cantidad=" + p.get("cantidad") +
+	            ", estado_pago=" + p.get("estado_pago")
+	        );
+	    }
+	    System.out.println("==========================");
+	}
+
+
+
+
+
 }
