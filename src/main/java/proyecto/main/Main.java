@@ -13,7 +13,9 @@ public class Main {
 			public void run() {
 				try {
 					UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+					
 					new VentanaPrincipal();
+					
 				} catch (Exception e) {
 					e.printStackTrace(); 
 				}

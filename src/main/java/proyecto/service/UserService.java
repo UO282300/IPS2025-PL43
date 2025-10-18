@@ -1,8 +1,10 @@
 package proyecto.service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +12,18 @@ import java.util.Map;
 import javax.swing.JOptionPane;
 
 import proyecto.model.Database;
+import proyecto.model.entity.Actividad;
+import proyecto.model.entity.Alumno;
+import proyecto.model.entity.Factura;
+import proyecto.model.entity.FechaFiltrado;
 import proyecto.util.ApplicationException;
 
 public class UserService {
 	private Database db;
+	private Alumno a = new Alumno();
+	private Actividad ac;
+	private LocalDate fechaHoy;
+	private FechaFiltrado fechaFiltrado;
 
     public UserService() {
         this.db = new Database();
@@ -60,44 +70,109 @@ public class UserService {
 	    }
 	}
 
-	public boolean cargarActividad(String nombre, int idProfesor, String remuneracion,
-			String espacio, String fecha ,String horaI, String horaF, String inscripcionI,
-			String inscripcionF, String cuota, String objetivos, String contenidos) {
+    public boolean cargarActividad(String nombre, int idProfesor, String remuneracion,
+			String espacio, String fecha ,String horaInicio, String horaFinal, String inscripcionI,
+			String inscripcionF, String cuota, String objetivos, String contenidos, String plazas, boolean esGratuita) {
 		
 		try {
-	        if (nombre == null || nombre.isBlank() || fecha == null 
+	        if (nombre == null || nombre.isBlank() || fecha == null || plazas == null
 	        	|| fecha.isBlank() || espacio == null || espacio.isBlank()) {
 	            JOptionPane.showMessageDialog(null,
-	                    "Debe completar al menos: nombre, fecha y espacio.",
+	                    "Debe completar al menos: nombre, fecha, espacio y plazas.",
 	                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
+	        
+	        int plazasN;
+	        try {
+	        	plazasN = Integer.parseInt(plazas);
+	        } catch (Exception e) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de plazas invalido, usa un decimal", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
 
-	        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 	        LocalDate fechaActividad;
 	        LocalDate inicioIns;
 	        LocalDate finIns;
 	        
 	        try {
-		        fechaActividad = LocalDate.parse(fecha, df);
-		        inicioIns = LocalDate.parse(inscripcionI, df);
-		        finIns = LocalDate.parse(inscripcionF, df);
+		        fechaActividad = LocalDate.parse(fecha);
+		        inicioIns = LocalDate.parse(inscripcionI);
+		        finIns = LocalDate.parse(inscripcionF);
 	        } catch (DateTimeParseException e) {
 	            throw new ApplicationException("Formato de fecha invalido. Usa el formato dd/MM/yyyy");
 	        }
+	        
+	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
+	        	System.out.println("fecha hoy: "+ fechaHoy + " fecha inicio insc actividad: "+ inicioIns.toString() + " fecha fin insc: "+ finIns.toString() + " fecha actividad: " + fechaActividad.toString());
+	        	JOptionPane.showMessageDialog(null,
+	        			"No puedes iniciar una actividad antes de la fecha de hoy", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        if (inicioIns.isAfter(finIns)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La fecha de inicio de inscripci�n no puede ser posterior a la de cierre", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        if (fechaActividad.isBefore(finIns)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La fecha de la actividad debe ser posterior al fin de inscripci�n", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
 
+	        LocalTime horaI;
+	        LocalTime horaF;
+	        try {
+	        	horaI = LocalTime.parse(horaInicio);
+	        	horaF = LocalTime.parse(horaFinal);
+	        } catch (DateTimeParseException e) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de hora inv�lido. Usa HH:mm", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }	        
+	        
+	        if (horaI.isAfter(horaF)) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"La hora inicial no puede ser despu�s de la final", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
+	        
 	        double remuneracionNum = Double.parseDouble(remuneracion);
 	        double cuotaNum = Double.parseDouble(cuota);
-	        boolean esGratuita = false;
+	        
+	        if (esGratuita) {
+	        	cuotaNum = 0;
+	        }
+	        
+	        if (plazasN < 0 || remuneracionNum < 0 || cuotaNum < 0) {
+	        	JOptionPane.showMessageDialog(null,
+	        			"No se pueden rellenar campos con decimales negativos", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	        	return false;
+	        }
 
 	        db.executeUpdate("""
 	            INSERT INTO Actividad
-	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, fecha,
+	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, total_plazas, fecha,
 	             hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita)
-	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	            """,
 	            nombre, objetivos, contenidos, idProfesor, remuneracionNum, espacio,
-	            fechaActividad.toString(), horaI, horaF,
+	            plazasN, fechaActividad.toString(), horaI, horaF,
 	            inicioIns.toString(), finIns.toString(),
 	            cuotaNum, esGratuita ? 1 : 0
 	        );
@@ -111,13 +186,34 @@ public class UserService {
 	    } catch (ApplicationException ex) {
 	    	JOptionPane.showMessageDialog(null,
 	                "Error al registrar actividad",
-	                "Registro falledio", JOptionPane.ERROR_MESSAGE);
+	                "Registro fallido", JOptionPane.ERROR_MESSAGE);
 	        throw new ApplicationException("Error al cargar la actividad");
 	    }
 	}
 	
 	public List<Map<String, Object>> listarProfesores() {
 	    return db.executeQueryMap("SELECT id_profesor, nombre, apellido FROM Profesor ORDER BY nombre");
+	}
+	
+	
+	public LocalDate getFecha() {
+		return fechaHoy;
+	}
+
+	public void setFecha(LocalDate fecha) {
+		this.fechaHoy = fecha;
+	}
+	
+	public void setFecha(String fechaS) {
+		LocalDate fechaL;
+		
+        try {
+	        fechaL = LocalDate.parse(fechaS);
+        } catch (DateTimeParseException e) {
+            throw new ApplicationException("Formato de fecha inv�lido. Usa el formato yyyy-MM-dd");
+        }
+        
+        this.fechaHoy = fechaL;
 	}
 
     public List<Map<String, Object>> listarActividades() {
@@ -201,7 +297,7 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
-            java.time.LocalDate hoy = java.time.LocalDate.now();
+            java.time.LocalDate hoy = fechaHoy;
             java.time.LocalDate inicio = java.time.LocalDate.parse((String) act.get("inicio_inscripcion"));
             java.time.LocalDate fin = java.time.LocalDate.parse((String) act.get("fin_inscripcion"));
             java.time.LocalDate fecha = java.time.LocalDate.parse((String) act.get("fecha"));
@@ -589,6 +685,359 @@ public class UserService {
         }
     }
 
+
+	public void guardarNombre(String text) {
+		a.setNombre(text);
+		
+	}
+
+	public void guardarApellidos(String text) {
+		a.setApellidos(text);
+		
+	}
+
+	public void guardarTf(String text) {
+		a.setNumeroTf(text);
+		
+	}
+
+	public void guardarCorreo(String text) {
+		a.setCorreo(text);
+		
+	}
+
+	public void guardarPertenece(boolean selected) {
+		a.setPertenece(selected);
+		
+	}
+
+	public boolean checkear() {
+		return a.validar();
+		
+	}
+
+	public boolean introduce() {
+		if(!comprobarPlazos()) {
+			System.out.println("Fuera de plazo");
+			return false;
+		}
+		insertarAlumno();
+		
+		
+		return insertarMatricula();
+		
+	}
+
+	private boolean comprobarPlazos() {
+		LocalDate hoy = getFecha();
+	    LocalDate inicio = ac.getInicio_insc();
+	    LocalDate fin = ac.getFin_inscr();
+
+	    // Devuelve true si hoy est� entre inicio y fin (inclusive)
+	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
+	}
+
+	private boolean insertarMatricula() {
+		if(!comprobarPlazasActividad()) {
+			System.out.println("No hay plazas");
+			return false;
+		}
+		
+		else {
+			insertaMatricula();
+			List<Map<String, Object>> resultado = db.executeQueryMap(
+				    "SELECT * FROM Matricula WHERE id_alumno = ? AND id_actividad = ?",
+				    a.getIdAlumno(), ac.getId_Actividad()
+				);
+			
+				if (!resultado.isEmpty()) {
+				    System.out.println(" Alumno insertado correctamente: " + resultado.get(0));
+				} else {
+				    System.out.println("No se insert� al alumno.");
+				}
+			a=new Alumno();
+			ac=null;
+			return true;
+		}
+		
+	}
+	
+	
+	public List<Actividad> recuperarActividades(){
+		List<Actividad> listaActividades = new ArrayList<>();
+		LocalDate hoy = fechaHoy;
+	    String fechaFiltro = hoy.toString();
+	    String fechaMax = hoy.plusYears(1).toString();
+	    
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
+
+	    for (Map<String, Object> fila : resultados) {
+	        Actividad act = new Actividad();
+	        act.setId_Actividad((int) fila.get("id_actividad"));
+	        act.setNombre((String) fila.get("nombre"));
+	        act.setObjetivos((String) fila.get("objetivos"));
+	        act.setContenidos((String) fila.get("contenidos"));
+	        act.setId_profesor((int) fila.get("id_profesor"));
+	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
+	        act.setEspacio((String) fila.get("espacio"));
+	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
+	        act.setHoraInicio((String) fila.get("hora_inicio"));
+	        act.setHoraFin((String) fila.get("hora_fin"));
+	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
+	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
+	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
+	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
+	        act.setPlazas((Number) fila.get("total_plazas"));
+
+	        listaActividades.add(act);
+	    }
+
+	    return listaActividades;
+	}
+	
+	
+	
+	
+	private boolean comprobarPlazasActividad() {
+		
+
+		 Map<String, Object> resultados = getActividadDetalles(ac.getId_Actividad());
+		 if (resultados.isEmpty()) {
+			
+			 return false;
+		 }
+		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
+		 int plazas_libres = plazasObj.intValue();
+		 return plazas_libres > 0;
     
+	}
+
+	private void insertaMatricula() {
+		db.executeUpdate(
+	            "INSERT INTO Matricula (id_alumno, id_actividad, esta_pagado, monto_pagado, fecha_matricula) " +
+	            "VALUES (?, ?, ?, ?, ?)",
+	            a.getIdAlumno(),
+	            ac.getId_Actividad(),
+	            false,
+	            0.0,
+	            fechaHoy
+	        );
+				
+	}
+
+	private void insertarAlumno() {
+		String correoBuscado = (String) a.getCorreo();
+		List<Map<String, Object>> resultados = db.executeQueryMap(
+		    "SELECT * FROM Alumno WHERE email = ?", correoBuscado 
+		);
+
+		if (resultados.isEmpty()) {
+			db.executeUpdate(
+			        "INSERT INTO Alumno (nombre, apellido, email, telefono, es_interno) VALUES (?, ?, ?, ?, ?)",
+			        a.getNombre(), a.getApellido(), a.getCorreo(), a.getTelefono(), a.pertenece()
+			    );
+			  List<Map<String, Object>> nuevo = db.executeQueryMap(
+			            "SELECT id_alumno FROM Alumno WHERE email = ?", correoBuscado
+			        );
+			        if (!nuevo.isEmpty()) {
+			            Number id = (Number) nuevo.get(0).get("id_alumno");
+			            a.setId(id.intValue());
+			        }
+			    } else {
+			        Number id = (Number) resultados.get(0).get("id_alumno");
+			        a.setId(id.intValue());
+			    
+			    }
+	}
+	
+
+	public void selectActividad(Actividad selec) {
+		this.ac = selec;
+		
+	}
+
+	public Object getAct() {
+		return ac;
+	}
+	
+	
+	public List<Factura> recuperarActividadesEnRango() {
+	   
+	    List<Factura> listaActividades = new ArrayList<>();
+	    LocalDate fechaMax = LocalDate.of(fechaHoy.getYear(), 12, 31);
+	    LocalDate fechaMin = LocalDate.of(fechaHoy.getYear(), 1, 1);
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= ? AND fecha <= ? ORDER BY fecha ASC";
+	    
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, fechaMin.toString(),fechaMax.toString());
+
+	    for (Map<String, Object> fila : resultados) {
+	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        f.setId_actividad((int) fila.get("id_actividad"));
+	        f.setNombre((String) fila.get("nombre"));
+	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
+	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
+	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
+	        
+	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
+	        System.out.println("Estado "+ f.getEstado());
+
+	        listaActividades.add(f);
+	    }
+	    
+	    return listaActividades;
+	}
+	
+	public List<Factura> recuperarActividadesEnRango(LocalDate min, LocalDate max) {
+		   
+	    List<Factura> listaActividades = new ArrayList<>();
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= ? AND fecha <= ? ORDER BY fecha ASC";
+	    
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, min.toString(),max.toString());
+
+	    for (Map<String, Object> fila : resultados) {
+	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        f.setId_actividad((int) fila.get("id_actividad"));
+	        f.setNombre((String) fila.get("nombre"));
+	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
+	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
+	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
+	        
+	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
+	        System.out.println("Estado "+ f.getEstado());
+
+	        listaActividades.add(f);
+	    }
+	    
+	    return listaActividades;
+	}
+	
+	
+	private int recuperarPlazasLibres(int id) {
+		
+
+		 Map<String, Object> resultados = getActividadDetalles(id);
+		 if (resultados.isEmpty()) {
+			
+			 return Integer.MAX_VALUE;
+		 }
+		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
+		 int plazas_libres = plazasObj.intValue();
+		 return plazas_libres;
+   
+	}
+	
+	public List<Factura> recuperaAcabadas(){
+		List<Factura> lista= recuperarActividadesEnRango();
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaCerrada()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+	
+	
+	public List<Factura> recuperaSinAcabar(){
+		List<Factura> lista= recuperarActividadesEnRango();
+		List<Factura> sinAcabar = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaAbierta()) {
+				sinAcabar.add(f);
+			}
+		}
+		System.out.println("Sin acabar = " + sinAcabar.size());
+		return sinAcabar;
+	}
+	
+	public String getFacturasTextoAcabadas() {
+	    List<Factura> lista = recuperaAcabadas();
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	        sb.append(f);
+	    }
+
+	    return sb.toString();
+	}
+	
+	public String getFacturasTextoSinAcabar() {
+	    List<Factura> lista = recuperaSinAcabar();
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	    	sb.append(f.toStringSin());
+	    }
+
+	    return sb.toString();
+	}
+
+	public void setFechaFiltrado(String fechaIn, String fechaFin) {
+		fechaFiltrado = new FechaFiltrado(fechaIn, fechaFin);
+		
+	}
+
+	public boolean compruebaFormatoFecha(String fecha) {
+		try {
+	        LocalDate.parse(fecha);
+	        return true;
+	    } catch (DateTimeParseException e) {
+	        return false;
+	    }
+        
+	}
+
+	public String getFacturasTextoAcabadasEnRango() {
+		List<Factura> lista = recuperaAcabadasEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	        sb.append(f);
+	    }
+
+	    return sb.toString();
+	}
+
+	private List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaCerrada()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+
+	public String getFacturasTextoSinAcabarEnRango() {
+		List<Factura> lista = recuperaSinAcabarEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
+	    StringBuilder sb = new StringBuilder();
+
+	    for (Factura f : lista) {
+	    	sb.append(f.toStringSin());
+	    }
+
+	    return sb.toString();
+	}
+
+	private List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
+		List<Factura> acabadas = new ArrayList<>();
+		for(Factura f: lista) {
+			if(f.estaAbierta()) {
+				acabadas.add(f);
+			}
+		}
+		System.out.println("Acbadas: "+ acabadas.size());
+		return acabadas;
+	}
+	
+	
 }
-    
