@@ -18,10 +18,12 @@ import java.awt.Font;
 
 public class VentanaPrincipal {
 
-    private JFrame frame;
-    UserService service;
-    private JTextField txtFechaHoy;
-    JLabel lblFechaCargada;
+
+	private JFrame frame;
+	UserService service;
+	private JTextField txtFechaHoy;
+	JLabel lblFechaCargada;
+
 
     public VentanaPrincipal() {
         service = new UserService();
@@ -75,74 +77,92 @@ public class VentanaPrincipal {
         frame.getContentPane().add(pnNorte, BorderLayout.NORTH);
 
         // === PANEL CENTRO ===
+
         JPanel pnCentro = new JPanel();
         pnCentro.setBackground(Color.GRAY);
-        pnCentro.setLayout(new GridLayout(18, 2, 5, 5));
 
         JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
-        btnInicializarBaseDeDatos.addActionListener(e -> service.crearDataBase());
+        btnInicializarBaseDeDatos.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                service.crearDataBase();
+            }
+        });
+        pnCentro.setLayout(new GridLayout(18, 2, 0, 0));
         pnCentro.add(btnInicializarBaseDeDatos);
 
         JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
-        btnCargarDatosIniciales.addActionListener(e -> service.cargarDataBase());
+        btnCargarDatosIniciales.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                service.cargarDataBase();
+            }
+        });
         pnCentro.add(btnCargarDatosIniciales);
 
         JButton btnQueryDePrueba = new JButton("Ejemplo de consulta");
-        btnQueryDePrueba.addActionListener(e -> service.ejemploConsulta());
+        btnQueryDePrueba.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                service.ejemploConsulta();
+            }
+        });
         pnCentro.add(btnQueryDePrueba);
 
-        JButton btnResponsable = new JButton("Responsable añade actividad");
-        btnResponsable.addActionListener(e -> mostrarVentanaResponsable());
+        JButton btnResponsable = new JButton("Responsable a�ade actividad");
+        btnResponsable.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaResponsable();
+            }
+        });
         pnCentro.add(btnResponsable);
 
-        JButton btInscripcion = new JButton("Inscribirse a actividad");
-        btInscripcion.addActionListener(e -> mostrarVentanaInscripcion());
-        pnCentro.add(btInscripcion);
-
-        JButton btnBalance = new JButton("Ver Balance");
-        btnBalance.addActionListener(e -> mostrarVentanaBalance());
-        pnCentro.add(btnBalance);
-
-        JButton btnRegistrarPagos = new JButton("Registrar Pagos");
-        btnRegistrarPagos.addActionListener(e -> mostrarVentanaRegistrarPagos());
-        pnCentro.add(btnRegistrarPagos);
-
-        pnCentro.add(new JLabel(""));
-        pnCentro.add(new JLabel(""));
-
         frame.getContentPane().add(pnCentro, BorderLayout.CENTER);
+        
+        JButton btInscripcion = new JButton("Inscribirse a actividad");
+        btInscripcion.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaInscripcion();
+        	}
+        });
+        pnCentro.add(btInscripcion);
+        
+        JButton btnBalance = new JButton("Ver Balance");
+        btnBalance.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaBalance();
+        	}
+        });
+        pnCentro.add(btnBalance);
+        
+        JLabel label = new JLabel("");
+        pnCentro.add(label);
+        
+        JLabel label_1 = new JLabel("");
+        pnCentro.add(label_1);
 
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
     private void cargaFecha() {
-        service.setFecha(txtFechaHoy.getText());
-        txtFechaHoy.setText("");
-        lblFechaCargada.setText("Fecha cargada: " + service.getFecha());
-    }
+		service.setFecha(txtFechaHoy.getText());
+		txtFechaHoy.setText("");
+		lblFechaCargada.setText("Fecha cargada: " + service.getFecha());
+	}
 
-    private void mostrarVentanaResponsable() {
+	private void mostrarVentanaResponsable() {
         VentanaResponsable vR = new VentanaResponsable(service);
         vR.setLocationRelativeTo(null);
         vR.setVisible(true);
     }
-
-    private void mostrarVentanaInscripcion() {
-        VentanaInscripcion vI = new VentanaInscripcion(service);
-        vI.setLocationRelativeTo(null);
-        vI.setVisible(true);
-    }
-
-    private void mostrarVentanaBalance() {
-        VentanaVerBalance vB = new VentanaVerBalance(service);
-        vB.setLocationRelativeTo(null);
-        vB.setVisible(true);
-    }
-
-    private void mostrarVentanaRegistrarPagos() {
-        VentanaRegistrarPagos vP = new VentanaRegistrarPagos();
-        vP.getFrame().setLocationRelativeTo(null);
-        vP.getFrame().setVisible(true);
-    }
+	
+	private void mostrarVentanaInscripcion() {
+		VentanaInscripcion vI = new VentanaInscripcion(service);
+		vI.setLocationRelativeTo(null);
+		vI.setVisible(true);
+	}
+	
+	private void mostrarVentanaBalance() {
+		VentanaVerBalance vB = new VentanaVerBalance(service);
+		vB.setLocationRelativeTo(null);
+		vB.setVisible(true);
+	}
 }

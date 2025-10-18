@@ -1,3 +1,4 @@
+
 package proyecto.model.entity;
 
 import java.time.LocalDate;
@@ -115,4 +116,3 @@ public class Factura {
 	
 
 }
-

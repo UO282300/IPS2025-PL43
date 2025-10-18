@@ -51,6 +51,7 @@ public class VentanaResponsable extends JFrame {
     public VentanaResponsable(UserService service) {
     	this.service = service;
     	
+
         setTitle("PLANIFICACI�N DE ACTIVIDADES");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 800, 700);
@@ -343,22 +344,10 @@ public class VentanaResponsable extends JFrame {
     	String profesorSeleccionado = (String) cmbProfesor.getSelectedItem();
     	int idProfesor = mapaProfesores.get(profesorSeleccionado);
     	
-    	 if (service.cargarActividad(
-    	            getTxtNombre().getText(),
-    	            idProfesor,
-    	            getTxtRemuneracion().getText(),
-    	            getTxtEspacio().getText(),
-    	            getTxtFecha().getText(),
-    	            getTxtHoraInicio().getText(),
-    	            getTxtHoraFin().getText(),
-    	            getTxtInicioInscripcion().getText(),
-    	            getTxtFinInscripcion().getText(),
-    	            getTxtCuota().getText(),
-    	            getTxtObjetivos().getText(),
-    	            getTxtContenidos().getText(),
-    	            getTxtPlazas().getText(),
-    	            getChkGratuita().isSelected())) {
-
+    	if (service.cargarActividad(getTxtNombre().getText(), idProfesor, getTxtRemuneracion().getText(), getTxtEspacio().getText(),
+    			getTxtFecha().getText(), getTxtHoraInicio().getText(),getTxtHoraFin().getText(), getTxtInicioInscripcion().getText(),
+    			getTxtFinInscripcion().getText(), getTxtCuota().getText(), getTxtObjetivos().getText(), getTxtContenidos().getText(), 
+    			getTxtPlazas().getText(), getChkGratuita().isSelected())) {
     		
     		dispose();
     	}

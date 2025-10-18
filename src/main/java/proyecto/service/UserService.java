@@ -116,14 +116,16 @@ public class UserService {
 	        }
 	        if (inicioIns.isAfter(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de inicio de inscripcion no puede ser posterior a la de cierre", 
+	        			"La fecha de inicio de inscripci�n no puede ser posterior a la de cierre", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }
 	        if (fechaActividad.isBefore(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de la actividad debe ser posterior al fin de inscripci�n");
+	        			"Formato de fecha inv�lido. Usa el formato yyyy-MM-dd", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
 	        
@@ -419,135 +421,8 @@ public class UserService {
         if (result.isEmpty()) return null;
         return (Integer) result.get(0).get("id_matricula");
     }
-
-
-	public void guardarNombre(String text) {
-		a.setNombre(text);
-		
-	}
-
-	public void guardarApellidos(String text) {
-		a.setApellidos(text);
-		
-	}
-
-	public void guardarTf(String text) {
-		a.setNumeroTf(text);
-		
-	}
-
-	public void guardarCorreo(String text) {
-		a.setCorreo(text);
-		
-	}
-
-	public void guardarPertenece(boolean selected) {
-		a.setPertenece(selected);
-		
-	}
-
-	public boolean checkear() {
-		return a.validar();
-		
-	}
-
-	public boolean introduce() {
-		if(!comprobarPlazos()) {
-			System.out.println("Fuera de plazo");
-			return false;
-		}
-		insertarAlumno();
-		
-		
-		return insertarMatricula();
-		
-	}
-
-	private boolean comprobarPlazos() {
-		LocalDate hoy = getFecha();
-	    LocalDate inicio = ac.getInicio_insc();
-	    LocalDate fin = ac.getFin_inscr();
-
-	    // Devuelve true si hoy est� entre inicio y fin (inclusive)
-	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
-	}
-
-	private boolean insertarMatricula() {
-		if(!comprobarPlazasActividad()) {
-			System.out.println("No hay plazas");
-			return false;
-		}
-		
-		else {
-			insertaMatricula();
-			List<Map<String, Object>> resultado = db.executeQueryMap(
-				    "SELECT * FROM Matricula WHERE id_alumno = ? AND id_actividad = ?",
-				    a.getIdAlumno(), ac.getId_Actividad()
-				);
-			
-				if (!resultado.isEmpty()) {
-				    System.out.println(" Alumno insertado correctamente: " + resultado.get(0));
-				} else {
-				    System.out.println("No se insert� al alumno.");
-				}
-			a=new Alumno();
-			ac=null;
-			return true;
-		}
-		
-	}
 	
-	
-	public List<Actividad> recuperarActividades(){
-		List<Actividad> listaActividades = new ArrayList<>();
-		LocalDate hoy = fechaHoy;
-	    String fechaFiltro = hoy.toString();
-	    String fechaMax = hoy.plusYears(1).toString();
-	    
-	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
-	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
-
-	    for (Map<String, Object> fila : resultados) {
-	        Actividad act = new Actividad();
-	        act.setId_Actividad((int) fila.get("id_actividad"));
-	        act.setNombre((String) fila.get("nombre"));
-	        act.setObjetivos((String) fila.get("objetivos"));
-	        act.setContenidos((String) fila.get("contenidos"));
-	        act.setId_profesor((int) fila.get("id_profesor"));
-	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
-	        act.setEspacio((String) fila.get("espacio"));
-	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
-	        act.setHoraInicio((String) fila.get("hora_inicio"));
-	        act.setHoraFin((String) fila.get("hora_fin"));
-	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
-	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
-	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
-	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
-	        act.setPlazas((Number) fila.get("total_plazas"));
-
-	        listaActividades.add(act);
-	    }
-
-	    return listaActividades;
-	}
-	
-	
-	
-	
-	private boolean comprobarPlazasActividad() {
-		
-
-		 Map<String, Object> resultados = getActividadDetalles(ac.getId_Actividad());
-		 if (resultados.isEmpty()) {
-			
-			 return false;
-		 }
-		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
-		 int plazas_libres = plazasObj.intValue();
-		 return plazas_libres > 0;
-	}
-    
-    public void verTodosLosAlumnosConMatriculas() {
+       public void verTodosLosAlumnosConMatriculas() {
         try {
             // 1️⃣ Obtener todos los alumnos
             List<Map<String, Object>> alumnos = db.executeQueryMap("SELECT * FROM Alumno ORDER BY nombre");
@@ -841,11 +716,132 @@ public class UserService {
     }
 
 
+	public void guardarNombre(String text) {
+		a.setNombre(text);
+		
+	}
 
+	public void guardarApellidos(String text) {
+		a.setApellidos(text);
+		
+	}
+
+	public void guardarTf(String text) {
+		a.setNumeroTf(text);
+		
+	}
+
+	public void guardarCorreo(String text) {
+		a.setCorreo(text);
+		
+	}
+
+	public void guardarPertenece(boolean selected) {
+		a.setPertenece(selected);
+		
+	}
+
+	public boolean checkear() {
+		return a.validar();
+		
+	}
+
+	public boolean introduce() {
+		if(!comprobarPlazos()) {
+			System.out.println("Fuera de plazo");
+			return false;
+		}
+		insertarAlumno();
+		
+		
+		return insertarMatricula();
+		
+	}
+
+	private boolean comprobarPlazos() {
+		LocalDate hoy = getFecha();
+	    LocalDate inicio = ac.getInicio_insc();
+	    LocalDate fin = ac.getFin_inscr();
+
+	    // Devuelve true si hoy est� entre inicio y fin (inclusive)
+	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
+	}
+
+	private boolean insertarMatricula() {
+		if(!comprobarPlazasActividad()) {
+			System.out.println("No hay plazas");
+			return false;
+		}
+		
+		else {
+			insertaMatricula();
+			List<Map<String, Object>> resultado = db.executeQueryMap(
+				    "SELECT * FROM Matricula WHERE id_alumno = ? AND id_actividad = ?",
+				    a.getIdAlumno(), ac.getId_Actividad()
+				);
+			
+				if (!resultado.isEmpty()) {
+				    System.out.println(" Alumno insertado correctamente: " + resultado.get(0));
+				} else {
+				    System.out.println("No se insert� al alumno.");
+				}
+			a=new Alumno();
+			ac=null;
+			return true;
+		}
+		
+	}
+	
+	
+	public List<Actividad> recuperarActividades(){
+		List<Actividad> listaActividades = new ArrayList<>();
+		LocalDate hoy = fechaHoy;
+	    String fechaFiltro = hoy.toString();
+	    String fechaMax = hoy.plusYears(1).toString();
+	    
+	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
+
+	    for (Map<String, Object> fila : resultados) {
+	        Actividad act = new Actividad();
+	        act.setId_Actividad((int) fila.get("id_actividad"));
+	        act.setNombre((String) fila.get("nombre"));
+	        act.setObjetivos((String) fila.get("objetivos"));
+	        act.setContenidos((String) fila.get("contenidos"));
+	        act.setId_profesor((int) fila.get("id_profesor"));
+	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
+	        act.setEspacio((String) fila.get("espacio"));
+	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
+	        act.setHoraInicio((String) fila.get("hora_inicio"));
+	        act.setHoraFin((String) fila.get("hora_fin"));
+	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
+	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
+	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
+	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
+	        act.setPlazas((Number) fila.get("total_plazas"));
+
+	        listaActividades.add(act);
+	    }
+
+	    return listaActividades;
+	}
 	
 	
 	
 	
+	private boolean comprobarPlazasActividad() {
+		
+
+		 Map<String, Object> resultados = getActividadDetalles(ac.getId_Actividad());
+		 if (resultados.isEmpty()) {
+			
+			 return false;
+		 }
+		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
+		 int plazas_libres = plazasObj.intValue();
+		 return plazas_libres > 0;
+ 
+	}
 
 	private void insertaMatricula() {
 		db.executeUpdate(

@@ -1,3 +1,4 @@
+
 package proyecto.model.entity;
 
 public class Alumno {
@@ -101,4 +102,3 @@ public class Alumno {
 	
 	
 }
-
