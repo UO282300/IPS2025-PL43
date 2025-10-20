@@ -176,8 +176,8 @@ public class VentanaRegistrarPagos extends JFrame {
         if (fechaPago.isBefore(fechaMatricula) || fechaPago.isAfter(fechaMaxPago)) {
             JOptionPane.showMessageDialog(this,
                     "La fecha de pago debe estar entre " +
-                            fechaMatricula.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " y " +
-                            fechaMaxPago.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ".",
+                    		fechaMatricula.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " y " +
+                    		fechaMaxPago.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ".",
                     "Fecha inválida", JOptionPane.ERROR_MESSAGE);
             return;
         }
