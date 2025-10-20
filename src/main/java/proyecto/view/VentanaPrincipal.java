@@ -151,6 +151,15 @@ public class VentanaPrincipal {
         
         pnCentro.add(btnPagoProfesores);
         
+        JButton btnCerrarAF = new JButton("Como administradora quiero cerrar una actividad");
+        btnCerrarAF.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaCerrarAF();
+            }
+        });
+        
+        pnCentro.add(btnCerrarAF);
+        
         
         JLabel label = new JLabel("");
         pnCentro.add(label);
@@ -195,5 +204,11 @@ public class VentanaPrincipal {
 	    VentanaPagoProfesores vPP = new VentanaPagoProfesores(service);
 	    vPP.setLocationRelativeTo(null); 
 	    vPP.setVisible(true);             
+	}
+	
+	private void mostrarVentanaCerrarAF() {
+	    VentanaCerrarAF vC = new VentanaCerrarAF(service);
+	    vC.setLocationRelativeTo(null); 
+	    vC.setVisible(true);             
 	}
 }

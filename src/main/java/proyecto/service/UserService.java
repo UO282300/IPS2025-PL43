@@ -1171,5 +1171,17 @@ public class UserService {
 	    }
 	    System.out.println("==========================");
 	}
+	public boolean cerrarActividad(int idActividad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	public boolean tieneMovimientosPendientes(int idActividad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	public boolean fechaFinalizacionSuperada(int idActividad) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }
