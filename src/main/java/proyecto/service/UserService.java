@@ -181,5 +181,31 @@ public class UserService {
 
         return resultado;
     }
+    
+    // Lista las actividades filtradas por estado
+    public List<Map<String, Object>> listarActividadesPorEstado(String estado) {
+        String sql = """
+            SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha, 
+                   cuota, remuneracion
+            FROM Actividad
+            ORDER BY fecha
+        """;
+
+        // Obtenemos todas las actividades
+        List<Map<String, Object>> actividades = db.executeQueryMap(sql);
+
+        // Filtramos las que coincidan con el estado solicitado
+        java.util.List<Map<String, Object>> filtradas = new java.util.ArrayList<>();
+        for (Map<String, Object> act : actividades) {
+            String estadoActual = obtenerEstadoActividad(act);
+            if (estadoActual.equalsIgnoreCase(estado)) {
+                act.put("estado", estadoActual);
+                filtradas.add(act);
+            }
+        }
+
+        return filtradas;
+    }
+
 }
     
