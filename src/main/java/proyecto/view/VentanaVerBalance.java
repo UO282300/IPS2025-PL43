@@ -93,15 +93,15 @@ public class VentanaVerBalance extends JFrame {
 		if(fechaIn.isBlank()&&fechaFin.isBlank()) {
 			fecha1 =false;
 			fecha2 = false;
-			
+			service.setFechaFiltrado(service.getFechaHoy().toString(),"2100-01-01");
 		}else if(fechaIn.isBlank()) {
 			fecha1=false;
 			fecha2=true;
-			service.setFechaFiltrado(null,fechaFin);
+			service.setFechaFiltrado(service.getFechaHoy().toString(),fechaFin);
 		}else if(fechaFin.isBlank()) {
 			fecha1=true;
 			fecha2=false;
-			service.setFechaFiltrado(fechaIn,null);
+			service.setFechaFiltrado(fechaIn,"2100-01-01");
 		}
 		else {
 			service.setFechaFiltrado(fechaIn,fechaFin);
@@ -139,9 +139,9 @@ public class VentanaVerBalance extends JFrame {
 	
 	
 	private void filtrado(int bt) {
+		
 	    LocalDate inicio = service.getFechaFiltrado().getFechaIn();
 	    LocalDate fin = service.getFechaFiltrado().getFechaFin();
-
 	    switch(bt) {
 	        case 0: 
 	            getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango(inicio, fin));
@@ -187,6 +187,7 @@ public class VentanaVerBalance extends JFrame {
 	private JTextField getTxFecha() {
 	    if (txFecha == null) {
 	        txFecha = new JTextField(10);
+	        txFecha.setText(service.getFechaHoy().toString());
 	    }
 	    return txFecha;
 	}
@@ -201,6 +202,7 @@ public class VentanaVerBalance extends JFrame {
 	private JTextField getTxFinal() {
 	    if (txFinal == null) {
 	    	txFinal = new JTextField(10);
+	    	txFinal.setText(service.getFechaHoy().plusYears(1).toString());
 	    }
 	    return txFinal;
 	}
@@ -384,6 +386,7 @@ public class VentanaVerBalance extends JFrame {
 	protected void preparaFacturasGeneral() {
 		getTxAcabar().setText(service.getFacturasTextoAcabadas());
 		getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
+		checkearDatos();
 		
 	}
 
@@ -393,7 +396,7 @@ public class VentanaVerBalance extends JFrame {
 		}else {
 			getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
 		}
-		
+		checkearDatos();
 		
 	}
 }

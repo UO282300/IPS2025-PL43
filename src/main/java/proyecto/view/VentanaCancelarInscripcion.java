@@ -168,7 +168,11 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
 
         protected void fireEditingStopped() {
+        	try {
             super.fireEditingStopped();
+        	}catch( Exception e) {
+        		
+        	}
         }
     }
 }
