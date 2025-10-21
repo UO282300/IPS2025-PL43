@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 ########################
 # Archivos de Eclipse  #
@@ -62,3 +63,38 @@ bin/
 ########################
 .DS_Store
 Thumbs.db
+=======
+/target/
+########################
+# Archivos de Eclipse  #
+########################
+.classpath
+.project
+.settings/
+
+########################
+# Maven / Build        #
+########################
+target/
+build/
+out/
+bin/
+
+########################
+# Archivos binarios    #
+########################
+*.class
+*.jar
+*.war
+*.ear
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+########################
+# Archivos del sistema #
+########################
+.DS_Store
+Thumbs.db
+>>>>>>> refs/heads/#30622

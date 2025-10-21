@@ -151,6 +151,14 @@ public class VentanaPrincipal {
         
         pnCentro.add(btnPagoProfesores);
         
+        JButton btnEstadoAF = new JButton("Ver Estado Acciones Formativas");
+        btnEstadoAF.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaEstadoAF();
+        	}
+        });
+        pnCentro.add(btnEstadoAF);
+        
         
         JLabel label = new JLabel("");
         pnCentro.add(label);
@@ -195,5 +203,10 @@ public class VentanaPrincipal {
 	    VentanaPagoProfesores vPP = new VentanaPagoProfesores(service);
 	    vPP.setLocationRelativeTo(null); 
 	    vPP.setVisible(true);             
+	}
+	private void mostrarVentanaEstadoAF() {
+	    VentanaEstadoAF vEA = new VentanaEstadoAF(service);
+	    vEA.setLocationRelativeTo(null); 
+	    vEA.setVisible(true);             
 	}
 }
