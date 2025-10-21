@@ -1252,8 +1252,7 @@ public class UserService {
 	// Lista las actividades filtradas por estado
     public List<Map<String, Object>> listarActividadesPorEstado(String estado) {
         String sql = """
-            SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha, 
-                   cuota, remuneracion
+            SELECT *
             FROM Actividad
             ORDER BY fecha
         """;
