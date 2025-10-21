@@ -55,8 +55,8 @@ public class VentanaEstadoAF extends JFrame {
 
          comboEstado = new JComboBox<>(
         	    new DefaultComboBoxModel<>(new String[]{
-        	        "Todas", "Planificada", "En periodo de inscripción",
-        	        "Inscripción cerrada", "Cerrada", "Cancelada"
+        	        "Todas", "Planificada", "En periodo de inscripcion",
+        	        "Inscripcion cerrada", "Cerrada", "Cancelada"
         	    })
         	);
         panelFiltro.add(comboEstado);

@@ -24,6 +24,17 @@ public class UserService {
 	private Actividad ac;
 	private LocalDate fechaHoy;
 	private FechaFiltrado fechaFiltrado;
+	private int idAlumnoActual;
+
+    public int getIdAlumnoActual() {
+		return idAlumnoActual;
+	}
+
+	public void setIdAlumnoActual(int idAlumnoActual) {
+		this.idAlumnoActual = idAlumnoActual;
+	}
+
+	
 
     public UserService() {
         this.db = new Database();
@@ -370,7 +381,7 @@ public class UserService {
         resultado.put("plazas_disponibles", plazasDisponibles);
 
         // Inscripciones
-        List<Map<String,Object>> inscripciones = db.executeQueryMap(
+        List<Map<String, Object>> inscripciones = db.executeQueryMap(
         	    "SELECT m.id_matricula, " +
         	    "al.nombre || ' ' || al.apellido AS nombre_alumno, " +
         	    "m.fecha_matricula, " +
@@ -381,7 +392,7 @@ public class UserService {
         	    "FROM Matricula m " +
         	    "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
         	    "WHERE m.id_actividad = ? " +
-        	    "AND m.esta_pagado = 0", // ðŸ‘ˆ Solo matrÃ­culas impagas
+        	    "AND (m.isCancelada IS NULL OR m.isCancelada = 0)", // ✅ solo no canceladas
         	    idActividad
         	);
         resultado.put("inscripciones", inscripciones);
@@ -1195,6 +1206,48 @@ public class UserService {
         }
 
         return filtradas;
+    }
+    
+    public List<Map<String, Object>> listarAlumnos() {
+        return db.executeQueryMap("SELECT id_alumno, nombre, apellido FROM Alumno ORDER BY nombre");
+    }
+
+    public List<Map<String, Object>> listarMatriculasPorAlumno(int idAlumno) {
+        String sql = """
+            SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha, 
+                   m.monto_pagado, m.isCancelada
+            FROM Matricula m 
+            JOIN Actividad a ON m.id_actividad = a.id_actividad
+            WHERE m.id_alumno = ? AND m.isCancelada = 0
+            ORDER BY a.fecha
+            """;
+        return db.executeQueryMap(sql, idAlumno);
+    }
+
+    public double calcularMontoDevolucion(LocalDate fechaActividad, double montoPagado) {
+        long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
+        if (diasFaltan >= 7) return montoPagado;
+        else if (diasFaltan >= 3) return montoPagado * 0.5;
+        else return 0;
+    }
+
+    public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto) {
+        LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
+
+        db.executeUpdate("""
+            INSERT INTO Devoluciones (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """, idMatricula, idAlumno, idActividad, hoy.toString(), hoy.toString(), montoDevuelto);
+
+        db.executeUpdate("UPDATE Matricula SET isCancelada = 1 WHERE id_matricula = ?", idMatricula);
+    }
+    
+    
+
+    public int obtenerIdActividadPorMatricula(int idMatricula) {
+        String sql = "SELECT id_actividad FROM Matricula WHERE id_matricula = ?";
+        List<Map<String, Object>> result = db.executeQueryMap(sql, idMatricula);
+        return result.isEmpty() ? 0 : (int) result.get(0).get("id_actividad");
     }
 
 }
