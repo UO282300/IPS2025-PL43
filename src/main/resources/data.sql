@@ -1,9 +1,9 @@
 -- Limpiar datos previos
-DELETE FROM Matricula;
-DELETE FROM Actividad;
-DELETE FROM Alumno;
-DELETE FROM Profesor;
-DELETE FROM Administrador;
+--DELETE FROM Matricula;
+--DELETE FROM Actividad;
+--DELETE FROM Alumno;
+--DELETE FROM Profesor;
+--DELETE FROM Administrador;
 
 -- Administradores
 INSERT INTO Administrador(nombre, email, password) VALUES
@@ -30,6 +30,8 @@ INSERT INTO Actividad(nombre, objetivos, contenidos, id_profesor, remuneracion, 
 ('Fundamentos de SQL', 'Aprender SQL desde cero', 'Select, Insert, Update, Delete', 1, 200.00, 'B-10', '2025-11-20', '11:00', '14:00', '2025-10-01', '2025-10-31', 80.00, 0, 15, 0),
 ('Diseño Web Básico', 'HTML, CSS y JS', 'Construcción de páginas web', 2, 220.00, 'C-05', '2025-11-25', '09:00', '12:00', '2025-10-01', '2025-10-31', 90.00, 0, 20, 0),
 ('React Avanzado', 'React avanzado', 'Hooks, Context, Redux', 1, 250.00, 'D-01', '2025-12-10', '10:00', '13:00', '2025-11-01', '2025-12-05', 120.00, 0, 15, 0),
+('Node.js Intermedio', 'Backend Node', 'Express, API REST', 2, 230.00, 'E-02', '2026-11-22', '09:00', '12:00', '2026-10-01', '2026-10-20', 100.00, 0, 15, 0),
+('Node.js Intermedio', 'Backend Node', 'Express, API REST', 2, 230.00, 'E-02', '3000-11-22', '09:00', '12:00', '3000-10-01', '3000-10-20', 100.00, 0, 15, 0),
 ('Node.js Intermedio', 'Backend Node', 'Express, API REST', 2, 230.00, 'E-02', '2025-11-22', '09:00', '12:00', '2025-10-01', '2025-10-20', 100.00, 0, 15, 0);
 
 

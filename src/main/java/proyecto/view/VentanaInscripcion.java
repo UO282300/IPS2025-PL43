@@ -25,6 +25,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import proyecto.model.entity.Actividad;
+import proyecto.model.entity.Alumno;
 import proyecto.service.UserService;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -88,6 +89,34 @@ public class VentanaInscripcion extends JFrame {
 		contentPane.add(getPanelFecha(), BorderLayout.NORTH);
 		contentPane.add(getPanelActividades(), BorderLayout.CENTER);
 		contentPane.add(getPanelFormulario(), BorderLayout.SOUTH);
+		cargarElementosFormulario();
+	}
+	private void cargarElementosFormulario() {
+		Alumno a = service.getInformacionAlumno();
+		if(a!=null) {
+			getTxNombre().setText(a.getNombre());
+			getTxApellido().setText(a.getApellido());
+			getTxCorreo().setText(a.getCorreo());
+			getTxTf().setText(a.getTelefono());
+			if(a.pertenece()) {
+				getRdbtEscuela().setSelected(true);
+			}else {
+				getRdbtNo().setSelected(true);
+			}
+			desactivarFormulario();
+		}else {
+			limpiarCampos();
+		}
+		
+	}
+	private void desactivarFormulario() {
+		getTxNombre().setEditable(false);
+		getTxApellido().setEditable(false);
+		getTxCorreo().setEditable(false);
+		getTxTf().setEditable(false);
+		getRdbtEscuela().setEnabled(false);
+		getRdbtNo().setEnabled(false);
+		
 	}
 	private JPanel getPanelFecha() {
 		if (panelFecha == null) {
@@ -272,7 +301,7 @@ public class VentanaInscripcion extends JFrame {
 			} else {
 				updateData();
 				cargarActividades();
-				limpiarCampos();
+				cargarElementosFormulario();
 			}
 		}
 		

@@ -47,17 +47,19 @@ public class UserService {
 
 	public UserService() {
         this.db = new Database();
+        //crearDataBase();
+        //cargarDataBase();
     }
     public void eliminarTodosLosDatos() {
         try {
-            // 1ï¸�âƒ£ Eliminar los registros de las tablas en orden para respetar claves forÃ¡neas
+            // 1Ã¯Â¸ï¿½Ã¢Æ’Â£ Eliminar los registros de las tablas en orden para respetar claves forÃƒÂ¡neas
             db.executeUpdate("DELETE FROM Matricula");
             db.executeUpdate("DELETE FROM Actividad");
             db.executeUpdate("DELETE FROM Alumno");
             db.executeUpdate("DELETE FROM Profesor");
             db.executeUpdate("DELETE FROM Administrador");
 
-            // 2ï¸�âƒ£ Reiniciar los contadores AUTOINCREMENT
+            // 2Ã¯Â¸ï¿½Ã¢Æ’Â£ Reiniciar los contadores AUTOINCREMENT
             db.executeUpdate("DELETE FROM sqlite_sequence WHERE name='Matricula'");
             db.executeUpdate("DELETE FROM sqlite_sequence WHERE name='Actividad'");
             db.executeUpdate("DELETE FROM sqlite_sequence WHERE name='Alumno'");
@@ -66,7 +68,7 @@ public class UserService {
 
             JOptionPane.showMessageDialog(null,
                     "Todos los datos han sido eliminados y los IDs reiniciados.",
-                    "OperaciÃ³n completada", JOptionPane.INFORMATION_MESSAGE);
+                    "OperaciÃƒÂ³n completada", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -136,14 +138,14 @@ public class UserService {
 	        }
 	        if (inicioIns.isAfter(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de inicio de inscripciï¿½n no puede ser posterior a la de cierre", 
+	        			"La fecha de inicio de inscripciÃ¯Â¿Â½n no puede ser posterior a la de cierre", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }
 	        if (fechaActividad.isBefore(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"Formato de fecha invï¿½lido. Usa el formato yyyy-MM-dd", 
+	        			"Formato de fecha invÃ¯Â¿Â½lido. Usa el formato yyyy-MM-dd", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	            return false;
@@ -159,14 +161,14 @@ public class UserService {
 	        }
 	        if (inicioIns.isAfter(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de inicio de inscripciï¿½n no puede ser posterior a la de cierre", 
+	        			"La fecha de inicio de inscripciÃ¯Â¿Â½n no puede ser posterior a la de cierre", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }
 	        if (fechaActividad.isBefore(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de la actividad debe ser posterior al fin de inscripciï¿½n", 
+	        			"La fecha de la actividad debe ser posterior al fin de inscripciÃ¯Â¿Â½n", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -179,7 +181,7 @@ public class UserService {
 	        	horaF = LocalTime.parse(horaFinal);
 	        } catch (DateTimeParseException e) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"Formato de hora invï¿½lido. Usa HH:mm", 
+	        			"Formato de hora invÃ¯Â¿Â½lido. Usa HH:mm", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -187,15 +189,15 @@ public class UserService {
 	        
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despuï¿½s de la final", 
-	        			"Formato de hora invï¿½lido. Usa HH:mm", 
+	        			"La hora inicial no puede ser despuÃ¯Â¿Â½s de la final", 
+	        			"Formato de hora invÃ¯Â¿Â½lido. Usa HH:mm", 
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }	        
 	        
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despuï¿½s de la final", 
+	        			"La hora inicial no puede ser despuÃ¯Â¿Â½s de la final", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -261,7 +263,7 @@ public class UserService {
         try {
 	        fechaL = LocalDate.parse(fechaS);
         } catch (DateTimeParseException e) {
-            throw new ApplicationException("Formato de fecha invï¿½lido. Usa el formato yyyy-MM-dd");
+            throw new ApplicationException("Formato de fecha invÃ¯Â¿Â½lido. Usa el formato yyyy-MM-dd");
         }
         
         this.fechaHoy = fechaL;
@@ -294,11 +296,11 @@ public class UserService {
             System.out.println("===== Actividad =====");
             System.out.println("ID: " + act.get("id_actividad"));
             System.out.println("Nombre: " + act.get("nombre"));
-            System.out.println("Inicio inscripciÃ³n: " + act.get("inicio_inscripcion"));
-            System.out.println("Fin inscripciÃ³n: " + act.get("fin_inscripcion"));
+            System.out.println("Inicio inscripciÃƒÂ³n: " + act.get("inicio_inscripcion"));
+            System.out.println("Fin inscripciÃƒÂ³n: " + act.get("fin_inscripcion"));
             System.out.println("Fecha actividad: " + act.get("fecha"));
             System.out.println("Cuota: " + act.get("cuota"));
-            System.out.println("RemuneraciÃ³n: " + act.get("remuneracion"));
+            System.out.println("RemuneraciÃƒÂ³n: " + act.get("remuneracion"));
             System.out.println("Estado: " + estado);
             System.out.println("====================\n");
         }
@@ -318,29 +320,29 @@ public class UserService {
             );
 
             if (matriculas.isEmpty()) {
-                System.out.println(" No hay matrÃ­culas registradas en la base de datos.");
+                System.out.println(" No hay matrÃƒÂ­culas registradas en la base de datos.");
                 return;
             }
 
-            System.out.println("===== LISTADO COMPLETO DE MATRÃ�CULAS =====\n");
+            System.out.println("===== LISTADO COMPLETO DE MATRÃƒï¿½CULAS =====\n");
             for (Map<String, Object> m : matriculas) {
-                System.out.println("ID MatrÃ­cula: " + m.get("id_matricula"));
+                System.out.println("ID MatrÃƒÂ­cula: " + m.get("id_matricula"));
                 System.out.println("Alumno: " + m.get("alumno_nombre"));
                 System.out.println("Email: " + m.get("alumno_email"));
-                System.out.println("TelÃ©fono: " + m.get("alumno_telefono"));
+                System.out.println("TelÃƒÂ©fono: " + m.get("alumno_telefono"));
                 System.out.println("Actividad: " + m.get("actividad_nombre"));
                 System.out.println("Fecha actividad: " + m.get("actividad_fecha"));
                 System.out.println("Espacio: " + m.get("actividad_espacio"));
                 System.out.println("Cuota: " + m.get("actividad_cuota"));
-                System.out.println("Fecha matrÃ­cula: " + m.get("fecha_matricula"));
+                System.out.println("Fecha matrÃƒÂ­cula: " + m.get("fecha_matricula"));
                 System.out.println("Monto pagado: " + m.get("monto_pagado"));
-                System.out.println("Â¿EstÃ¡ pagado?: " + (((Integer)m.get("esta_pagado")) == 1 ? "SÃ­" : "No"));
+                System.out.println("Ã‚Â¿EstÃƒÂ¡ pagado?: " + (((Integer)m.get("esta_pagado")) == 1 ? "SÃƒÂ­" : "No"));
                 System.out.println("----------------------------------------\n");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(" Error al consultar las matrÃ­culas.");
+            System.out.println(" Error al consultar las matrÃƒÂ­culas.");
         }
     }
 
@@ -352,26 +354,36 @@ public class UserService {
             if (closed.equals(1)) {
                 return "Cerrada";
             }
-            java.time.LocalDate hoy = fechaHoy;
-            java.time.LocalDate inicio = java.time.LocalDate.parse((String) act.get("inicio_inscripcion"));
-            java.time.LocalDate fin = java.time.LocalDate.parse((String) act.get("fin_inscripcion"));
-            java.time.LocalDate fecha = java.time.LocalDate.parse((String) act.get("fecha"));
+            LocalDate hoy = fechaHoy;
+            LocalDate inicio = parseFecha((String) act.get("inicio_inscripcion"));
+            LocalDate fin = parseFecha((String) act.get("fin_inscripcion"));
+            LocalDate fecha = parseFecha((String) act.get("fecha"));
 
             if (hoy.isBefore(inicio)) return "Planificada";
             if (!hoy.isBefore(inicio) && !hoy.isAfter(fin)) return "En periodo de inscripcion";
             if (hoy.isAfter(fin) && hoy.isBefore(fecha)) return "Inscripcion cerrada";
-            if (hoy.isAfter(fecha)) return "Finalizada";
+            if (!hoy.isBefore(fecha)) return "Finalizada";
+            if(hoy.isEqual(fecha)) return "En curso";
         } catch (Exception e) {
             return "Estado desconocido";
         }
         return "Estado desconocido";
     }
     
+    private LocalDate parseFecha(String fechaStr) {
+        if (fechaStr == null) return null;
+        fechaStr = fechaStr.trim();
+        if (fechaStr.contains("T")) {
+            fechaStr = fechaStr.split("T")[0];
+        }
+        return LocalDate.parse(fechaStr);
+    }
+    
  // Obtiene todos los detalles de una actividad
     public Map<String, Object> getActividadDetalles(int idActividad) {
         Map<String,Object> resultado = new HashMap<>();
 
-        // Datos bï¿½sicos de la actividad
+        // Datos bÃ¯Â¿Â½sicos de la actividad
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT * FROM Actividad WHERE id_actividad = ?", idActividad
         );
@@ -405,7 +417,7 @@ public class UserService {
         	    "FROM Matricula m " +
         	    "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
         	    "WHERE m.id_actividad = ? " +
-        	    "AND (m.isCancelada IS NULL OR m.isCancelada = 0)", // ✅ solo no canceladas
+        	    "AND (m.isCancelada IS NULL OR m.isCancelada = 0)", // âœ… solo no canceladas
         	    idActividad
         	);
         resultado.put("inscripciones", inscripciones);
@@ -421,7 +433,7 @@ public class UserService {
         double ingresosEstimados = inscripciones.size() * Double.parseDouble(String.valueOf(act.get("cuota")));
 
         double gastosEstimados = act.get("remuneracion") != null ? Double.parseDouble(String.valueOf(act.get("remuneracion"))) : 0;
-        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciï¿½n
+        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciÃ¯Â¿Â½n
 
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
@@ -448,7 +460,7 @@ public class UserService {
 	
        public void verTodosLosAlumnosConMatriculas() {
         try {
-            // 1ï¸�âƒ£ Obtener todos los alumnos
+            // 1Ã¯Â¸ï¿½Ã¢Æ’Â£ Obtener todos los alumnos
             List<Map<String, Object>> alumnos = db.executeQueryMap("SELECT * FROM Alumno ORDER BY nombre");
 
             if (alumnos.isEmpty()) {
@@ -456,7 +468,7 @@ public class UserService {
                 return;
             }
 
-            System.out.println("===== LISTADO DE ALUMNOS Y SUS MATRÃ�CULAS =====\n");
+            System.out.println("===== LISTADO DE ALUMNOS Y SUS MATRÃƒï¿½CULAS =====\n");
 
             for (Map<String, Object> alumno : alumnos) {
                 int idAlumno = (int) alumno.get("id_alumno");
@@ -464,7 +476,7 @@ public class UserService {
                 System.out.println(" Alumno: " + alumno.get("nombre") + " " + alumno.get("apellido"));
                 System.out.println("   ID: " + idAlumno);
                 System.out.println("   Email: " + alumno.get("email"));
-                System.out.println("   TelÃ©fono: " + alumno.get("telefono"));
+                System.out.println("   TelÃƒÂ©fono: " + alumno.get("telefono"));
                 
                 Object internoValue = alumno.get("es_interno");
                 boolean esInterno = false;
@@ -474,7 +486,7 @@ public class UserService {
                     esInterno = ((Integer) internoValue) == 1;
                 }
 
-                System.out.println("   Es interno: " + (esInterno ? "SÃ­" : "No"));
+                System.out.println("   Es interno: " + (esInterno ? "SÃƒÂ­" : "No"));
                 System.out.println("------------------------------------------------");
 
                 List<Map<String, Object>> matriculas = db.executeQueryMap("""
@@ -488,20 +500,20 @@ public class UserService {
                 """, idAlumno);
 
                 if (matriculas.isEmpty()) {
-                    System.out.println("     No tiene matrÃ­culas registradas.\n");
+                    System.out.println("     No tiene matrÃƒÂ­culas registradas.\n");
                     continue;
                 }
 
-                System.out.println("    MatrÃ­culas:");
+                System.out.println("    MatrÃƒÂ­culas:");
                 for (Map<String, Object> m : matriculas) {
-                    System.out.println("   - ID MatrÃ­cula: " + m.get("id_matricula"));
+                    System.out.println("   - ID MatrÃƒÂ­cula: " + m.get("id_matricula"));
                     System.out.println("     Actividad: " + m.get("actividad_nombre"));
                     System.out.println("     Fecha actividad: " + m.get("actividad_fecha"));
                     System.out.println("     Espacio: " + m.get("actividad_espacio"));
                     System.out.println("     Cuota: " + m.get("actividad_cuota"));
-                    System.out.println("     Fecha matrÃ­cula: " + m.get("fecha_matricula"));
+                    System.out.println("     Fecha matrÃƒÂ­cula: " + m.get("fecha_matricula"));
                     System.out.println("     Monto pagado: " + m.get("monto_pagado"));
-                    System.out.println("     Â¿EstÃ¡ pagado?: " + ((Integer) m.get("esta_pagado") == 1 ? "SÃ­" : "No"));
+                    System.out.println("     Ã‚Â¿EstÃƒÂ¡ pagado?: " + ((Integer) m.get("esta_pagado") == 1 ? "SÃƒÂ­" : "No"));
                     System.out.println("     -------------------------------");
                 }
 
@@ -511,7 +523,7 @@ public class UserService {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al consultar los alumnos y sus matrÃ­culas.",
+                    "Error al consultar los alumnos y sus matrÃƒÂ­culas.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -531,13 +543,13 @@ public class UserService {
                 System.out.println("Nombre: " + a.get("nombre"));
                 System.out.println("Objetivos: " + a.get("objetivos"));
                 System.out.println("Contenidos: " + a.get("contenidos"));
-                System.out.println("RemuneraciÃ³n: " + a.get("remuneracion"));
+                System.out.println("RemuneraciÃƒÂ³n: " + a.get("remuneracion"));
                 System.out.println("Espacio: " + a.get("espacio"));
                 System.out.println("Fecha: " + a.get("fecha"));
                 System.out.println("Hora inicio: " + a.get("hora_inicio"));
                 System.out.println("Hora fin: " + a.get("hora_fin"));
-                System.out.println("Inicio inscripciÃ³n: " + a.get("inicio_inscripcion"));
-                System.out.println("Fin inscripciÃ³n: " + a.get("fin_inscripcion"));
+                System.out.println("Inicio inscripciÃƒÂ³n: " + a.get("inicio_inscripcion"));
+                System.out.println("Fin inscripciÃƒÂ³n: " + a.get("fin_inscripcion"));
                 System.out.println("Cuota: " + a.get("cuota"));
                 System.out.println("Es gratuita: " + a.get("es_gratuita"));
                 System.out.println("ID Profesor: " + a.get("id_profesor"));
@@ -580,11 +592,11 @@ public class UserService {
             System.out.println("===== Actividad con pago pendiente =====");
             System.out.println("ID: " + act.get("id_actividad"));
             System.out.println("Nombre: " + act.get("nombre"));
-            System.out.println("Inicio inscripciÃ³n: " + act.get("inicio_inscripcion"));
-            System.out.println("Fin inscripciÃ³n: " + act.get("fin_inscripcion"));
+            System.out.println("Inicio inscripciÃƒÂ³n: " + act.get("inicio_inscripcion"));
+            System.out.println("Fin inscripciÃƒÂ³n: " + act.get("fin_inscripcion"));
             System.out.println("Fecha actividad: " + act.get("fecha"));
             System.out.println("Cuota: " + act.get("cuota"));
-            System.out.println("RemuneraciÃ³n: " + act.get("remuneracion"));
+            System.out.println("RemuneraciÃƒÂ³n: " + act.get("remuneracion"));
             System.out.println("Estado: " + act.get("estado"));
             System.out.println("====================");
         }
@@ -612,8 +624,8 @@ public class UserService {
 
             System.out.println("\n ACTIVIDAD: " + nombreActividad.toUpperCase());
             System.out.println("   ID: " + idActividad);
-            System.out.println("   Cuota: " + cuota + " â‚¬");
-            System.out.println("   Periodo inscripciÃ³n: " + inicio + " â†’ " + fin);
+            System.out.println("   Cuota: " + cuota + " Ã¢â€šÂ¬");
+            System.out.println("   Periodo inscripciÃƒÂ³n: " + inicio + " Ã¢â€ â€™ " + fin);
             System.out.println("   Fecha actividad: " + fechaActividad);
 
             List<Map<String, Object>> inscripcionesPendientes = db.executeQueryMap("""
@@ -641,13 +653,13 @@ public class UserService {
                     LocalDate fechaMatricula = LocalDate.parse(fechaMatriculaStr);
                     LocalDate fechaMaxPago = fechaMatricula.plusDays(2);
 
-                    System.out.println("   â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€");
+                    System.out.println("   Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬Ã¢â€�â‚¬");
                     System.out.println("   Alumno: " + ins.get("alumno"));
-                    System.out.println("   Fecha inscripciÃ³n: " + fechaMatricula.format(formato));
-                    System.out.println("   Ãšltimo dÃ­a permitido para pago: " + fechaMaxPago.format(formato));
-                    System.out.println("   Monto pendiente: " + ins.get("cuota") + " â‚¬");
+                    System.out.println("   Fecha inscripciÃƒÂ³n: " + fechaMatricula.format(formato));
+                    System.out.println("   ÃƒÅ¡ltimo dÃƒÂ­a permitido para pago: " + fechaMaxPago.format(formato));
+                    System.out.println("   Monto pendiente: " + ins.get("cuota") + " Ã¢â€šÂ¬");
                     System.out.println("   Periodo de pago de la actividad: " 
-                            + ins.get("inicio_inscripcion") + " â†’ " + ins.get("fin_inscripcion"));
+                            + ins.get("inicio_inscripcion") + " Ã¢â€ â€™ " + ins.get("fin_inscripcion"));
                 }
             }
 
@@ -665,7 +677,7 @@ public class UserService {
 
             if (result.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encontrÃ³ la matrÃ­cula especificada.",
+                        "No se encontrÃƒÂ³ la matrÃƒÂ­cula especificada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return null;
             }
@@ -676,7 +688,7 @@ public class UserService {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al obtener la fecha de matrÃ­cula.",
+                    "Error al obtener la fecha de matrÃƒÂ­cula.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -685,7 +697,7 @@ public class UserService {
 
     public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago) {
         try {
-            // Obtener datos de la matrÃ­cula y actividad
+            // Obtener datos de la matrÃƒÂ­cula y actividad
             List<Map<String, Object>> datos = db.executeQueryMap("""
                 SELECT a.id_actividad, a.cuota, a.total_plazas,
                        (SELECT COUNT(*) 
@@ -698,7 +710,7 @@ public class UserService {
 
             if (datos.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encontrÃ³ la matrÃ­cula o la actividad asociada.",
+                        "No se encontrÃƒÂ³ la matrÃƒÂ­cula o la actividad asociada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
@@ -711,7 +723,7 @@ public class UserService {
             // Validar monto
             if (Math.abs(montoPagado - cuota) > 0.01) {
                 JOptionPane.showMessageDialog(null,
-                        "La cantidad pagada debe coincidir con la cuota del curso (" + cuota + " â‚¬).",
+                        "La cantidad pagada debe coincidir con la cuota del curso (" + cuota + " Ã¢â€šÂ¬).",
                         "Monto incorrecto", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
@@ -723,7 +735,7 @@ public class UserService {
                 WHERE id_matricula = ?
             """, montoPagado, idMatricula);
 
-            // Recalcular plazas ocupadas despuÃ©s del pago
+            // Recalcular plazas ocupadas despuÃƒÂ©s del pago
             plazasOcupadas++; // ya se acaba de registrar este pago
             boolean hayPlazas = plazasOcupadas <= totalPlazas;
 
@@ -786,7 +798,7 @@ public class UserService {
 	    LocalDate inicio = ac.getInicio_insc();
 	    LocalDate fin = ac.getFin_inscr();
 
-	    // Devuelve true si hoy estï¿½ entre inicio y fin (inclusive)
+	    // Devuelve true si hoy estÃ¯Â¿Â½ entre inicio y fin (inclusive)
 	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
 	}
 
@@ -806,7 +818,7 @@ public class UserService {
 				if (!resultado.isEmpty()) {
 				    System.out.println(" Alumno insertado correctamente: " + resultado.get(0));
 				} else {
-				    System.out.println("No se insertï¿½ al alumno.");
+				    System.out.println("No se insertÃ¯Â¿Â½ al alumno.");
 				}
 			a=new Alumno();
 			ac=null;
@@ -1032,11 +1044,14 @@ public class UserService {
 	}
 
 	public void setFechaFiltrado(String fechaIn, String fechaFin) {
-		fechaFiltrado = new FechaFiltrado(fechaIn, fechaFin);
+		fechaFiltrado = new FechaFiltrado(fechaIn, fechaFin,fechaHoy);
 		
 	}
 
 	public boolean compruebaFormatoFecha(String fecha) {
+		if(fecha==null) {
+			return false;
+		}
 		try {
 	        LocalDate.parse(fecha);
 	        return true;
@@ -1046,10 +1061,21 @@ public class UserService {
         
 	}
 
-	public String getFacturasTextoAcabadasEnRango() {
-		List<Factura> lista = recuperaAcabadasEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
-	    StringBuilder sb = new StringBuilder();
+	public String getFacturasTextoAcabadasEnRango(LocalDate inicio, LocalDate fin) {
+		LocalDate fechaInicio;
+		LocalDate fechaFin;
+		if(inicio==null && fin==null) {
+			fechaInicio = LocalDate.of(fechaHoy.getYear(), 1, 1);
+			fechaFin = LocalDate.of(fechaHoy.getYear(), 12, 31);
+		}else {
+			fechaInicio = (inicio != null) ? inicio : LocalDate.of(fechaHoy.getYear(), 1, 1);
+		    fechaFin = (fin != null) ? fin : LocalDate.of(fechaHoy.getYear(), 12, 31);
+		}
+	    
+	    List<Factura> lista = recuperaAcabadasEnRango(fechaInicio, fechaFin);
 
+	    
+	    StringBuilder sb = new StringBuilder();
 	    for (Factura f : lista) {
 	        sb.append(f);
 	    }
@@ -1069,14 +1095,15 @@ public class UserService {
 		return acabadas;
 	}
 
-	public String getFacturasTextoSinAcabarEnRango() {
-		List<Factura> lista = recuperaSinAcabarEnRango(fechaFiltrado.getFechaIn(),fechaFiltrado.getFechaFin());
+	public String getFacturasTextoSinAcabarEnRango(LocalDate inicio, LocalDate fin) {
+	    LocalDate fechaInicio = (inicio != null) ? inicio : LocalDate.of(fechaHoy.getYear(), 1, 1);
+	    LocalDate fechaFin = (fin != null) ? fin : LocalDate.of(fechaHoy.getYear(), 12, 31);
+	    List<Factura> lista = recuperaSinAcabarEnRango(fechaInicio, fechaFin);
+
 	    StringBuilder sb = new StringBuilder();
-
 	    for (Factura f : lista) {
-	    	sb.append(f.toStringSin());
+	        sb.append(f.toStringSin());
 	    }
-
 	    return sb.toString();
 	}
 
@@ -1285,5 +1312,29 @@ public class UserService {
         List<Map<String, Object>> result = db.executeQueryMap(sql, idMatricula);
         return result.isEmpty() ? 0 : (int) result.get(0).get("id_actividad");
     }
+    
+    public Alumno getInformacionAlumno() {
+    	if(idAlumnoInscrip==0) return null;
+    	else {
+    		Alumno a = getAlumnoById();
+    		return a;
+    	}
+    }
+    
+    private Alumno getAlumnoById() {
+    	Alumno a = new Alumno();
+    	List<Map<String, Object>> consulta = db.executeQueryMap("SELECT nombre, apellido, email, telefono, es_interno FROM Alumno where id_alumno = " + getIdAlumnoInscrip());
+    	Map<String, Object> row = consulta.get(0);
+    	a.setNombre((String)row.get("nombre"));
+    	a.setApellidos((String)row.get("apellido"));
+    	a.setCorreo((String)row.get("email"));
+    	a.setNumeroTf((String)row.get("telefono"));
+    	a.setPerteneceDB((int)row.get("es_interno"));
+    	return a;
+    }
+
+	public FechaFiltrado getFechaFiltrado() {
+		return fechaFiltrado;
+	}
 
 }

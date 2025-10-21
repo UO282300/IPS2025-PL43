@@ -10,11 +10,20 @@ public class FechaFiltrado {
 	private LocalDate fechaInicio;
 	private LocalDate fechaFinal;
 	
-	public FechaFiltrado(String init, String fin) {
+	public FechaFiltrado(String init, String fin, LocalDate hoy) {
 		fechaIn = init;
 		fechaFin = fin;
-		fechaInicio=LocalDate.parse(fechaIn);
-		fechaFinal = LocalDate.parse(fechaFin);
+		if(fechaIn==null) {
+			fechaInicio = LocalDate.of(hoy.getYear(), 1, 1);
+			fechaFinal = LocalDate.parse(fechaFin);
+		}else if(fechaFin==null) {
+			fechaInicio=LocalDate.parse(fechaIn);
+			fechaFinal=LocalDate.of(fechaInicio.getYear(), 12, 31);
+		}else {
+			fechaInicio=LocalDate.parse(fechaIn);
+			fechaFinal = LocalDate.parse(fechaFin);
+		}
+		
 	}
 	
 	public LocalDate getFechaIn() {

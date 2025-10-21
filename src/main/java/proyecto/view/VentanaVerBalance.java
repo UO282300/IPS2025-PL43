@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -86,15 +87,35 @@ public class VentanaVerBalance extends JFrame {
 	protected void checkearDatos() {
 		String fechaIn = getTxFecha().getText();
 		String fechaFin = getTxFinal().getText();
-		boolean fecha = false;
+		boolean fecha1 = false;
+		boolean fecha2 = false;
 		int bt = 2;
-		if(fechaIn.isBlank() || fechaFin.isBlank()) {
-			fecha =false;
-		}else {
-			service.setFechaFiltrado(fechaIn,fechaFin);
-			fecha=true;
+		if(fechaIn.isBlank()&&fechaFin.isBlank()) {
+			fecha1 =false;
+			fecha2 = false;
+			
+		}else if(fechaIn.isBlank()) {
+			fecha1=false;
+			fecha2=true;
+			service.setFechaFiltrado(null,fechaFin);
+		}else if(fechaFin.isBlank()) {
+			fecha1=true;
+			fecha2=false;
+			service.setFechaFiltrado(fechaIn,null);
 		}
-		if(fecha && (!service.compruebaFormatoFecha(fechaIn) || !service.compruebaFormatoFecha(fechaFin))) {
+		else {
+			service.setFechaFiltrado(fechaIn,fechaFin);
+			fecha1=true;
+			fecha2=true;
+		}
+		if(fecha1 && !service.compruebaFormatoFecha(fechaIn)) {
+			JOptionPane.showMessageDialog(
+			        null, 
+			        "Formato fecha inadecuado.\nNo se ha realizado el filtrado.", 
+			        "Error", 
+			        JOptionPane.ERROR_MESSAGE
+			    );
+		}else if(fecha2 && !service.compruebaFormatoFecha(fechaFin)) {
 			JOptionPane.showMessageDialog(
 			        null, 
 			        "Formato fecha inadecuado.\nNo se ha realizado el filtrado.", 
@@ -112,42 +133,29 @@ public class VentanaVerBalance extends JFrame {
 			bt=0;
 		}
 		
-		filtrado(fecha,bt);
+		filtrado(bt);
 	}
 	
 	
 	
-	private void filtrado(boolean fecha, int bt) {
-		switch(bt) {
-		case 0:
-			if(fecha) {
-				
-				getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango());
-				getTxSinAcabar().setText("");
-			}else {
-				getTxAcabar().setText(service.getFacturasTextoAcabadas());
-				getTxSinAcabar().setText("");
-			}
-			break;
-		case 1:
-			if(fecha) {
-				getTxAcabar().setText("");
-				getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango());
-			}else {
-				getTxAcabar().setText("");
-				getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
-			}
-			break;
-		case 2:
-			if(fecha) {
-				getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango());
-				getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango());
-			}else {
-				getTxAcabar().setText(service.getFacturasTextoAcabadas());
-				getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
-			}
-		}
-		
+	private void filtrado(int bt) {
+	    LocalDate inicio = service.getFechaFiltrado().getFechaIn();
+	    LocalDate fin = service.getFechaFiltrado().getFechaFin();
+
+	    switch(bt) {
+	        case 0: 
+	            getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango(inicio, fin));
+	            getTxSinAcabar().setText("");
+	            break;
+	        case 1: 
+	            getTxAcabar().setText("");
+	            getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango(inicio, fin));
+	            break;
+	        case 2: // Ambas
+	            getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango(inicio, fin));
+	            getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango(inicio, fin));
+	            break;
+	    }
 	}
 
 	private JPanel getPnFechas() {

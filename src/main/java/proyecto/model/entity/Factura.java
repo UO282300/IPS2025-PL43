@@ -78,13 +78,13 @@ public class Factura {
 	public boolean estaAbierta() {
 	    System.out.println("Revisando apertura: '" + estado + "'");
 	    String e = estado.trim().toLowerCase();
-	    return e.equals("planificada") || e.equals("en periodo de inscripci�n");
+	    return e.equals("planificada") || e.equals("en periodo de inscripcion") || e.equals("en curso") || e.equals("inscripcion cerrada");
 	}
 
 	public boolean estaCerrada() {
 	    System.out.println("Revisando cierre: '" + estado + "'");
 	    String e = estado.trim().toLowerCase();
-	    return e.equals("inscripci�n cerrada") || e.equals("finalizada")|| e.equals("cerrada");
+	    return e.equals("finalizada")|| e.equals("cerrada");
 	}
 
 	

@@ -75,19 +75,19 @@ public class Alumno {
 		return pertenece;
 	}
 	
-	public Object getCorreo() {
+	public String getCorreo() {
 		return correo;
 	}
 
-	public Object getNombre() {
+	public String getNombre() {
 		return nombre;
 	}
 
-	public Object getApellido() {
+	public String getApellido() {
 		return apellidos;
 	}
 
-	public Object getTelefono() {
+	public String getTelefono() {
 		return numeroTf;
 	}
 
@@ -97,6 +97,14 @@ public class Alumno {
 	
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public void setPerteneceDB(int i) {
+		if(i==0) pertenece=false;
+		else {
+			pertenece=true;
+		}
+		
 	}
 	
 	
