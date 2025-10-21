@@ -54,7 +54,7 @@ public class VentanaRegistrarPagos extends JFrame {
         getContentPane().add(comboActividades);
 
         // --- INSCRIPCIONES ---
-        JLabel lblInscripcion = new JLabel("Inscripción:");
+        JLabel lblInscripcion = new JLabel("Inscripcon:");
         lblInscripcion.setBounds(50, 120, 120, 25);
         getContentPane().add(lblInscripcion);
 
@@ -70,7 +70,7 @@ public class VentanaRegistrarPagos extends JFrame {
         comboActividades.addActionListener(e -> cargarInscripciones());
 
         // --- CANTIDAD ---
-        JLabel lblCantidad = new JLabel("Cantidad (€):");
+        JLabel lblCantidad = new JLabel("Cantidad (EUR):");
         lblCantidad.setBounds(50, 160, 120, 25);
         getContentPane().add(lblCantidad);
 
@@ -164,7 +164,7 @@ public class VentanaRegistrarPagos extends JFrame {
 
         if (Math.abs(cantidad - cuotaSeleccionada) > 0.01) {
             JOptionPane.showMessageDialog(this,
-                    "La cantidad debe ser exactamente igual al costo del curso (" + cuotaSeleccionada + " €).",
+                    "La cantidad debe ser exactamente igual al costo del curso (" + cuotaSeleccionada + " EUR).",
                     "Cantidad incorrecta", JOptionPane.ERROR_MESSAGE);
             return;
         }

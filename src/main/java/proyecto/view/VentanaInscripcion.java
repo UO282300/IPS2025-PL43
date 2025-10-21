@@ -199,7 +199,7 @@ public class VentanaInscripcion extends JFrame {
 		if (selec != null) {
 			service.selectActividad(selec);
 		} else {
-			JOptionPane.showMessageDialog(null, "No hay actividad seleccionada.\nPor favor selecciona actividad.",
+			JOptionPane.showMessageDialog(null, "No hay actividad seleccionada. Por favor selecciona actividad.",
 					"Error", JOptionPane.ERROR_MESSAGE);
 		}
 
@@ -286,14 +286,14 @@ public class VentanaInscripcion extends JFrame {
 					JOptionPane.ERROR_MESSAGE);
 
 		} else if (!comprobaciones()) {
-			JOptionPane.showMessageDialog(null, "Campos sin rellenar.\nPor favor rellene los campos.", "Error",
+			JOptionPane.showMessageDialog(null, "Campos sin rellenar. Por favor rellene los campos.", "Error",
 					JOptionPane.ERROR_MESSAGE);
 		} else {
 
 			guardarData();
 			if (!CheckearData()) {
 				JOptionPane.showMessageDialog(null,
-						"Los datos ingresados no son correctos.\nNo se ha realizado la inscripci�n.", "Error",
+						"Los datos ingresados no son correctos. No se ha realizado la inscripcion.", "Error",
 						JOptionPane.ERROR_MESSAGE);
 			} else {
 				updateData();
@@ -320,7 +320,7 @@ public class VentanaInscripcion extends JFrame {
 		msj.setMensaje("NO se ha podido hacer la matricula.");
 		if (service.introduce(msj)) {
 			JOptionPane.showMessageDialog(null,
-					"Inscripci�n realizada correctamente.\nSe ha enviado un correo con la informaci�n de pago.",
+					"Inscripcion realizada correctamente. Se ha enviado un correo con la informacion de pago.",
 					"Correo enviado", JOptionPane.INFORMATION_MESSAGE);
 
 		} else {
@@ -357,7 +357,7 @@ public class VentanaInscripcion extends JFrame {
 
 	private JLabel getLbCorreo_1() {
 		if (lbCorreo == null) {
-			lbCorreo = new JLabel("Correo Electr\u00F3nico");
+			lbCorreo = new JLabel("Correo Electronico");
 		}
 		return lbCorreo;
 	}
@@ -443,7 +443,7 @@ public class VentanaInscripcion extends JFrame {
 
 	private JLabel getLbNumeroTf_1() {
 		if (lbNumeroTf == null) {
-			lbNumeroTf = new JLabel("Numero de Tel\u00E9fono");
+			lbNumeroTf = new JLabel("Numero de Telefono");
 		}
 		return lbNumeroTf;
 	}

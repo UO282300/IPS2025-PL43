@@ -77,12 +77,12 @@ public class VentanaPagoProfesores extends JFrame {
         Nif.setBounds(50, 133, 120, 25);
         getContentPane().add(Nif);
 
-        JLabel Direccion = new JLabel("Dirección:");
+        JLabel Direccion = new JLabel("Direccion:");
         Direccion.setBounds(50, 167, 120, 25);
         getContentPane().add(Direccion);
 
         // --- CANTIDAD ---
-        JLabel lblCantidad = new JLabel("Cantidad (€):");
+        JLabel lblCantidad = new JLabel("Cantidad (EUR):");
         lblCantidad.setBounds(50, 210, 120, 25);
         getContentPane().add(lblCantidad);
 
@@ -187,7 +187,7 @@ public class VentanaPagoProfesores extends JFrame {
         String key = (String) comboActividades.getSelectedItem();
         Integer idActividad = actividadMap.get(key);
         if (idActividad == null) {
-            JOptionPane.showMessageDialog(this, "Selecciona una actividad válida.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Selecciona una actividad valida.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -196,13 +196,13 @@ public class VentanaPagoProfesores extends JFrame {
         try {
             cantidadIntroducida = Double.parseDouble(tfCantidad.getText());
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Introduce un número válido para la cantidad.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Introduce un numero valido para la cantidad.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (cantidadIntroducida != remuneracion) {
             JOptionPane.showMessageDialog(this,
-                    "La cantidad introducida no coincide con la remuneración del profesor.\nCantidad correcta: " + remuneracion + " €",
+                    "La cantidad introducida no coincide con la remuneracion del profesor.\nCantidad correcta: " + remuneracion + " EUR",
                     "Cantidad incorrecta",
                     JOptionPane.WARNING_MESSAGE);
             return;
@@ -219,7 +219,7 @@ public class VentanaPagoProfesores extends JFrame {
         
         us.registrarPagoProfesor(idProfesor, idFactura, idActividad, tfFecha.getText(), cantidadIntroducida);
 
-        JOptionPane.showMessageDialog(this, "Pago registrado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Pago registrado correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
         us.imprimirPagosProfesor();
 
         tfCantidad.setText("");

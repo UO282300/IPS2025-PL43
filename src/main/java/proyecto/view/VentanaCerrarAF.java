@@ -156,20 +156,20 @@ public class VentanaCerrarAF extends JFrame {
 
         if (service.actividadConMovimientosAlumnos(idActividad)) {
             JOptionPane.showMessageDialog(this,
-                    "No se puede cerrar la actividad.\nExisten pagos pendientes de alumnos.",
+                    "No se puede cerrar la actividad. Existen pagos pendientes de alumnos.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         if (service.actividadConMovimientosProfesores(idActividad)) {
             JOptionPane.showMessageDialog(this,
-                    "No se puede cerrar la actividad.\nExisten pagos pendientes de profesores.",
+                    "No se puede cerrar la actividad. Existen pagos pendientes de profesores.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int opcion = JOptionPane.showConfirmDialog(this,
-                "¿Estás seguro de que deseas cerrar esta actividad?",
+                "�Estas seguro de que deseas cerrar esta actividad?",
                 "Confirmar cierre", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
