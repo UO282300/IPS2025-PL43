@@ -65,14 +65,14 @@ public class VentanaPrincipal {
         pnNorte.add(pnDaFecha);
 
         JLabel lblFechaHoy = new JLabel("Fecha de hoy (yyyy-MM-dd):");
-        lblFechaHoy.setFont(new Font("Arial", Font.BOLD, 13));
+        lblFechaHoy.setFont(new Font("Arial", Font.PLAIN, 16));
         txtFechaHoy = new JTextField(10);
-        txtFechaHoy.setFont(new Font("Arial", Font.BOLD, 13));
+        txtFechaHoy.setFont(new Font("Arial", Font.PLAIN, 16));
 
         pnPideFecha.add(lblFechaHoy);
         pnPideFecha.add(txtFechaHoy);
         JButton btnCargarFecha = new JButton("Cargar");
-        btnCargarFecha.setFont(new Font("Arial", Font.BOLD, 13));
+        btnCargarFecha.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCargarFecha.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 cargaFecha();
@@ -81,26 +81,28 @@ public class VentanaPrincipal {
         pnPideFecha.add(btnCargarFecha);
 
         lblFechaCargada = new JLabel("Fecha cargada: ");
-        lblFechaCargada.setFont(new Font("Arial", Font.BOLD, 13));
+        lblFechaCargada.setFont(new Font("Arial", Font.PLAIN, 16));
         pnDaFecha.add(lblFechaCargada);
         frame.getContentPane().add(pnNorte, BorderLayout.NORTH);
 
         // === PANEL CENTRO ===
 
         JPanel pnCentro = new JPanel();
-        pnCentro.setBackground(Color.GRAY);
+        pnCentro.setBackground(Color.DARK_GRAY);
 
         JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
+        btnInicializarBaseDeDatos.setFont(new Font("Arial", Font.PLAIN, 16));
         btnInicializarBaseDeDatos.setEnabled(false);
         btnInicializarBaseDeDatos.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 service.crearDataBase();
             }
         });
-        pnCentro.setLayout(new GridLayout(18, 2, 0, 0));
+        pnCentro.setLayout(new GridLayout(15, 2, 2, 2));
         pnCentro.add(btnInicializarBaseDeDatos);
 
         JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
+        btnCargarDatosIniciales.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCargarDatosIniciales.setEnabled(false);
         btnCargarDatosIniciales.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -109,16 +111,8 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btnCargarDatosIniciales);
 
-        JButton btnQueryDePrueba = new JButton("Ejemplo de consulta");
-        btnQueryDePrueba.setEnabled(false);
-        btnQueryDePrueba.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                service.ejemploConsulta();
-            }
-        });
-        pnCentro.add(btnQueryDePrueba);
-
-        JButton btnResponsable = new JButton("Responsable a�ade actividad");
+        JButton btnResponsable = new JButton("Responsable - Planificar actividad");
+        btnResponsable.setFont(new Font("Arial", Font.PLAIN, 16));
         btnResponsable.setEnabled(false);
         btnResponsable.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -135,6 +129,7 @@ public class VentanaPrincipal {
         
      // === Combo de alumnos para inscripci�n ===
         comboAlumnosInscripcion = new JComboBox<>();
+        comboAlumnosInscripcion.setFont(new Font("Arial", Font.PLAIN, 16));
         comboAlumnosInscripcion.setEnabled(false);
         pnInscripciones.add(comboAlumnosInscripcion);
         cargarAlumnosEnCombo(comboAlumnosInscripcion, "Nuevo Alumno");
@@ -162,7 +157,8 @@ public class VentanaPrincipal {
 
         
         
-        JButton btInscripcion = new JButton("Inscribirse a actividad");
+        JButton btInscripcion = new JButton("Profesional - Inscribirse a actividad");
+        btInscripcion.setFont(new Font("Arial", Font.PLAIN, 16));
         btInscripcion.setEnabled(false);
         pnInscripciones.add(btInscripcion);
         btInscripcion.addActionListener(new ActionListener() {
@@ -171,7 +167,8 @@ public class VentanaPrincipal {
         	}
         });
         
-        JButton btnBalance = new JButton("Ver Balance");
+        JButton btnBalance = new JButton("Responsable - Ver Balance");
+        btnBalance.setFont(new Font("Arial", Font.PLAIN, 16));
         btnBalance.setEnabled(false);
         btnBalance.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -180,7 +177,8 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btnBalance);
         
-      JButton btnRegistrarPagos = new JButton("Registrar Pagos");
+      JButton btnRegistrarPagos = new JButton("Administrador - Registrar Pagos a inscritos");
+      btnRegistrarPagos.setFont(new Font("Arial", Font.PLAIN, 16));
       btnRegistrarPagos.setEnabled(false);
       btnRegistrarPagos.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
@@ -191,7 +189,8 @@ public class VentanaPrincipal {
       pnCentro.add(btnRegistrarPagos);
         
         
-        JButton btnPagoProfesores = new JButton("Registrar Pago a Profesores");
+        JButton btnPagoProfesores = new JButton("Administrador - Registrar Pago a Profesores");
+        btnPagoProfesores.setFont(new Font("Arial", Font.PLAIN, 16));
         btnPagoProfesores.setEnabled(false);
         btnPagoProfesores.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -202,7 +201,8 @@ public class VentanaPrincipal {
         pnCentro.add(btnPagoProfesores);
         
 
-        JButton btnEstadoAF = new JButton("Ver Estado Acciones Formativas");
+        JButton btnEstadoAF = new JButton("Administrador - Ver Estado Acciones Formativas");
+        btnEstadoAF.setFont(new Font("Arial", Font.PLAIN, 16));
         btnEstadoAF.setEnabled(false);
         btnEstadoAF.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -217,11 +217,13 @@ public class VentanaPrincipal {
 
         // === Combo de alumnos ===
         comboAlumnosCancelar = new JComboBox<>();
+        comboAlumnosCancelar.setFont(new Font("Arial", Font.PLAIN, 16));
         comboAlumnosCancelar.setEnabled(false);
         pnCancelarInscripciones.add(comboAlumnosCancelar);
 
         // === Bot�n cancelar inscripciones ===
-        JButton btnCancelarInscripciones = new JButton("Cancelar Inscripciones");
+        JButton btnCancelarInscripciones = new JButton("Profesional - Cancelar Inscripciones");
+        btnCancelarInscripciones.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCancelarInscripciones.setEnabled(false);
         pnCancelarInscripciones.add(btnCancelarInscripciones);
 
@@ -266,7 +268,8 @@ public class VentanaPrincipal {
             }
         });
         
-        JButton btnCerrarAF = new JButton("Como administradora quiero cerrar una actividad");
+        JButton btnCerrarAF = new JButton("Administrador - cerrar una actividad");
+        btnCerrarAF.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCerrarAF.setEnabled(false);
         btnCerrarAF.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

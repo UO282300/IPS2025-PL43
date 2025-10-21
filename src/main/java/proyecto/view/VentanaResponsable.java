@@ -52,7 +52,7 @@ public class VentanaResponsable extends JFrame {
     	this.service = service;
     	
 
-        setTitle("PLANIFICACI�N DE ACTIVIDADES");
+        setTitle("PLANIFICACION DE ACTIVIDADES");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 700);
         setMinimumSize(new Dimension(950, 600));
@@ -73,7 +73,7 @@ public class VentanaResponsable extends JFrame {
             pnNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 15));
             pnNorte.setBackground(new Color(230, 235, 250));
 
-            JLabel lblTitulo = new JLabel("Planificaci�n de Actividad Formativa", SwingConstants.CENTER);
+            JLabel lblTitulo = new JLabel("Planificacion de Actividad Formativa", SwingConstants.CENTER);
             lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
             lblTitulo.setForeground(new Color(30, 50, 90));
             lblTitulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -181,7 +181,7 @@ public class VentanaResponsable extends JFrame {
             pnProfesorEspacio.add(new JLabel("Profesor:"));
             pnProfesorEspacio.add(getCmbProfesor());
 
-            pnProfesorEspacio.add(new JLabel("Remuneraci�n (�):"));
+            pnProfesorEspacio.add(new JLabel("Remuneracion (euros):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
 
             pnProfesorEspacio.add(new JLabel("Espacio:"));
@@ -241,7 +241,7 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnProgramacion() {
         if (pnProgramacion == null) {
         	pnProgramacion = new JPanel(new GridLayout(3, 2, 10, 10));
-            pnProgramacion.setBorder(new TitledBorder("Programaci�n"));
+            pnProgramacion.setBorder(new TitledBorder("Programacion"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
             pnProgramacion.add(new JLabel("Fecha (yyyy-MM-dd):"));
@@ -281,7 +281,7 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnInscripcionCuota() {
         if (pnInscripcionCuota == null) {
         	pnInscripcionCuota = new JPanel(new GridLayout(4, 2, 10, 10));
-            pnInscripcionCuota.setBorder(new TitledBorder("Inscripci�n y Cuota"));
+            pnInscripcionCuota.setBorder(new TitledBorder("Inscripcion y Cuota"));
             pnInscripcionCuota.setBackground(new Color(250, 252, 255));
 
             pnInscripcionCuota.add(new JLabel("Inicio inscripci�n (yyyy-MM-dd):"));
@@ -290,7 +290,7 @@ public class VentanaResponsable extends JFrame {
             pnInscripcionCuota.add(new JLabel("Cierre inscripci�n (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtFinInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cuota (�):"));
+            pnInscripcionCuota.add(new JLabel("Cuota (euros):"));
             pnInscripcionCuota.add(getTxtCuota());
 
             pnInscripcionCuota.add(new JLabel(""));
