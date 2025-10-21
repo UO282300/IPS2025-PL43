@@ -54,7 +54,7 @@ public class VentanaCancelarInscripcion extends JFrame {
     /** Carga las matrículas del alumno actual **/
     private void cargarMatriculasAlumno() {
         modelMatriculas.setRowCount(0);
-        int idAlumno = service.getIdAlumnoActual();
+        int idAlumno = service.getIdAlumnoCancel();
 
         if (idAlumno == 0) {
             JOptionPane.showMessageDialog(this,
@@ -84,7 +84,7 @@ public class VentanaCancelarInscripcion extends JFrame {
 
     /** Lógica de cancelación **/
     public void cancelarInscripcion(int row) {
-        int idAlumno = service.getIdAlumnoActual();
+        int idAlumno = service.getIdAlumnoCancel();
         int idMatricula = (int) modelMatriculas.getValueAt(row, 0);
         String nombreActividad = modelMatriculas.getValueAt(row, 1).toString();
         LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 2).toString());

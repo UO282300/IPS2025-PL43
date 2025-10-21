@@ -24,19 +24,28 @@ public class UserService {
 	private Actividad ac;
 	private LocalDate fechaHoy;
 	private FechaFiltrado fechaFiltrado;
-	private int idAlumnoActual;
+	private int idAlumnoCancel;
+	private int idAlumnoInscrip;
 
-    public int getIdAlumnoActual() {
-		return idAlumnoActual;
+    public int getIdAlumnoCancel() {
+		return idAlumnoCancel;
 	}
 
-	public void setIdAlumnoActual(int idAlumnoActual) {
-		this.idAlumnoActual = idAlumnoActual;
+	public void setIdAlumnoCancel(int idAlumnoCancel) {
+		this.idAlumnoCancel = idAlumnoCancel;
 	}
 
 	
 
-    public UserService() {
+    public int getIdAlumnoInscrip() {
+		return idAlumnoInscrip;
+	}
+
+	public void setIdAlumnoInscrip(int idAlumnoInscrip) {
+		this.idAlumnoInscrip = idAlumnoInscrip;
+	}
+
+	public UserService() {
         this.db = new Database();
     }
     public void eliminarTodosLosDatos() {

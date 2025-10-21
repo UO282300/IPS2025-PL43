@@ -2,6 +2,8 @@ package proyecto.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -28,6 +30,7 @@ public class VentanaPrincipal {
 	private JTextField txtFechaHoy;
 	JLabel lblFechaCargada;
 	private JComboBox<String> comboAlumnosCancelar;
+	private JComboBox<String> comboAlumnosInscripcion;
 	private List<Map<String, Object>> listaAlumnos; // Para obtener el id real del alumno
 	
 
@@ -88,6 +91,7 @@ public class VentanaPrincipal {
         pnCentro.setBackground(Color.GRAY);
 
         JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
+        btnInicializarBaseDeDatos.setEnabled(false);
         btnInicializarBaseDeDatos.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 service.crearDataBase();
@@ -97,6 +101,7 @@ public class VentanaPrincipal {
         pnCentro.add(btnInicializarBaseDeDatos);
 
         JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
+        btnCargarDatosIniciales.setEnabled(false);
         btnCargarDatosIniciales.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 service.cargarDataBase();
@@ -105,6 +110,7 @@ public class VentanaPrincipal {
         pnCentro.add(btnCargarDatosIniciales);
 
         JButton btnQueryDePrueba = new JButton("Ejemplo de consulta");
+        btnQueryDePrueba.setEnabled(false);
         btnQueryDePrueba.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 service.ejemploConsulta();
@@ -113,6 +119,7 @@ public class VentanaPrincipal {
         pnCentro.add(btnQueryDePrueba);
 
         JButton btnResponsable = new JButton("Responsable aï¿½ade actividad");
+        btnResponsable.setEnabled(false);
         btnResponsable.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mostrarVentanaResponsable();
@@ -122,15 +129,50 @@ public class VentanaPrincipal {
 
         frame.getContentPane().add(pnCentro, BorderLayout.CENTER);
         
+        JPanel pnInscripciones = new JPanel();
+        pnCentro.add(pnInscripciones);
+        pnInscripciones.setLayout(new GridLayout(0, 2, 0, 0));
+        
+     // === Combo de alumnos para inscripción ===
+        comboAlumnosInscripcion = new JComboBox<>();
+        comboAlumnosInscripcion.setEnabled(false);
+        pnInscripciones.add(comboAlumnosInscripcion);
+        cargarAlumnosEnCombo(comboAlumnosInscripcion, "Nuevo Alumno");
+
+        // Evento: cuando se selecciona un alumno
+        comboAlumnosInscripcion.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int index = comboAlumnosInscripcion.getSelectedIndex();
+
+                if (index == 0) { 
+                    // "Nuevo Alumno" seleccionado
+                    service.setIdAlumnoInscrip(0);
+                    System.out.println("Nuevo Alumno seleccionado (ID 0)");
+                    return;
+                }
+
+                if (listaAlumnos != null && index - 1 < listaAlumnos.size()) {
+                    Map<String, Object> alumno = listaAlumnos.get(index - 1); // -1 porque primer item es "Nuevo Alumno"
+                    int idAlumno = (int) alumno.get("id_alumno");
+                    service.setIdAlumnoInscrip(idAlumno);
+                    System.out.println("Alumno seleccionado Inscrip: " + alumno.get("nombre") + " (ID " + idAlumno + ")");
+                }
+            }
+        });
+
+        
+        
         JButton btInscripcion = new JButton("Inscribirse a actividad");
+        btInscripcion.setEnabled(false);
+        pnInscripciones.add(btInscripcion);
         btInscripcion.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		mostrarVentanaInscripcion();
         	}
         });
-        pnCentro.add(btInscripcion);
         
         JButton btnBalance = new JButton("Ver Balance");
+        btnBalance.setEnabled(false);
         btnBalance.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		mostrarVentanaBalance();
@@ -139,6 +181,7 @@ public class VentanaPrincipal {
         pnCentro.add(btnBalance);
         
       JButton btnRegistrarPagos = new JButton("Registrar Pagos");
+      btnRegistrarPagos.setEnabled(false);
       btnRegistrarPagos.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
         	  mostrarVentanaRegistrarPagos();
@@ -149,6 +192,7 @@ public class VentanaPrincipal {
         
         
         JButton btnPagoProfesores = new JButton("Registrar Pago a Profesores");
+        btnPagoProfesores.setEnabled(false);
         btnPagoProfesores.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mostrarVentanaPagoProfesores();
@@ -158,6 +202,7 @@ public class VentanaPrincipal {
         pnCentro.add(btnPagoProfesores);
         
         JButton btnEstadoAF = new JButton("Ver Estado Acciones Formativas");
+        btnEstadoAF.setEnabled(false);
         btnEstadoAF.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		mostrarVentanaEstadoAF();
@@ -171,14 +216,16 @@ public class VentanaPrincipal {
 
         // === Combo de alumnos ===
         comboAlumnosCancelar = new JComboBox<>();
+        comboAlumnosCancelar.setEnabled(false);
         pnCancelarInscripciones.add(comboAlumnosCancelar);
 
         // === Botón cancelar inscripciones ===
         JButton btnCancelarInscripciones = new JButton("Cancelar Inscripciones");
+        btnCancelarInscripciones.setEnabled(false);
         pnCancelarInscripciones.add(btnCancelarInscripciones);
 
         // === Cargar alumnos desde la BD ===
-        cargarAlumnosEnCombo();
+        cargarAlumnosEnCombo(comboAlumnosCancelar, "----------");
 
         // Evento: cuando se selecciona un alumno
         comboAlumnosCancelar.addActionListener(new ActionListener() {
@@ -187,7 +234,7 @@ public class VentanaPrincipal {
 
                 if (index == 0) { 
                     // "----------" seleccionado
-                    service.setIdAlumnoActual(0);
+                    service.setIdAlumnoCancel(0);
                     System.out.println("Ningún alumno seleccionado (ID 0)");
                     return;
                 }
@@ -196,7 +243,7 @@ public class VentanaPrincipal {
                 if (listaAlumnos != null && index - 1 < listaAlumnos.size()) {
                     Map<String, Object> alumno = listaAlumnos.get(index - 1); // -1 porque el primer item es "----------"
                     int idAlumno = (int) alumno.get("id_alumno");
-                    service.setIdAlumnoActual(idAlumno);
+                    service.setIdAlumnoCancel(idAlumno);
                     System.out.println("Alumno seleccionado: " + alumno.get("nombre") + " (ID " + idAlumno + ")");
                 }
             }
@@ -205,7 +252,7 @@ public class VentanaPrincipal {
         // Evento: abrir ventana cancelar inscripción
         btnCancelarInscripciones.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (service.getIdAlumnoActual() == 0) {
+                if (service.getIdAlumnoCancel() == 0) {
                     JOptionPane.showMessageDialog(frame,
                             "Debes seleccionar un alumno antes de cancelar inscripciones.",
                             "Alumno no seleccionado", JOptionPane.WARNING_MESSAGE);
@@ -234,8 +281,26 @@ public class VentanaPrincipal {
 		service.setFecha(txtFechaHoy.getText());
 		txtFechaHoy.setText("");
 		lblFechaCargada.setText("Fecha cargada: " + service.getFecha());
+		enableAll();
 	}
 
+    private void enableAll() {
+        // Recorrer todos los componentes del panel central
+        JPanel pnCentro = (JPanel) frame.getContentPane().getComponent(1); // asumiendo que está en BorderLayout.CENTER
+        activarComponentes(pnCentro);
+    }
+
+    // Método recursivo para activar botones y combos
+    private void activarComponentes(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JButton || comp instanceof JComboBox) {
+                comp.setEnabled(true);
+            } else if (comp instanceof Container) {
+                activarComponentes((Container) comp); // recursión para subpaneles
+            }
+        }
+    }
+    
 	private void mostrarVentanaResponsable() {
         VentanaResponsable vR = new VentanaResponsable(service);
         vR.setLocationRelativeTo(null);
@@ -270,24 +335,26 @@ public class VentanaPrincipal {
 	    vEA.setVisible(true);             
 	}
 	
-	private void cargarAlumnosEnCombo() {
+	private void cargarAlumnosEnCombo(JComboBox<String> combo, String primerItem) {
 	    listaAlumnos = service.listarAlumnos(); // obtenemos lista de alumnos
 
-	    comboAlumnosCancelar.removeAllItems();
-	    comboAlumnosCancelar.addItem("----------"); // valor por defecto
-	    service.setIdAlumnoActual(0); // por defecto no hay alumno seleccionado
+	    combo.removeAllItems();
+	    combo.addItem(primerItem); // valor por defecto
+	    service.setIdAlumnoCancel(0); // por defecto no hay alumno seleccionado
+	    service.setIdAlumnoInscrip(0); // por defecto no hay alumno seleccionado
+
 
 	    if (listaAlumnos == null || listaAlumnos.isEmpty()) {
-	        comboAlumnosCancelar.addItem("No hay alumnos registrados");
-	        comboAlumnosCancelar.setEnabled(false);
+	        combo.addItem("No hay alumnos registrados");
+	        combo.setEnabled(false);
 	    } else {
-	        comboAlumnosCancelar.setEnabled(true);
+	        
 	        for (Map<String, Object> alumno : listaAlumnos) {
-	            comboAlumnosCancelar.addItem(alumno.get("nombre") + " " + alumno.get("apellido"));
+	            combo.addItem(alumno.get("nombre") + " " + alumno.get("apellido"));
 	        }
 	    }
 
-	    comboAlumnosCancelar.setSelectedIndex(0); // mostrar por defecto "----------"
+	    combo.setSelectedIndex(0); // mostrar por defecto primerItem
 	}
 
 
