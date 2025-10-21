@@ -17,6 +17,7 @@ import proyecto.model.entity.Alumno;
 import proyecto.model.entity.Factura;
 import proyecto.model.entity.FechaFiltrado;
 import proyecto.util.ApplicationException;
+import proyecto.util.MensajeError;
 
 public class UserService {
 	private Database db;
@@ -781,15 +782,16 @@ public class UserService {
 		
 	}
 
-	public boolean introduce() {
+	public boolean introduce(MensajeError msj) {
 		if(!comprobarPlazos()) {
+			msj.setMensaje("Fuera de plazo");
 			System.out.println("Fuera de plazo");
 			return false;
 		}
 		insertarAlumno();
 		
 		
-		return insertarMatricula();
+		return insertarMatricula(msj);
 		
 	}
 
@@ -802,8 +804,9 @@ public class UserService {
 	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
 	}
 
-	private boolean insertarMatricula() {
+	private boolean insertarMatricula(MensajeError msj) {
 		if(!comprobarPlazasActividad()) {
+			msj.setMensaje("No hay plazas disponibles");
 			System.out.println("No hay plazas");
 			return false;
 		}
