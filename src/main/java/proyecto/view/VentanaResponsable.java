@@ -53,7 +53,7 @@ public class VentanaResponsable extends JFrame {
     	
 
         setTitle("PLANIFICACI�N DE ACTIVIDADES");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 700);
         setMinimumSize(new Dimension(950, 600));
         setLocationRelativeTo(null);

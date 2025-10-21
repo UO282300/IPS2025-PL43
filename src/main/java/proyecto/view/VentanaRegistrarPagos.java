@@ -34,7 +34,7 @@ public class VentanaRegistrarPagos extends JFrame {
     private void initialize() {
         setTitle("Registro de Pagos de Inscripciones");
         setBounds(100, 100, 550, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         getContentPane().setLayout(null);
         setLocationRelativeTo(null);
 
@@ -160,7 +160,7 @@ public class VentanaRegistrarPagos extends JFrame {
         if (alumnoSel == null || !inscripcionMap.containsKey(alumnoSel)) return;
 
         double cantidad = Double.parseDouble(tfCantidad.getText());
-        LocalDate fechaPago = LocalDate.parse(tfFecha.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        LocalDate fechaPago = LocalDate.parse(tfFecha.getText(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         if (Math.abs(cantidad - cuotaSeleccionada) > 0.01) {
             JOptionPane.showMessageDialog(this,
@@ -176,8 +176,8 @@ public class VentanaRegistrarPagos extends JFrame {
         if (fechaPago.isBefore(fechaMatricula) || fechaPago.isAfter(fechaMaxPago)) {
             JOptionPane.showMessageDialog(this,
                     "La fecha de pago debe estar entre " +
-                    		fechaMatricula.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " y " +
-                    		fechaMaxPago.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ".",
+                    		fechaMatricula.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " y " +
+                    		fechaMaxPago.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".",
                     "Fecha inválida", JOptionPane.ERROR_MESSAGE);
             return;
         }

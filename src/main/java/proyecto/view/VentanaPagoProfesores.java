@@ -33,8 +33,8 @@ public class VentanaPagoProfesores extends JFrame {
 
     private void initialize() {
         setTitle("Registro de Pagos a Profesores");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 550, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(null);
         setLocationRelativeTo(null);
 

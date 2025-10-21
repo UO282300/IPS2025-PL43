@@ -76,7 +76,7 @@ public class VentanaInscripcion extends JFrame {
 	public VentanaInscripcion(UserService service2) {
 		setBackground(new Color(255, 128, 128));
 		service = service2;
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 915, 824);
 		setMinimumSize(new Dimension(1500, 600));
 		contentPane = new JPanel();
