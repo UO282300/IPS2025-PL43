@@ -250,7 +250,7 @@ public class VentanaResponsable extends JFrame {
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
             pnProgramacion.add(getTxtHoraInicio());
 
-            pnProgramacion.add(new JLabel("Hora de finalizaci�n (hh:mm):"));
+            pnProgramacion.add(new JLabel("Hora de finalizacion (hh:mm):"));
             pnProgramacion.add(getTxtHoraFin());
            
         }
@@ -284,10 +284,10 @@ public class VentanaResponsable extends JFrame {
             pnInscripcionCuota.setBorder(new TitledBorder("Inscripcion y Cuota"));
             pnInscripcionCuota.setBackground(new Color(250, 252, 255));
 
-            pnInscripcionCuota.add(new JLabel("Inicio inscripci�n (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Inicio inscripcion (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtInicioInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cierre inscripci�n (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Cierre inscripcion (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtFinInscripcion());
 
             pnInscripcionCuota.add(new JLabel("Cuota (euros):"));

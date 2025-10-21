@@ -101,7 +101,7 @@ public class UserService {
 	        if (nombre == null || nombre.isBlank() || fecha == null || plazas == null
 	        	|| fecha.isBlank() || espacio == null || espacio.isBlank()) {
 	            JOptionPane.showMessageDialog(null,
-	                    "Debe completar al menos: nombre, fecha, espacio y plazas.",
+	                    "Debe rellenar todos los datos para continuar",
 	                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
@@ -126,7 +126,7 @@ public class UserService {
 		        inicioIns = LocalDate.parse(inscripcionI);
 		        finIns = LocalDate.parse(inscripcionF);
 	        } catch (DateTimeParseException e) {
-	            throw new ApplicationException("Formato de fecha invalido. Usa el formato dd/MM/yyyy");
+	            throw new ApplicationException("Formato de fecha invalido. Usa el formato yyyy/MM/dd");
 	        }
 	        
 	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
@@ -139,14 +139,14 @@ public class UserService {
 	        }
 	        if (inicioIns.isAfter(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de inicio de inscripciÃ¯Â¿Â½n no puede ser posterior a la de cierre", 
+	        			"La fecha de inicio de inscripcion no puede ser posterior a la de cierre", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }
 	        if (fechaActividad.isBefore(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"Formato de fecha invÃ¯Â¿Â½lido. Usa el formato yyyy-MM-dd", 
+	        			"Formato de fecha invalido. Usa el formato yyyy-MM-dd", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	            return false;
@@ -162,14 +162,14 @@ public class UserService {
 	        }
 	        if (inicioIns.isAfter(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de inicio de inscripciÃ¯Â¿Â½n no puede ser posterior a la de cierre", 
+	        			"La fecha de inicio de inscripcion no puede ser posterior a la de cierre", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }
 	        if (fechaActividad.isBefore(finIns)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La fecha de la actividad debe ser posterior al fin de inscripciÃ¯Â¿Â½n", 
+	        			"La fecha de la actividad debe ser posterior al fin de inscripcion", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -182,7 +182,7 @@ public class UserService {
 	        	horaF = LocalTime.parse(horaFinal);
 	        } catch (DateTimeParseException e) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"Formato de hora invÃ¯Â¿Â½lido. Usa HH:mm", 
+	        			"Formato de hora invalido. Usa HH:mm", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -190,15 +190,15 @@ public class UserService {
 	        
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despuÃ¯Â¿Â½s de la final", 
-	        			"Formato de hora invÃ¯Â¿Â½lido. Usa HH:mm", 
+	        			"La hora inicial no puede ser despues de la final", 
+	        			"Formato de hora invalido. Usa HH:mm", 
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
 	        }	        
 	        
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despuÃ¯Â¿Â½s de la final", 
+	        			"La hora inicial no puede ser despue½s de la final", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -264,7 +264,7 @@ public class UserService {
         try {
 	        fechaL = LocalDate.parse(fechaS);
         } catch (DateTimeParseException e) {
-            throw new ApplicationException("Formato de fecha invÃ¯Â¿Â½lido. Usa el formato yyyy-MM-dd");
+            throw new ApplicationException("Formato de fecha invalido. Usa el formato yyyy-MM-dd");
         }
         
         this.fechaHoy = fechaL;
