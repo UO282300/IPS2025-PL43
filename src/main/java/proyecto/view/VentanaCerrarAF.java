@@ -63,7 +63,7 @@ public class VentanaCerrarAF extends JFrame {
 
     private JLabel getTituloPanel() {
         if (lbTitulo == null) {
-            lbTitulo = new JLabel("Gestión de Cierre de Actividades", SwingConstants.CENTER);
+            lbTitulo = new JLabel("Gestion de Cierre de Actividades", SwingConstants.CENTER);
             lbTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
             lbTitulo.setOpaque(true);
             lbTitulo.setBackground(new Color(200, 220, 255));
