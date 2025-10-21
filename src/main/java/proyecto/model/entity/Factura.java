@@ -84,7 +84,7 @@ public class Factura {
 	public boolean estaCerrada() {
 	    System.out.println("Revisando cierre: '" + estado + "'");
 	    String e = estado.trim().toLowerCase();
-	    return e.equals("inscripci�n cerrada") || e.equals("cerrada (completada)");
+	    return e.equals("inscripci�n cerrada") || e.equals("finalizada")|| e.equals("cerrada");
 	}
 
 	

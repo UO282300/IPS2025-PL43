@@ -19,6 +19,7 @@ public class Actividad {
 	private boolean es_gratuita;
 	private int id_profesor;
 	private int plazas;
+	private boolean isClosed;
 	
 	public int getId_Actividad() {
 		return id_Actividad;
@@ -111,6 +112,18 @@ public class Actividad {
 	public void setPlazas(Number number) {
 		// TODO Auto-generated method stub
 		plazas=(int) number;
+	}
+	public int getPlazas() {
+		return plazas;
+	}
+	public void setPlazas(int plazas) {
+		this.plazas = plazas;
+	}
+	public boolean isClosed() {
+		return isClosed;
+	}
+	public void setClosed(boolean isClosed) {
+		this.isClosed = isClosed;
 	}
 	
 

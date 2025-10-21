@@ -48,6 +48,7 @@ CREATE TABLE Actividad (
     fin_inscripcion DATE,
     cuota DECIMAL(10,2) DEFAULT 0,
     es_gratuita BOOLEAN DEFAULT 0,
+    isClosed BOOLEAN,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
 );
 
@@ -61,7 +62,6 @@ CREATE TABLE Matricula (
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
-    FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
 );
 
 CREATE TABLE FacturaP (

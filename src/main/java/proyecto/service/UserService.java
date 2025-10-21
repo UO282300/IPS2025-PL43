@@ -199,13 +199,13 @@ public class UserService {
 	        db.executeUpdate("""
 	            INSERT INTO Actividad
 	            (nombre, objetivos, contenidos, id_profesor, remuneracion, espacio, total_plazas, fecha,
-	             hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita)
-	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	             hora_inicio, hora_fin, inicio_inscripcion, fin_inscripcion, cuota, es_gratuita, isClosed)
+	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	            """,
 	            nombre, objetivos, contenidos, idProfesor, remuneracionNum, espacio,
 	            plazasN, fechaActividad.toString(), horaI, horaF,
 	            inicioIns.toString(), finIns.toString(),
-	            cuotaNum, esGratuita ? 1 : 0
+	            cuotaNum, esGratuita ? 1 : 0, 0
 	        );
 
 	        JOptionPane.showMessageDialog(null,
@@ -250,7 +250,7 @@ public class UserService {
     public List<Map<String, Object>> listarActividades() {
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha, " +
-            "cuota, remuneracion " +
+            "cuota, remuneracion, isClosed " +
             "FROM Actividad ORDER BY fecha"
         );
 
@@ -328,6 +328,10 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
+        	Object closed = act.get("isClosed");
+            if (closed.equals(1)) {
+                return "Cerrada";
+            }
             java.time.LocalDate hoy = fechaHoy;
             java.time.LocalDate inicio = java.time.LocalDate.parse((String) act.get("inicio_inscripcion"));
             java.time.LocalDate fin = java.time.LocalDate.parse((String) act.get("fin_inscripcion"));
@@ -336,7 +340,7 @@ public class UserService {
             if (hoy.isBefore(inicio)) return "Planificada";
             if (!hoy.isBefore(inicio) && !hoy.isAfter(fin)) return "En periodo de inscripcion";
             if (hoy.isAfter(fin) && hoy.isBefore(fecha)) return "Inscripcion cerrada";
-            if (hoy.isAfter(fecha)) return "Cerrada (completada)";
+            if (hoy.isAfter(fecha)) return "Finalizada";
         } catch (Exception e) {
             return "Estado desconocido";
         }
@@ -680,7 +684,6 @@ public class UserService {
             }
 
             Map<String, Object> info = datos.get(0);
-            int idActividad = ((Number) info.get("id_actividad")).intValue();
             double cuota = ((Number) info.get("cuota")).doubleValue();
             int totalPlazas = ((Number) info.get("total_plazas")).intValue();
             int plazasOcupadas = ((Number) info.get("plazas_ocupadas")).intValue();
@@ -1171,17 +1174,30 @@ public class UserService {
 	    }
 	    System.out.println("==========================");
 	}
+	
+	public boolean actividadConMovimientosAlumnos(int idActividad) {
+	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 0";
+	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
+	    int pendientes = ((Number) result.get(0).get("total")).intValue();
+	    return pendientes > 0;
+	}
+	
+	public boolean actividadConMovimientosProfesores(int idActividad) {
+	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
+	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
+	    int pagos = ((Number) result.get(0).get("total")).intValue();
+	    return pagos > 0;
+	}
+	
 	public boolean cerrarActividad(int idActividad) {
-		// TODO Auto-generated method stub
-		return false;
+	    try {
+	        String sql = "UPDATE Actividad SET isClosed = 1 WHERE id_actividad = ?";
+	        db.executeUpdate(sql, idActividad);
+	        return true;
+	    } catch (Exception e) {
+	        return false;
+	    }
 	}
-	public boolean tieneMovimientosPendientes(int idActividad) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	public boolean fechaFinalizacionSuperada(int idActividad) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 }
