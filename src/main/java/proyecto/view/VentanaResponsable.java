@@ -21,7 +21,7 @@ public class VentanaResponsable extends JFrame {
     
     private JComboBox<String> cmbProfesor;
     private Map<String, Integer> mapaProfesores = new HashMap<>();
-    
+    private JButton btnNuevoProfesor;
     private JTextField txtRemuneracion;
     private JTextField txtEspacio;
     private JTextField txtFecha;
@@ -51,8 +51,9 @@ public class VentanaResponsable extends JFrame {
     public VentanaResponsable(UserService service) {
     	this.service = service;
     	
-        setTitle("PLANIFICACIÓN DE ACTIVIDADES");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        setTitle("PLANIFICACION DE ACTIVIDADES FORMATIVAS");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 700);
         setMinimumSize(new Dimension(950, 600));
         setLocationRelativeTo(null);
@@ -72,7 +73,7 @@ public class VentanaResponsable extends JFrame {
             pnNorte = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 15));
             pnNorte.setBackground(new Color(230, 235, 250));
 
-            JLabel lblTitulo = new JLabel("Planificación de Actividad Formativa", SwingConstants.CENTER);
+            JLabel lblTitulo = new JLabel("Planificacion de Actividad Formativa", SwingConstants.CENTER);
             lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
             lblTitulo.setForeground(new Color(30, 50, 90));
             lblTitulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
@@ -108,7 +109,7 @@ public class VentanaResponsable extends JFrame {
     
     private JButton getBtnCargar() {
     	if (btnCargar == null) {
-    		btnCargar = new JButton("Cargar");
+    		btnCargar = new JButton("Planificar Actividad");
     		btnCargar.addActionListener(new ActionListener() {
     			public void actionPerformed(ActionEvent e) {
     				cargarActividad();
@@ -179,20 +180,32 @@ public class VentanaResponsable extends JFrame {
 
             pnProfesorEspacio.add(new JLabel("Profesor:"));
             pnProfesorEspacio.add(getCmbProfesor());
+            
+            pnProfesorEspacio.add(new JLabel("Nuevo profesor:"));
+            pnProfesorEspacio.add(getBtnNuevoProfesor());
 
-            pnProfesorEspacio.add(new JLabel("Remuneración (€):"));
+            pnProfesorEspacio.add(new JLabel("Remuneracion (euros):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
 
             pnProfesorEspacio.add(new JLabel("Espacio:"));
             pnProfesorEspacio.add(getTxtEspacio());
-            
-            pnProfesorEspacio.add(new JLabel("Plazas:"));
-            pnProfesorEspacio.add(getTxtPlazas());
         }
         return pnProfesorEspacio;
     }
     
-    private JTextField getTxtPlazas() {
+    private JButton getBtnNuevoProfesor() {
+    	if (btnNuevoProfesor == null) {
+    		btnNuevoProfesor = new JButton("Nuevo Profesor");
+    		btnNuevoProfesor.addActionListener(new ActionListener() {
+    			public void actionPerformed(ActionEvent e) {
+    				nuevoProfesor();
+    			}		
+    		});
+    	}
+    	return btnNuevoProfesor;
+	}
+
+	private JTextField getTxtPlazas() {
         if (txtPlazas == null) {
             txtPlazas = new JTextField(10);
         }
@@ -239,8 +252,8 @@ public class VentanaResponsable extends JFrame {
 
     private JPanel getPnProgramacion() {
         if (pnProgramacion == null) {
-        	pnProgramacion = new JPanel(new GridLayout(3, 2, 10, 10));
-            pnProgramacion.setBorder(new TitledBorder("Programación"));
+        	pnProgramacion = new JPanel(new GridLayout(4, 2, 10, 10));
+            pnProgramacion.setBorder(new TitledBorder("Programacion"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
             pnProgramacion.add(new JLabel("Fecha (yyyy-MM-dd):"));
@@ -248,9 +261,14 @@ public class VentanaResponsable extends JFrame {
 
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
             pnProgramacion.add(getTxtHoraInicio());
-
-            pnProgramacion.add(new JLabel("Hora de finalización (hh:mm):"));
+            
+                        JLabel label_1 = new JLabel("Hora de finalizacion (hh:mm):");
+                        pnProgramacion.add(label_1);
             pnProgramacion.add(getTxtHoraFin());
+            
+            JLabel label = new JLabel("Plazas:");
+            pnProgramacion.add(label);
+            pnProgramacion.add(getTxtPlazas());
            
         }
         return pnProgramacion;
@@ -280,16 +298,16 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnInscripcionCuota() {
         if (pnInscripcionCuota == null) {
         	pnInscripcionCuota = new JPanel(new GridLayout(4, 2, 10, 10));
-            pnInscripcionCuota.setBorder(new TitledBorder("Inscripción y Cuota"));
+            pnInscripcionCuota.setBorder(new TitledBorder("Inscripcion y Cuota"));
             pnInscripcionCuota.setBackground(new Color(250, 252, 255));
 
-            pnInscripcionCuota.add(new JLabel("Inicio inscripción (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Inicio inscripcion (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtInicioInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cierre inscripción (yyyy-MM-dd):"));
+            pnInscripcionCuota.add(new JLabel("Cierre inscripcion (yyyy-MM-dd):"));
             pnInscripcionCuota.add(getTxtFinInscripcion());
 
-            pnInscripcionCuota.add(new JLabel("Cuota (€):"));
+            pnInscripcionCuota.add(new JLabel("Cuota (euros):"));
             pnInscripcionCuota.add(getTxtCuota());
 
             pnInscripcionCuota.add(new JLabel(""));
@@ -339,6 +357,13 @@ public class VentanaResponsable extends JFrame {
         return chkGratuita;
     }
     
+    private void nuevoProfesor() {	
+    	JOptionPane.showMessageDialog(null,
+    			"Aqui se aÃ±ade profesor", 
+                "AÃ±adir nuevo profesor",
+                JOptionPane.PLAIN_MESSAGE);
+	}
+    
     private void cargarActividad() {
     	String profesorSeleccionado = (String) cmbProfesor.getSelectedItem();
     	int idProfesor = mapaProfesores.get(profesorSeleccionado);
@@ -355,4 +380,5 @@ public class VentanaResponsable extends JFrame {
     private void cancelarActividad() {
     	dispose();
     }
+  
 }
