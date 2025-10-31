@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
-public class VentanaRegistrarPagos extends JFrame {
+public class VentanaPagosAlumnos extends JFrame {
 
     /**
 	 * 
@@ -26,7 +26,7 @@ public class VentanaRegistrarPagos extends JFrame {
     private Map<String, Integer> inscripcionMap = new HashMap<>();
     private double cuotaSeleccionada = 0;
 
-    public VentanaRegistrarPagos(UserService service) {
+    public VentanaPagosAlumnos(UserService service) {
         this.us = service;
         initialize();
     }

@@ -332,7 +332,7 @@ public class VentanaPrincipal {
 		vB.setVisible(true);
 	}
 	private void mostrarVentanaRegistrarPagos() {
-		VentanaRegistrarPagos vB = new VentanaRegistrarPagos(service);
+		VentanaPagosAlumnos vB = new VentanaPagosAlumnos(service);
 		vB.setLocationRelativeTo(null);
 		vB.setVisible(true);
 	}
