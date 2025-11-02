@@ -16,11 +16,9 @@ public class Alumno {
 		this.numeroTf=null;
 	}
 	
-	public boolean validar() {
-		return validaNombre()&&validaApellido()&&validaCorreo()&&validaNumTf();
-	}
+	
 
-	private boolean validaNumTf() {
+	public boolean validarTf() {
 		for(char c: numeroTf.toCharArray()) {
 			if(!Character.isDigit(c)) return false;
 			
@@ -28,13 +26,13 @@ public class Alumno {
 		return true;
 	}
 
-	private boolean validaCorreo() {
+	public boolean validarEmail() {
 		if (correo == null) return false;
 	    correo = correo.trim(); // eliminar espacios al inicio y fin
 	    return correo.contains("@") && correo.contains(".");
 	}
 
-	private boolean validaApellido() {
+	public boolean validarApellido() {
 		for(char c: apellidos.toCharArray()) {
 			if(Character.isDigit(c)) return false;
 			
@@ -42,7 +40,7 @@ public class Alumno {
 		return true;
 	}
 
-	private boolean validaNombre() {
+	public boolean validarNombre() {
 		for(char c: nombre.toCharArray()) {
 			if(Character.isDigit(c)) return false;
 			

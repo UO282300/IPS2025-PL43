@@ -16,6 +16,7 @@ import proyecto.model.entity.Actividad;
 import proyecto.model.entity.Alumno;
 import proyecto.model.entity.Factura;
 import proyecto.model.entity.FechaFiltrado;
+import proyecto.model.entity.ListaActividades;
 import proyecto.util.ApplicationException;
 import proyecto.util.MensajeError;
 
@@ -27,6 +28,7 @@ public class UserService {
 	private FechaFiltrado fechaFiltrado;
 	private int idAlumnoCancel;
 	private int idAlumnoInscrip;
+	private ListaActividades listaActividades = new ListaActividades();
 
     public int getIdAlumnoCancel() {
 		return idAlumnoCancel;
@@ -777,9 +779,19 @@ public class UserService {
 		
 	}
 
-	public boolean checkear() {
-		return a.validar();
-		
+	public boolean checkearNombre() {
+		return a.validarNombre();
+	}
+	
+	public boolean checkearApellido() {
+		return a.validarApellido();
+	}
+	
+	public boolean checkearTf() {
+		return a.validarTf();
+	}
+	public boolean checkearEmail() {
+		return a.validarEmail();
 	}
 
 	public boolean introduce(MensajeError msj) {
@@ -832,36 +844,7 @@ public class UserService {
 	
 	
 	public List<Actividad> recuperarActividades(){
-		List<Actividad> listaActividades = new ArrayList<>();
-		LocalDate hoy = fechaHoy;
-	    String fechaFiltro = hoy.toString();
-	    String fechaMax = hoy.plusYears(1).toString();
-	    
-	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
-	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
-
-	    for (Map<String, Object> fila : resultados) {
-	        Actividad act = new Actividad();
-	        act.setId_Actividad((int) fila.get("id_actividad"));
-	        act.setNombre((String) fila.get("nombre"));
-	        act.setObjetivos((String) fila.get("objetivos"));
-	        act.setContenidos((String) fila.get("contenidos"));
-	        act.setId_profesor((int) fila.get("id_profesor"));
-	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
-	        act.setEspacio((String) fila.get("espacio"));
-	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
-	        act.setHoraInicio((String) fila.get("hora_inicio"));
-	        act.setHoraFin((String) fila.get("hora_fin"));
-	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
-	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
-	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
-	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
-	        act.setPlazas((Number) fila.get("total_plazas"));
-
-	        listaActividades.add(act);
-	    }
-
-	    return listaActividades;
+		return listaActividades.getActividades(fechaHoy, db);
 	}
 	
 	
@@ -1337,6 +1320,10 @@ public class UserService {
 
 	public FechaFiltrado getFechaFiltrado() {
 		return fechaFiltrado;
+	}
+
+	public Actividad getActividad(int fila) {
+		return listaActividades.getActividad(fila);
 	}
 
 }
