@@ -100,10 +100,9 @@ public class UserService {
 			String inscripcionF, String cuota, String objetivos, String contenidos, String plazas, boolean esGratuita) {
 		
 		try {
-	        if (nombre == null || nombre.isBlank() || fecha == null || plazas == null
-	        	|| fecha.isBlank() || espacio == null || espacio.isBlank()) {
+			if (nombre.isBlank() || fecha.isBlank() || idProfesor  <= 0) {
 	            JOptionPane.showMessageDialog(null,
-	                    "Debe rellenar todos los datos para continuar",
+	                    "Debe rellenar al menos el nombre, fecha y profesor para continuar",
 	                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
@@ -128,7 +127,12 @@ public class UserService {
 		        inicioIns = LocalDate.parse(inscripcionI);
 		        finIns = LocalDate.parse(inscripcionF);
 	        } catch (DateTimeParseException e) {
-	            throw new ApplicationException("Formato de fecha invalido. Usa el formato yyyy/MM/dd");
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de fecha invalido. Usa el formato yyyy/MM/dd", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	            return false;
+
 	        }
 	        
 	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
@@ -193,14 +197,6 @@ public class UserService {
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
 	        			"La hora inicial no puede ser despues de la final", 
-	        			"Formato de hora invalido. Usa HH:mm", 
-		                JOptionPane.WARNING_MESSAGE);
-	        	return false;
-	        }	        
-	        
-	        if (horaI.isAfter(horaF)) {
-	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despue½s de la final", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
