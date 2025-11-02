@@ -923,18 +923,25 @@ public class UserService {
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, fechaMin.toString(),fechaMax.toString());
 
 	    for (Map<String, Object> fila : resultados) {
-	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        double cuota = ((Number) fila.get("cuota")).doubleValue();
+	        double gastos = ((Number) fila.get("remuneracion")).doubleValue();
+	        int totalPlazas = (int) fila.get("total_plazas");
+
+	        Factura f = new Factura(totalPlazas);
 	        f.setId_actividad((int) fila.get("id_actividad"));
 	        f.setNombre((String) fila.get("nombre"));
-	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
-	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
-	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
-	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
-	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
-	        
-	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
-	        System.out.println("Estado "+ f.getEstado());
+	        f.setGastos(gastos);
+	        int pagadas = recuperarPlazasPagadas(f.getId_actividad());
+	        f.setPlazasOcup(pagadas);
 
+	        f.calcularIngresosReales(cuota);
+	        f.calcularIngresosEstimados(cuota);
+	        f.calcularEstimado(cuota);
+	        f.setBalance();
+	        f.getBalance();
+
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstado((String) getActividadDetalles(f.getId_actividad()).get("estado"));
 	        listaActividades.add(f);
 	    }
 	    
@@ -949,24 +956,51 @@ public class UserService {
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, min.toString(),max.toString());
 
 	    for (Map<String, Object> fila : resultados) {
-	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        double cuota = ((Number) fila.get("cuota")).doubleValue();
+	        double gastos = ((Number) fila.get("remuneracion")).doubleValue();
+	        int totalPlazas = (int) fila.get("total_plazas");
+
+	        Factura f = new Factura(totalPlazas);
 	        f.setId_actividad((int) fila.get("id_actividad"));
 	        f.setNombre((String) fila.get("nombre"));
-	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
-	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
-	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
-	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
-	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
-	        
-	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
-	        System.out.println("Estado "+ f.getEstado());
+	        f.setGastos(gastos);
+	        int pagadas = recuperarPlazasPagadas(f.getId_actividad());
+	        f.setPlazasOcup(pagadas);
+	        //f.setIngresos(((Number) fila.get("cuota")).doubleValue());
 
+	        f.calcularIngresosReales(cuota);
+	        f.calcularIngresosEstimados(cuota);
+	        f.calcularEstimado(cuota);
+	        f.setBalance();
+	        f.getBalance();
+
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstado((String) getActividadDetalles(f.getId_actividad()).get("estado"));
 	        listaActividades.add(f);
 	    }
 	    
 	    return listaActividades;
 	}
 	
+	private int recuperarPlazasPagadas(int idActividad) {
+	    List<Map<String, Object>> resultado = db.executeQueryMap(
+	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1",
+	        idActividad
+	    );
+	    if (resultado.isEmpty() || resultado.get(0).get("total") == null) {
+	        return 0;
+	    }
+	    return ((Number) resultado.get(0).get("total")).intValue();
+	}
+	
+	private int recuperarPlazasOcupadas(int idActividad) {
+	    List<Map<String,Object>> res = db.executeQueryMap(
+	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (isCancelada IS NULL OR isCancelada = 0)",
+	        idActividad
+	    );
+	    if (res.isEmpty() || res.get(0).get("total") == null) return 0;
+	    return ((Number)res.get(0).get("total")).intValue();
+	}
 	
 	private int recuperarPlazasLibres(int id) {
 		
@@ -981,6 +1015,7 @@ public class UserService {
 		 return plazas_libres;
    
 	}
+	
 	
 	public List<Factura> recuperaAcabadas(){
 		List<Factura> lista= recuperarActividadesEnRango();
@@ -1069,7 +1104,7 @@ public class UserService {
 	    return sb.toString();
 	}
 
-	private List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+	public List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
 		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
 		List<Factura> acabadas = new ArrayList<>();
 		for(Factura f: lista) {
@@ -1093,7 +1128,7 @@ public class UserService {
 	    return sb.toString();
 	}
 
-	private List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+	public List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
 		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
 		List<Factura> acabadas = new ArrayList<>();
 		for(Factura f: lista) {
