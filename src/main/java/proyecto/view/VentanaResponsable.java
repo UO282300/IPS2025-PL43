@@ -253,6 +253,7 @@ public class VentanaResponsable extends JFrame {
     private JPanel getPnProgramacion() {
         if (pnProgramacion == null) {
         	pnProgramacion = new JPanel(new GridLayout(4, 2, 10, 10));
+
             pnProgramacion.setBorder(new TitledBorder("Programacion"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
@@ -262,8 +263,9 @@ public class VentanaResponsable extends JFrame {
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
             pnProgramacion.add(getTxtHoraInicio());
             
-                        JLabel label_1 = new JLabel("Hora de finalizacion (hh:mm):");
-                        pnProgramacion.add(label_1);
+            JLabel label_1 = new JLabel("Hora de finalizacion (hh:mm):");
+            pnProgramacion.add(label_1);
+
             pnProgramacion.add(getTxtHoraFin());
             
             JLabel label = new JLabel("Plazas:");

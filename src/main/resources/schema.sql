@@ -4,6 +4,9 @@ DROP TABLE IF EXISTS Actividad;
 DROP TABLE IF EXISTS Alumno;
 DROP TABLE IF EXISTS Profesor;
 DROP TABLE IF EXISTS Administrador;
+DROP TABLE IF EXISTS Devoluciones;
+DROP TABLE IF EXISTS FacturaP;
+DROP TABLE IF EXISTS PagoProfesor;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -38,7 +41,6 @@ CREATE TABLE Actividad (
     id_profesor INTEGER,
     remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
-    plazas INTEGER,
     fecha DATE,
     hora_inicio TIME,
     hora_fin TIME,
@@ -46,6 +48,8 @@ CREATE TABLE Actividad (
     fin_inscripcion DATE,
     cuota DECIMAL(10,2) DEFAULT 0,
     es_gratuita BOOLEAN DEFAULT 0,
+    total_plazas INTEGER,
+    isClosed BOOLEAN,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
 );
 
@@ -57,6 +61,48 @@ CREATE TABLE Matricula (
     fecha_matricula DATE NOT NULL,
     monto_pagado DECIMAL(10,2) DEFAULT 0,
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
+    isCancelada BOOLEAN DEFAULT 0,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
-    FOREIGN KEY (id_actividad) REFERENCES Curso(id_actividad)
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+);
+
+CREATE TABLE FacturaP (
+    id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
+    numero_factura VARCHAR(50) NOT NULL,
+    fecha_factura DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    emisor_nombre VARCHAR(100) NOT NULL,
+    emisor_nif VARCHAR(20) NOT NULL,
+    emisor_direccion VARCHAR(255) NOT NULL,
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+);
+
+CREATE TABLE PagoProfesor (
+    id_pago INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    id_factura INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
+    fecha_pago DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    estado_pago VARCHAR(20) DEFAULT 'Pendiente',
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
+    FOREIGN KEY (id_factura) REFERENCES FacturaP(id_factura),
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+);
+
+CREATE TABLE Devoluciones (
+    id_devolucion INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_matricula INTEGER NOT NULL,
+    id_alumno INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
+    fecha_solicitada DATE NOT NULL,
+    fecha_enviada DATE NOT NULL,
+    monto_devuelto DECIMAL(10,2) DEFAULT 0,
+    FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula),
+    FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+
 );
