@@ -181,7 +181,7 @@ public class VentanaResponsable extends JFrame {
             pnProfesorEspacio.add(new JLabel("Profesor:"));
             pnProfesorEspacio.add(getCmbProfesor());
             
-            pnProfesorEspacio.add(new JLabel("Nuevo profesor:"));
+            pnProfesorEspacio.add(new JLabel(""));
             pnProfesorEspacio.add(getBtnNuevoProfesor());
 
             pnProfesorEspacio.add(new JLabel("Remuneracion (euros):"));
@@ -219,7 +219,7 @@ public class VentanaResponsable extends JFrame {
         return cmbProfesor;
     }
     
-    private void cargarProfesores() {
+    public void cargarProfesores() {
     	cmbProfesor.removeAllItems();
         mapaProfesores.clear();
 
@@ -360,10 +360,8 @@ public class VentanaResponsable extends JFrame {
     }
     
     private void nuevoProfesor() {	
-    	JOptionPane.showMessageDialog(null,
-    			"Aqui se añade profesor", 
-                "Añadir nuevo profesor",
-                JOptionPane.PLAIN_MESSAGE);
+    	VentanaNuevoProfesor v = new VentanaNuevoProfesor(service,this);
+    	v.setVisible(true);
 	}
     
     private void cargarActividad() {

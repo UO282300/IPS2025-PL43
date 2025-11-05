@@ -1240,6 +1240,7 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
+		System.out.println("ESTO FUNCIONA");
 	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 0";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
@@ -1247,9 +1248,11 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosProfesores(int idActividad) {
+		System.out.println("TIENE QUE ENTRAR AQUI");
 	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pagos = ((Number) result.get(0).get("total")).intValue();
+	    System.out.println("################# " + pagos);
 	    return pagos > 0;
 	}
 	
@@ -1355,6 +1358,25 @@ public class UserService {
 
 	public Actividad getActividad(int fila) {
 		return listaActividades.getActividad(fila);
+	}
+
+	public boolean cargarProfesor(String nombre, String apellidos, String email, String telefono) {
+		try {
+	        String sql = """
+	            INSERT INTO Profesor (nombre, apellido, email, telefono)
+	            VALUES (?, ?, ?, ?)
+	            """;
+
+	        db.executeUpdate(sql, nombre, apellidos, email, telefono);
+
+	        System.out.println("Profesor añadido correctamente: " + nombre + " " + apellidos);
+	        return true;
+
+	    } catch (Exception e) {
+	        System.out.println("Error al insertar el profesor: " + e.getMessage());
+	        return false;
+	    }
+		
 	}
 
 }
