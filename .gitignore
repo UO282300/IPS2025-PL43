@@ -96,5 +96,9 @@ bin/
 # Archivos del sistema #
 ########################
 .DS_Store
+<<<<<<< HEAD
+Thumbs.db
+=======
 Thumbs.db
 >>>>>>> refs/heads/#30622
+>>>>>>> refs/heads/develop

@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS Administrador;
 DROP TABLE IF EXISTS Devoluciones;
 DROP TABLE IF EXISTS FacturaP;
 DROP TABLE IF EXISTS PagoProfesor;
+DROP TABLE IF EXISTS PagoAlumno;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -66,6 +67,16 @@ CREATE TABLE Matricula (
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );
 
+CREATE TABLE PagoAlumno (
+    id_pago INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_matricula INTEGER NOT NULL,
+    fecha_pago DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    metodo_pago VARCHAR(50) DEFAULT 'Transferencia',
+    FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula)
+);
+
+
 CREATE TABLE FacturaP (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
     id_profesor INTEGER NOT NULL,
@@ -76,6 +87,7 @@ CREATE TABLE FacturaP (
     emisor_nombre VARCHAR(100) NOT NULL,
     emisor_nif VARCHAR(20) NOT NULL,
     emisor_direccion VARCHAR(255) NOT NULL,
+    esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );

@@ -21,7 +21,7 @@ public class VentanaResponsable extends JFrame {
     
     private JComboBox<String> cmbProfesor;
     private Map<String, Integer> mapaProfesores = new HashMap<>();
-    
+    private JButton btnNuevoProfesor;
     private JTextField txtRemuneracion;
     private JTextField txtEspacio;
     private JTextField txtFecha;
@@ -52,7 +52,7 @@ public class VentanaResponsable extends JFrame {
     	this.service = service;
     	
 
-        setTitle("PLANIFICACION DE ACTIVIDADES");
+        setTitle("PLANIFICACION DE ACTIVIDADES FORMATIVAS");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 700);
         setMinimumSize(new Dimension(950, 600));
@@ -109,7 +109,7 @@ public class VentanaResponsable extends JFrame {
     
     private JButton getBtnCargar() {
     	if (btnCargar == null) {
-    		btnCargar = new JButton("Cargar");
+    		btnCargar = new JButton("Planificar Actividad");
     		btnCargar.addActionListener(new ActionListener() {
     			public void actionPerformed(ActionEvent e) {
     				cargarActividad();
@@ -180,20 +180,32 @@ public class VentanaResponsable extends JFrame {
 
             pnProfesorEspacio.add(new JLabel("Profesor:"));
             pnProfesorEspacio.add(getCmbProfesor());
+            
+            pnProfesorEspacio.add(new JLabel(""));
+            pnProfesorEspacio.add(getBtnNuevoProfesor());
 
             pnProfesorEspacio.add(new JLabel("Remuneracion (euros):"));
             pnProfesorEspacio.add(getTxtRemuneracion());
 
             pnProfesorEspacio.add(new JLabel("Espacio:"));
             pnProfesorEspacio.add(getTxtEspacio());
-            
-            pnProfesorEspacio.add(new JLabel("Plazas:"));
-            pnProfesorEspacio.add(getTxtPlazas());
         }
         return pnProfesorEspacio;
     }
     
-    private JTextField getTxtPlazas() {
+    private JButton getBtnNuevoProfesor() {
+    	if (btnNuevoProfesor == null) {
+    		btnNuevoProfesor = new JButton("Nuevo Profesor");
+    		btnNuevoProfesor.addActionListener(new ActionListener() {
+    			public void actionPerformed(ActionEvent e) {
+    				nuevoProfesor();
+    			}		
+    		});
+    	}
+    	return btnNuevoProfesor;
+	}
+
+	private JTextField getTxtPlazas() {
         if (txtPlazas == null) {
             txtPlazas = new JTextField(10);
         }
@@ -207,7 +219,7 @@ public class VentanaResponsable extends JFrame {
         return cmbProfesor;
     }
     
-    private void cargarProfesores() {
+    public void cargarProfesores() {
     	cmbProfesor.removeAllItems();
         mapaProfesores.clear();
 
@@ -240,7 +252,8 @@ public class VentanaResponsable extends JFrame {
 
     private JPanel getPnProgramacion() {
         if (pnProgramacion == null) {
-        	pnProgramacion = new JPanel(new GridLayout(3, 2, 10, 10));
+        	pnProgramacion = new JPanel(new GridLayout(4, 2, 10, 10));
+
             pnProgramacion.setBorder(new TitledBorder("Programacion"));
             pnProgramacion.setBackground(new Color(250, 252, 255));
 
@@ -249,9 +262,15 @@ public class VentanaResponsable extends JFrame {
 
             pnProgramacion.add(new JLabel("Hora de inicio (hh:mm):"));
             pnProgramacion.add(getTxtHoraInicio());
+            
+            JLabel label_1 = new JLabel("Hora de finalizacion (hh:mm):");
+            pnProgramacion.add(label_1);
 
-            pnProgramacion.add(new JLabel("Hora de finalizacion (hh:mm):"));
             pnProgramacion.add(getTxtHoraFin());
+            
+            JLabel label = new JLabel("Plazas:");
+            pnProgramacion.add(label);
+            pnProgramacion.add(getTxtPlazas());
            
         }
         return pnProgramacion;
@@ -340,6 +359,11 @@ public class VentanaResponsable extends JFrame {
         return chkGratuita;
     }
     
+    private void nuevoProfesor() {	
+    	VentanaNuevoProfesor v = new VentanaNuevoProfesor(service,this);
+    	v.setVisible(true);
+	}
+    
     private void cargarActividad() {
     	String profesorSeleccionado = (String) cmbProfesor.getSelectedItem();
     	int idProfesor = mapaProfesores.get(profesorSeleccionado);
@@ -356,4 +380,5 @@ public class VentanaResponsable extends JFrame {
     private void cancelarActividad() {
     	dispose();
     }
+  
 }

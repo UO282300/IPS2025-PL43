@@ -16,6 +16,7 @@ import proyecto.model.entity.Actividad;
 import proyecto.model.entity.Alumno;
 import proyecto.model.entity.Factura;
 import proyecto.model.entity.FechaFiltrado;
+import proyecto.model.entity.ListaActividades;
 import proyecto.util.ApplicationException;
 import proyecto.util.MensajeError;
 
@@ -27,6 +28,7 @@ public class UserService {
 	private FechaFiltrado fechaFiltrado;
 	private int idAlumnoCancel;
 	private int idAlumnoInscrip;
+	private ListaActividades listaActividades = new ListaActividades();
 
     public int getIdAlumnoCancel() {
 		return idAlumnoCancel;
@@ -98,10 +100,9 @@ public class UserService {
 			String inscripcionF, String cuota, String objetivos, String contenidos, String plazas, boolean esGratuita) {
 		
 		try {
-	        if (nombre == null || nombre.isBlank() || fecha == null || plazas == null
-	        	|| fecha.isBlank() || espacio == null || espacio.isBlank()) {
+			if (nombre.isBlank() || fecha.isBlank() || idProfesor  <= 0) {
 	            JOptionPane.showMessageDialog(null,
-	                    "Debe rellenar todos los datos para continuar",
+	                    "Debe rellenar al menos el nombre, fecha y profesor para continuar",
 	                    "Datos incompletos", JOptionPane.WARNING_MESSAGE);
 	            return false;
 	        }
@@ -126,7 +127,12 @@ public class UserService {
 		        inicioIns = LocalDate.parse(inscripcionI);
 		        finIns = LocalDate.parse(inscripcionF);
 	        } catch (DateTimeParseException e) {
-	            throw new ApplicationException("Formato de fecha invalido. Usa el formato yyyy/MM/dd");
+	        	JOptionPane.showMessageDialog(null,
+	        			"Formato de fecha invalido. Usa el formato yyyy/MM/dd", 
+		                "Error al registrar actividad",
+		                JOptionPane.WARNING_MESSAGE);
+	            return false;
+
 	        }
 	        
 	        if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaActividad)) {
@@ -191,14 +197,6 @@ public class UserService {
 	        if (horaI.isAfter(horaF)) {
 	        	JOptionPane.showMessageDialog(null,
 	        			"La hora inicial no puede ser despues de la final", 
-	        			"Formato de hora invalido. Usa HH:mm", 
-		                JOptionPane.WARNING_MESSAGE);
-	        	return false;
-	        }	        
-	        
-	        if (horaI.isAfter(horaF)) {
-	        	JOptionPane.showMessageDialog(null,
-	        			"La hora inicial no puede ser despue½s de la final", 
 		                "Error al registrar actividad",
 		                JOptionPane.WARNING_MESSAGE);
 	        	return false;
@@ -777,9 +775,19 @@ public class UserService {
 		
 	}
 
-	public boolean checkear() {
-		return a.validar();
-		
+	public boolean checkearNombre() {
+		return a.validarNombre();
+	}
+	
+	public boolean checkearApellido() {
+		return a.validarApellido();
+	}
+	
+	public boolean checkearTf() {
+		return a.validarTf();
+	}
+	public boolean checkearEmail() {
+		return a.validarEmail();
 	}
 
 	public boolean introduce(MensajeError msj) {
@@ -832,36 +840,7 @@ public class UserService {
 	
 	
 	public List<Actividad> recuperarActividades(){
-		List<Actividad> listaActividades = new ArrayList<>();
-		LocalDate hoy = fechaHoy;
-	    String fechaFiltro = hoy.toString();
-	    String fechaMax = hoy.plusYears(1).toString();
-	    
-	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
-	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
-
-	    for (Map<String, Object> fila : resultados) {
-	        Actividad act = new Actividad();
-	        act.setId_Actividad((int) fila.get("id_actividad"));
-	        act.setNombre((String) fila.get("nombre"));
-	        act.setObjetivos((String) fila.get("objetivos"));
-	        act.setContenidos((String) fila.get("contenidos"));
-	        act.setId_profesor((int) fila.get("id_profesor"));
-	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
-	        act.setEspacio((String) fila.get("espacio"));
-	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
-	        act.setHoraInicio((String) fila.get("hora_inicio"));
-	        act.setHoraFin((String) fila.get("hora_fin"));
-	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
-	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
-	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
-	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
-	        act.setPlazas((Number) fila.get("total_plazas"));
-
-	        listaActividades.add(act);
-	    }
-
-	    return listaActividades;
+		return listaActividades.getActividades(fechaHoy, db);
 	}
 	
 	
@@ -940,18 +919,25 @@ public class UserService {
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, fechaMin.toString(),fechaMax.toString());
 
 	    for (Map<String, Object> fila : resultados) {
-	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        double cuota = ((Number) fila.get("cuota")).doubleValue();
+	        double gastos = ((Number) fila.get("remuneracion")).doubleValue();
+	        int totalPlazas = (int) fila.get("total_plazas");
+
+	        Factura f = new Factura(totalPlazas);
 	        f.setId_actividad((int) fila.get("id_actividad"));
 	        f.setNombre((String) fila.get("nombre"));
-	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
-	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
-	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
-	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
-	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
-	        
-	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
-	        System.out.println("Estado "+ f.getEstado());
+	        f.setGastos(gastos);
+	        int pagadas = recuperarPlazasPagadas(f.getId_actividad());
+	        f.setPlazasOcup(pagadas);
 
+	        f.calcularIngresosReales(cuota);
+	        f.calcularIngresosEstimados(cuota);
+	        f.calcularEstimado(cuota);
+	        f.setBalance();
+	        f.getBalance();
+
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstado((String) getActividadDetalles(f.getId_actividad()).get("estado"));
 	        listaActividades.add(f);
 	    }
 	    
@@ -966,24 +952,51 @@ public class UserService {
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, min.toString(),max.toString());
 
 	    for (Map<String, Object> fila : resultados) {
-	        Factura f = new Factura((int)fila.get("total_plazas"));
+	        double cuota = ((Number) fila.get("cuota")).doubleValue();
+	        double gastos = ((Number) fila.get("remuneracion")).doubleValue();
+	        int totalPlazas = (int) fila.get("total_plazas");
+
+	        Factura f = new Factura(totalPlazas);
 	        f.setId_actividad((int) fila.get("id_actividad"));
 	        f.setNombre((String) fila.get("nombre"));
-	        f.setGastos(((Number) fila.get("remuneracion")).doubleValue());
-	        f.setIngresos(((Number) fila.get("cuota")).doubleValue());
-	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
-	        f.setEstimado(((Number) fila.get("cuota")).doubleValue());
-	        f.setBalance(((Number) fila.get("cuota")).doubleValue(),(int)fila.get("total_plazas")-recuperarPlazasLibres(f.getId_actividad()));
-	        
-	        f.setEstado((String)getActividadDetalles(f.getId_actividad()).get("estado"));
-	        System.out.println("Estado "+ f.getEstado());
+	        f.setGastos(gastos);
+	        int pagadas = recuperarPlazasPagadas(f.getId_actividad());
+	        f.setPlazasOcup(pagadas);
+	        //f.setIngresos(((Number) fila.get("cuota")).doubleValue());
 
+	        f.calcularIngresosReales(cuota);
+	        f.calcularIngresosEstimados(cuota);
+	        f.calcularEstimado(cuota);
+	        f.setBalance();
+	        f.getBalance();
+
+	        f.setFecha(LocalDate.parse((String) fila.get("fecha")));
+	        f.setEstado((String) getActividadDetalles(f.getId_actividad()).get("estado"));
 	        listaActividades.add(f);
 	    }
 	    
 	    return listaActividades;
 	}
 	
+	private int recuperarPlazasPagadas(int idActividad) {
+	    List<Map<String, Object>> resultado = db.executeQueryMap(
+	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1",
+	        idActividad
+	    );
+	    if (resultado.isEmpty() || resultado.get(0).get("total") == null) {
+	        return 0;
+	    }
+	    return ((Number) resultado.get(0).get("total")).intValue();
+	}
+	
+	private int recuperarPlazasOcupadas(int idActividad) {
+	    List<Map<String,Object>> res = db.executeQueryMap(
+	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (isCancelada IS NULL OR isCancelada = 0)",
+	        idActividad
+	    );
+	    if (res.isEmpty() || res.get(0).get("total") == null) return 0;
+	    return ((Number)res.get(0).get("total")).intValue();
+	}
 	
 	private int recuperarPlazasLibres(int id) {
 		
@@ -998,6 +1011,7 @@ public class UserService {
 		 return plazas_libres;
    
 	}
+	
 	
 	public List<Factura> recuperaAcabadas(){
 		List<Factura> lista= recuperarActividadesEnRango();
@@ -1086,7 +1100,7 @@ public class UserService {
 	    return sb.toString();
 	}
 
-	private List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+	public List<Factura> recuperaAcabadasEnRango(LocalDate fechaIn, LocalDate fechaFin) {
 		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
 		List<Factura> acabadas = new ArrayList<>();
 		for(Factura f: lista) {
@@ -1110,7 +1124,7 @@ public class UserService {
 	    return sb.toString();
 	}
 
-	private List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
+	public List<Factura> recuperaSinAcabarEnRango(LocalDate fechaIn, LocalDate fechaFin) {
 		List<Factura> lista= recuperarActividadesEnRango(fechaIn,fechaFin);
 		List<Factura> acabadas = new ArrayList<>();
 		for(Factura f: lista) {
@@ -1226,6 +1240,7 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
+		System.out.println("ESTO FUNCIONA");
 	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 0";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
@@ -1233,9 +1248,11 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosProfesores(int idActividad) {
+		System.out.println("TIENE QUE ENTRAR AQUI");
 	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pagos = ((Number) result.get(0).get("total")).intValue();
+	    System.out.println("################# " + pagos);
 	    return pagos > 0;
 	}
 	
@@ -1337,6 +1354,29 @@ public class UserService {
 
 	public FechaFiltrado getFechaFiltrado() {
 		return fechaFiltrado;
+	}
+
+	public Actividad getActividad(int fila) {
+		return listaActividades.getActividad(fila);
+	}
+
+	public boolean cargarProfesor(String nombre, String apellidos, String email, String telefono) {
+		try {
+	        String sql = """
+	            INSERT INTO Profesor (nombre, apellido, email, telefono)
+	            VALUES (?, ?, ?, ?)
+	            """;
+
+	        db.executeUpdate(sql, nombre, apellidos, email, telefono);
+
+	        System.out.println("Profesor añadido correctamente: " + nombre + " " + apellidos);
+	        return true;
+
+	    } catch (Exception e) {
+	        System.out.println("Error al insertar el profesor: " + e.getMessage());
+	        return false;
+	    }
+		
 	}
 
 }

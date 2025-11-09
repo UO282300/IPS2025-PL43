@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
@@ -18,11 +19,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 import proyecto.model.entity.Actividad;
 import proyecto.model.entity.Alumno;
@@ -68,6 +70,8 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel panel_1;
 	DefaultListModel<Actividad> modelo = new DefaultListModel<>();
 	private UserService service;
+	private JTable tablaActividades;
+	private DefaultTableModel modeloActividades;
 
 	/**
 	 * Create the frame.
@@ -75,15 +79,16 @@ public class VentanaInscripcion extends JFrame {
 	 * @param service2
 	 */
 	public VentanaInscripcion(UserService service2) {
+		setTitle("Inscripcion Alumnos");
 		setBackground(new Color(255, 128, 128));
 		service = service2;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 915, 824);
 		setMinimumSize(new Dimension(1500, 600));
 		contentPane = new JPanel();
-		contentPane.setBackground(new Color(255, 128, 128));
+		//contentPane.setBackground(new Color(255, 128, 128));
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-
+		
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		contentPane.add(getPanelFecha(), BorderLayout.NORTH);
@@ -142,7 +147,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanelFormulario() {
 		if (panelFormulario == null) {
 			panelFormulario = new JPanel();
-			panelFormulario.setBackground(new Color(128, 0, 0));
+			//panelFormulario.setBackground(new Color(128, 0, 0));
 			panelFormulario.setLayout(new GridLayout(0, 6, 0, 0));
 			panelFormulario.add(getPnNombre());
 			panelFormulario.add(getLbApellidos());
@@ -175,7 +180,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanel_2() {
 		if (pnBotones == null) {
 			pnBotones = new JPanel();
-			pnBotones.setBackground(new Color(255, 128, 128));
+			//pnBotones.setBackground(new Color(255, 128, 128));
 			pnBotones.setLayout(new BorderLayout(0, 0));
 			pnBotones.add(getBtSelect(), BorderLayout.EAST);
 		}
@@ -195,7 +200,7 @@ public class VentanaInscripcion extends JFrame {
 	}
 
 	protected void seleccionActividad() {
-		Actividad selec = getList().getSelectedValue();
+		Actividad selec = getActividadSeleccionada();
 		if (selec != null) {
 			service.selectActividad(selec);
 		} else {
@@ -204,17 +209,61 @@ public class VentanaInscripcion extends JFrame {
 		}
 
 	}
+	
+	private Actividad getActividadSeleccionada() {
+	    int fila = getTablaActividades().getSelectedRow();
+	    if (fila == -1) return null;
 
+	    return service.getActividad(fila);
+	}
+	
+	private JTable getTablaActividades() {
+	    if (tablaActividades == null) {
+	        modeloActividades = new DefaultTableModel(
+	            new Object[]{"Nombre","Descripcion",  "Periodo inscripción", "Fecha", "Precio"}, 0
+	        ) {
+	            /**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				@Override
+	            public boolean isCellEditable(int row, int column) {
+	                return false;
+	            }
+	        };
+
+	        tablaActividades = new JTable(modeloActividades);
+	        tablaActividades.setRowHeight(25);
+	        tablaActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	        cargarActividades();
+	    }
+	    return tablaActividades;
+	}
+	
 	protected void cargarActividades() {
-		modelo.removeAllElements();
-		modelo.addAll(service.recuperarActividades());
+		 modeloActividades.setRowCount(0); 
+
+		 List<Actividad> actividades = service.recuperarActividades();
+		 for (Actividad act : actividades) {
+		     String periodo = act.getInicio_insc() + " a " + act.getFin_inscr();
+		     String estado = act.isEs_gratuita() ? "Gratuita" : "De pago";
+
+		     modeloActividades.addRow(new Object[]{
+		    		act.getNombre(),
+		    		act.getObjetivos(),
+		            periodo,
+		            act.getFecha(),
+		            act.getCuota()
+		        });
+		    }
 
 	}
 
 	private JScrollPane getScrollPane() {
 		if (scrollPane == null) {
 			scrollPane = new JScrollPane();
-			scrollPane.setViewportView(getList());
+			scrollPane.setViewportView(getTablaActividades());
 		}
 		return scrollPane;
 	}
@@ -232,7 +281,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPnPertenece() {
 		if (pnPertenece == null) {
 			pnPertenece = new JPanel();
-			pnPertenece.setBackground(new Color(255, 128, 64));
+			//pnPertenece.setBackground(new Color(255, 128, 64));
 			pnPertenece.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 30));
 			pnPertenece.add(getRdbtEscuela());
 			pnPertenece.add(getRdbtNo());
@@ -285,28 +334,48 @@ public class VentanaInscripcion extends JFrame {
 			JOptionPane.showMessageDialog(null, "Actividad sin escoger. Pulse el botón seleccionar.", "Error",
 					JOptionPane.ERROR_MESSAGE);
 
-		} else if (!comprobaciones()) {
-			JOptionPane.showMessageDialog(null, "Campos sin rellenar. Por favor rellene los campos.", "Error",
+		} else if (!compruebaTexto(getTxApellido().getText())) {
+			JOptionPane.showMessageDialog(null, "Campo apellido sin rellenar. Por favor rellene el campo correctamente.", "Error",
 					JOptionPane.ERROR_MESSAGE);
-		} else {
+		} else if(!compruebaTexto(getTxNombre().getText())){
+			JOptionPane.showMessageDialog(null, "Campo Nombre sin rellenar. Por favor rellene el campo correctamente.", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}else if (!compruebaTexto(getTxCorreo().getText())) {
+			JOptionPane.showMessageDialog(null, "Campo email sin rellenar. Por favor rellene el campo correctamente.", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}else if(!compruebaTexto(getTxTf().getText())) {
+			JOptionPane.showMessageDialog(null, "Campo telefono sin rellenar. Por favor rellene el campo correctamente.", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
+		else {
 
 			guardarData();
-			if (!CheckearData()) {
+			if (!checkearDataNombre()) {
 				JOptionPane.showMessageDialog(null,
-						"Los datos ingresados no son correctos. No se ha realizado la inscripcion.", "Error",
+						"Nombre no es correcto. No se ha realizado la inscripcion.", "Error",
 						JOptionPane.ERROR_MESSAGE);
-			} else {
+			}else if(!checkearDataApellido()) {
+				JOptionPane.showMessageDialog(null,
+						"Apellidos no son correctos. No se ha realizado la inscripcion.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}else if(!checkearDataTf()) {
+				JOptionPane.showMessageDialog(null,
+						"Numero telefonico no es correcto. No se ha realizado la inscripcion.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}else if(!checkearDataEmail()) {
+				JOptionPane.showMessageDialog(null,
+						"Email no es correcto. No se ha realizado la inscripcion.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+			
+			
+			else {
 				updateData();
 				cargarActividades();
 				cargarElementosFormulario();
 			}
 		}
 
-	}
-
-	private boolean comprobaciones() {
-		return compruebaTexto(getTxNombre().getText()) && compruebaTexto(getTxNombre().getText())
-				&& compruebaTexto(getTxNombre().getText()) && compruebaTexto(getTxNombre().getText());
 	}
 
 	private boolean compruebaTexto(String text) {
@@ -320,8 +389,8 @@ public class VentanaInscripcion extends JFrame {
 		msj.setMensaje("NO se ha podido hacer la matricula.");
 		if (service.introduce(msj)) {
 			JOptionPane.showMessageDialog(null,
-					"Inscripcion realizada correctamente. Se ha enviado un correo con la informacion de pago.",
-					"Correo enviado", JOptionPane.INFORMATION_MESSAGE);
+					"Inscripcion realizada correctamente. Se debe pagar en un plazo de 48 horas.",
+					"Inscripcion Realizada", JOptionPane.INFORMATION_MESSAGE);
 
 		} else {
 			JOptionPane.showMessageDialog(null, msj.getMensaje(), "Error",
@@ -330,8 +399,24 @@ public class VentanaInscripcion extends JFrame {
 
 	}
 
-	private boolean CheckearData() {
-		return service.checkear();
+	private boolean checkearDataNombre() {
+		return service.checkearNombre();
+
+	}
+	
+
+	private boolean checkearDataApellido() {
+		return service.checkearApellido();
+
+	}
+
+	private boolean checkearDataTf() {
+		return service.checkearTf();
+
+	}
+
+	private boolean checkearDataEmail() {
+		return service.checkearEmail();
 
 	}
 
@@ -347,7 +432,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPnCorreo() {
 		if (pnCorreo == null) {
 			pnCorreo = new JPanel();
-			pnCorreo.setBackground(new Color(255, 128, 64));
+			//pnCorreo.setBackground(new Color(255, 128, 64));
 			pnCorreo.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			pnCorreo.add(getLbCorreo_1());
 			pnCorreo.add(getTxCorreo());
@@ -373,7 +458,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPnNombre() {
 		if (pnNombre == null) {
 			pnNombre = new JPanel();
-			pnNombre.setBackground(new Color(255, 128, 64));
+			//pnNombre.setBackground(new Color(255, 255, 255));
 			pnNombre.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			pnNombre.add(getLbNombre_1());
 			pnNombre.add(getTxNombre());
@@ -399,7 +484,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getLbApellidos() {
 		if (lbApellidos == null) {
 			lbApellidos = new JPanel();
-			lbApellidos.setBackground(new Color(255, 128, 64));
+			//lbApellidos.setBackground(new Color(255, 128, 64));
 			lbApellidos.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			lbApellidos.add(getLbApellidos_1());
 			lbApellidos.add(getTxApellido());
@@ -425,7 +510,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanel() {
 		if (panel == null) {
 			panel = new JPanel();
-			panel.setBackground(new Color(255, 128, 64));
+			//panel.setBackground(new Color(255, 128, 64));
 			panel.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			panel.add(getLbNumeroTf_1());
 			panel.add(getTxTf());
@@ -451,7 +536,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanel_1() {
 		if (panel_1 == null) {
 			panel_1 = new JPanel();
-			panel_1.setBackground(new Color(255, 128, 64));
+			//panel_1.setBackground(new Color(255, 128, 64));
 			FlowLayout flowLayout = (FlowLayout) panel_1.getLayout();
 			flowLayout.setVgap(70);
 			panel_1.add(getBtInscrip());
