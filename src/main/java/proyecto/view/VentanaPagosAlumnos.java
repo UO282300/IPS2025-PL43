@@ -45,6 +45,8 @@ public class VentanaPagosAlumnos extends JFrame {
     private JTextField tfFecha;
     private JRadioButton rbPago;
     private JRadioButton rbDevolucion;
+    private JRadioButton rbTransferencia;
+    private JRadioButton rbEfectivo;
     private JLabel lblPendiente;
     private JTextField tfPendiente;
     private JTextField tfTotalPagado;
@@ -113,6 +115,16 @@ public class VentanaPagosAlumnos extends JFrame {
         panelTipoOperacion.add(rbPago);
         panelTipoOperacion.add(rbDevolucion);
         panelInferior.add(panelTipoOperacion, BorderLayout.NORTH);
+        
+        rbTransferencia = new JRadioButton("Transferencia", true);
+        rbTransferencia.setFont(new Font("Tahoma", Font.BOLD, 14));
+        rbEfectivo = new JRadioButton("Efectivo");
+        rbEfectivo.setFont(new Font("Tahoma", Font.BOLD, 14));
+        ButtonGroup grupoMetodo = new ButtonGroup();
+        grupoMetodo.add(rbTransferencia);
+        grupoMetodo.add(rbEfectivo);
+        panelTipoOperacion.add(rbTransferencia);
+        panelTipoOperacion.add(rbEfectivo);
         
         ActionListener actualizarVistaPago = e -> {
             if (idMatriculaSeleccionada > 0) {
@@ -285,7 +297,6 @@ public class VentanaPagosAlumnos extends JFrame {
             mostrarError("No se pudo obtener la información de pago del alumno.");
             return;
         }
-
         if (rbPago.isSelected()) {
             procesarPago(cantidad, fechaMovimiento, estado);
         } else {
@@ -353,6 +364,16 @@ public class VentanaPagosAlumnos extends JFrame {
     }
 
 	    private void procesarPago(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
+	    	
+	    	boolean porEfectivo = this.rbEfectivo.isSelected();
+			double limiteEfectivo = us.getLimiteEfectivo(); 
+	        if (porEfectivo && cantidad > limiteEfectivo) {
+	            mostrarError(String.format(
+	                "No se puede pagar más de %.2f € en efectivo por este movimiento.",
+	                limiteEfectivo
+	            ));
+	            return; 
+	        }
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
 	        double cuota = cuotaSeleccionada;
@@ -401,7 +422,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	            return;
 	        }
 	
-	        boolean ok = us.registrarPago(idMatriculaSeleccionada, cantidad, fechaMovimiento);
+	        boolean ok = us.registrarPago(idMatriculaSeleccionada, cantidad, fechaMovimiento,this.rbEfectivo.isSelected());
 	        if (!ok) {
 	            mostrarError("Error al registrar el pago. No se guardaron los cambios.");
 	            return;
@@ -409,22 +430,17 @@ public class VentanaPagosAlumnos extends JFrame {
 	
 	        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
 	        if (nuevoEstado == null) return;
-	
-	     
 
-	
 	        actualizarCamposVisuales(true);
 	        cargarActividadesActivas();
 
 	    }
 
-
-
 	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
 
-	        double disponibleParaDevolver = totalPagado - totalDevuelto; // puede ser negativo
+	        double disponibleParaDevolver = totalPagado - totalDevuelto; 
 
 	        String mensajeConfirmacion = String.format(
 	            "Confirmar devolución\n\n" +
@@ -450,7 +466,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	            return;
 	        }
 
-	        actualizarCamposVisuales(false); // false = devolución
+	        actualizarCamposVisuales(false); 
 	        cargarActividadesActivas();
 
 	        mostrarInfo(String.format(
@@ -482,8 +498,6 @@ public class VentanaPagosAlumnos extends JFrame {
             tfPendiente.setText(String.format("%.2f", aDevolver)); 
         }
     }
-
-
 
     private void limpiarCampos() {
         tfCantidad.setText("");

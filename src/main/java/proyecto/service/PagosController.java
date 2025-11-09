@@ -1,6 +1,7 @@
 package proyecto.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import proyecto.model.Database;
 public class PagosController {
 	private Database db;
 	private LocalDate fechaHoy;
+	public static final double LIMITE_EFECTIVO = 100;
 	
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
@@ -20,7 +22,9 @@ public class PagosController {
         crearDataBase();
         cargarDataBase();
 	}
-	
+	public double getLimiteEfectivo() {
+	    return LIMITE_EFECTIVO;
+	}
 	public void crearDataBase() {
     	db.createDatabase(false);
     }
@@ -124,7 +128,6 @@ public class PagosController {
         
         resultado.put("inscripciones", inscripciones);
 
-        // Finanzas
         double ingresosConfirmados = inscripciones.stream()
                 .filter(i -> "Cobrada".equals(i.get("estado")))
                 .mapToDouble(i -> {
@@ -135,7 +138,7 @@ public class PagosController {
         double ingresosEstimados = inscripciones.size() * Double.parseDouble(String.valueOf(act.get("cuota")));
 
         double gastosEstimados = act.get("remuneracion") != null ? Double.parseDouble(String.valueOf(act.get("remuneracion"))) : 0;
-        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciÃ¯Â¿Â½n
+        double gastosConfirmados = gastosEstimados; 
 
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
@@ -185,11 +188,13 @@ public class PagosController {
     }
 
 
-    public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago) {
+    public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago, boolean porEfectivo) {
         try {
+            String metodoPago = porEfectivo ? "Efectivo" : "Transferencia";
+
             db.executeUpdate(
-                "INSERT INTO PagoAlumno (id_matricula, fecha_pago, cantidad) VALUES (?, ?, ?)",
-                idMatricula, fechaPago.toString(), montoPagado
+                "INSERT INTO PagoAlumno (id_matricula, fecha_pago, cantidad, metodo_pago) VALUES (?, ?, ?, ?)",
+                idMatricula, fechaPago.toString(), montoPagado, metodoPago
             );
 
             Map<String, Object> info = db.executeQueryMap(
@@ -206,10 +211,7 @@ public class PagosController {
             double cuota = ((Number) info.get("cuota")).doubleValue();
             double totalPagado = ((Number) info.get("total_pagado")).doubleValue();
 
-            boolean estaPagado = false;
-            if (totalPagado >= cuota - 0.01) {
-                estaPagado = true;
-            }
+            boolean estaPagado = totalPagado >= cuota - 0.01;
 
             db.executeUpdate(
                 "UPDATE Matricula SET monto_pagado = ?, esta_pagado = ? WHERE id_matricula = ?",
@@ -247,7 +249,6 @@ public class PagosController {
                 }
             }
 
-            
             return true;
 
         } catch (Exception e) {
@@ -260,7 +261,7 @@ public class PagosController {
             );
             return false;
         }
-    } 
+    }
 
 
     
@@ -274,7 +275,6 @@ public class PagosController {
         Map<String, Double> datos = new HashMap<>();
 
         try {
-            // Obtener matrícula y actividad
             List<Map<String, Object>> result = db.executeQueryMap("""
                 SELECT a.cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
                 FROM Matricula m
@@ -288,7 +288,6 @@ public class PagosController {
             double totalPagado = ((Number) result.get(0).get("monto_pagado")).doubleValue();
             boolean isCancelada = result.get(0).get("isCancelada") != null && ((Number) result.get(0).get("isCancelada")).intValue() == 1;
 
-            // Sumar todas las devoluciones
             List<Map<String, Object>> devoluciones = db.executeQueryMap("""
                 SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
                 FROM Devoluciones
@@ -361,15 +360,13 @@ public class PagosController {
                 return false;
             }
 
-            // --- Insertar registro en la tabla Devoluciones ---
             db.executeUpdate("""
                 INSERT INTO Devoluciones (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, idMatricula, idAlumno, idActividad, fechaDevolucion.toString(), fechaHoy.toString(), montoDevuelto);
 
-            // --- Actualizar estado de pago ---
-            double totalPagado = pagado - montoDevuelto; // neto, aunque sea negativo
-            boolean estaPagado = totalPagado >= 0; // si queda negativo, sigue siendo "no pagado" o deuda
+            double totalPagado = pagado - montoDevuelto; 
+            boolean estaPagado = totalPagado >= 0; 
 
             db.executeUpdate("""
                 UPDATE Matricula
@@ -411,7 +408,7 @@ public class PagosController {
                   AND pp.id_actividad = a.id_actividad
                   AND pp.estado_pago = 'Pagado'
             )
-            ORDER BY a.fecha
+            ORDER BY a.fecha_pago
             """
         );
     }
@@ -529,20 +526,19 @@ public class PagosController {
     public List<Map<String, Object>> listarTodosLosCursosConProfesores() {
         return db.executeQueryMap(
             """
-            SELECT a.id_actividad, a.nombre, a.cuota, a.fecha_inicio, a.fecha_fin
+            SELECT a.id_actividad, a.nombre
             FROM Actividad a
             ORDER BY a.fecha_inicio
             """
         );
     }
-
     
     public List<Map<String, Object>> obtenerProfesoresPorActividad(int idActividad) {
         return db.executeQueryMap(
             """
-            SELECT DISTINCT p.id_profesor,
-                            p.nombre AS profesor_nombre,
-                            p.apellido AS profesor_apellido,
+            SELECT DISTINCT p.id_profesor, 
+                            p.nombre AS profesor_nombre, 
+                            p.apellido AS profesor_apellido, 
                             p.telefono AS profesor_telefono
             FROM Profesor p
             JOIN FacturaP f ON f.id_profesor = p.id_profesor
@@ -552,7 +548,7 @@ public class PagosController {
         );
     }
 
-    
+
     
     public boolean registrarDevolucionProfesor(int idProfesor, int idActividad, int idFactura, String fecha, double cantidad) {
         try {
@@ -565,73 +561,10 @@ public class PagosController {
             );
             return true;
         } catch (Exception e) {
-            System.err.println("❌ Error al registrar la devolución: " + e.getMessage());
+            System.err.println("Error al registrar la devolución: " + e.getMessage());
             return false;
         }
     }
-    public void verificarConsistenciaFinanciera() {
-        System.out.println("🔍 Iniciando verificación de consistencia financiera...");
-
-        List<Map<String, Object>> facturas = db.executeQueryMap("""
-            SELECT 
-                f.id_factura,
-                p.nombre || ' ' || p.apellido AS profesor,
-                a.nombre AS actividad,
-                f.cantidad AS importe_factura,
-                COALESCE(SUM(DISTINCT pp.cantidad), 0) AS total_pagado,
-                COALESCE(SUM(DISTINCT dp.cantidad), 0) AS total_devuelto
-            FROM FacturaP f
-            LEFT JOIN Profesor p ON p.id_profesor = f.id_profesor
-            LEFT JOIN Actividad a ON a.id_actividad = f.id_actividad
-            LEFT JOIN PagoProfesor pp ON pp.id_factura = f.id_factura
-            LEFT JOIN DevolucionProfesor dp ON dp.id_factura = f.id_factura
-            GROUP BY f.id_factura
-        """);
-
-        for (Map<String, Object> row : facturas) {
-            double importeFactura = ((Number) row.get("importe_factura")).doubleValue();
-            double totalPagado = ((Number) row.get("total_pagado")).doubleValue();
-            double totalDevuelto = ((Number) row.get("total_devuelto")).doubleValue();
-            double neto = totalPagado - totalDevuelto;
-
-            if (Math.abs(neto - importeFactura) > 0.01) {
-                System.out.printf("⚠️ Inconsistencia detectada (Profesor): %s | Actividad: %s | Factura #%s%n", 
-                    row.get("profesor"), row.get("actividad"), row.get("id_factura"));
-                System.out.printf("   - Importe factura: %.2f | Pagado: %.2f | Devuelto: %.2f | Neto: %.2f%n",
-                    importeFactura, totalPagado, totalDevuelto, neto);
-            }
-        }
-
-        List<Map<String, Object>> matriculas = db.executeQueryMap("""
-            SELECT 
-                m.id_matricula,
-                al.nombre || ' ' || al.apellido AS alumno,
-                ac.nombre AS actividad,
-                m.monto_pagado,
-                COALESCE(SUM(d.monto_devuelto), 0) AS total_devuelto
-            FROM Matricula m
-            LEFT JOIN Alumno al ON al.id_alumno = m.id_alumno
-            LEFT JOIN Actividad ac ON ac.id_actividad = m.id_actividad
-            LEFT JOIN Devoluciones d ON d.id_matricula = m.id_matricula
-            GROUP BY m.id_matricula
-        """);
-
-        for (Map<String, Object> row : matriculas) {
-            double pagado = ((Number) row.get("monto_pagado")).doubleValue();
-            double devuelto = ((Number) row.get("total_devuelto")).doubleValue();
-            if (devuelto > pagado + 0.01) {
-                System.out.printf("Error (Alumno): %s | Actividad: %s | Devolvió %.2f€ de %.2f€ pagados.%n",
-                    row.get("alumno"), row.get("actividad"), devuelto, pagado);
-            } else if (Math.abs(devuelto - pagado) > 0.01) {
-                System.out.printf("Pendiente o parcial (Alumno): %s | Actividad: %s | Pagado %.2f€ | Devuelto %.2f€%n",
-                    row.get("alumno"), row.get("actividad"), pagado, devuelto);
-            }
-        }
-
-        System.out.println("Verificación finalizada.");
-    }
-
-
     
-
+  
 }
