@@ -18,7 +18,7 @@ public class ListaActividades {
 	    String fechaFiltro = hoy.toString();
 	    String fechaMax = hoy.plusYears(1).toString();
 	    
-	    String sql = "SELECT * FROM Actividad WHERE fecha >= '" + fechaFiltro + "' AND fecha <= '" + fechaMax + "' ORDER BY fecha ASC";
+	    String sql = "SELECT * FROM Actividad WHERE fecha_inicio >= '" + fechaFiltro + "' AND fecha_inicio <= '" + fechaMax + "' ORDER BY fecha_inicio ASC";
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql);
 
 	    for (Map<String, Object> fila : resultados) {
@@ -27,17 +27,16 @@ public class ListaActividades {
 	        act.setNombre((String) fila.get("nombre"));
 	        act.setObjetivos((String) fila.get("objetivos"));
 	        act.setContenidos((String) fila.get("contenidos"));
-	        act.setId_profesor((int) fila.get("id_profesor"));
-	        act.setRemuneracion(((Number) fila.get("remuneracion")).doubleValue());
 	        act.setEspacio((String) fila.get("espacio"));
-	        act.setFecha(LocalDate.parse((String) fila.get("fecha"))); 
-	        act.setHoraInicio((String) fila.get("hora_inicio"));
-	        act.setHoraFin((String) fila.get("hora_fin"));
+	        act.setFechaInicio(LocalDate.parse((String) fila.get("fecha_inicio")));
+	        act.setFechaFin(LocalDate.parse((String) fila.get("fecha_fin")));
 	        act.setInicio_insc(LocalDate.parse((String) fila.get("inicio_inscripcion")));
 	        act.setFin_inscr(LocalDate.parse((String) fila.get("fin_inscripcion")));
-	        act.setCuota(((Number) fila.get("cuota")).doubleValue());
+	        act.setCuota(fila.get("cuota") != null ? ((Number) fila.get("cuota")).doubleValue() : 0.0);
 	        act.setEs_gratuita(((Number) fila.get("es_gratuita")).intValue() == 1);
-	        act.setPlazas((Number) fila.get("total_plazas"));
+	        act.setPlazas(fila.get("total_plazas") != null ? ((Number) fila.get("total_plazas")).intValue() : 0);
+	        act.setClosed(((Number) fila.get("isClosed")).intValue() == 1);
+	        System.out.println("ACTIVIDAD AHORA");
 
 	        lista.add(act);
 	    }

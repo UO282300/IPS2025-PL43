@@ -220,14 +220,11 @@ public class VentanaInscripcion extends JFrame {
 	private JTable getTablaActividades() {
 	    if (tablaActividades == null) {
 	        modeloActividades = new DefaultTableModel(
-	            new Object[]{"Nombre","Descripcion",  "Periodo inscripción", "Fecha", "Precio"}, 0
+	            new Object[]{"Nombre","Descripcion","Periodo inscripciï¿½n","Fechas","Precio"}, 0
 	        ) {
-	            /**
-				 * 
-				 */
-				private static final long serialVersionUID = 1L;
+	            private static final long serialVersionUID = 1L;
 
-				@Override
+	            @Override
 	            public boolean isCellEditable(int row, int column) {
 	                return false;
 	            }
@@ -240,24 +237,27 @@ public class VentanaInscripcion extends JFrame {
 	    }
 	    return tablaActividades;
 	}
+
 	
 	protected void cargarActividades() {
-		 modeloActividades.setRowCount(0); 
+	    modeloActividades.setRowCount(0); 
 
-		 List<Actividad> actividades = service.recuperarActividades();
-		 for (Actividad act : actividades) {
-		     String periodo = act.getInicio_insc() + " a " + act.getFin_inscr();
-		     String estado = act.isEs_gratuita() ? "Gratuita" : "De pago";
+	    List<Actividad> actividades = service.recuperarActividades();
+	    for (Actividad act : actividades) {
+	        // Periodo de inscripciÃ³n
+	        String periodo = act.getInicio_insc() + " a " + act.getFin_inscr();
+	        // Rango de fechas de la actividad
+	        String fechas = act.getFechaInicio() + " a " + act.getFechaFin();
+	        String estado = act.isEs_gratuita() ? "Gratuita" : "De pago";
 
-		     modeloActividades.addRow(new Object[]{
-		    		act.getNombre(),
-		    		act.getObjetivos(),
-		            periodo,
-		            act.getFecha(),
-		            act.getCuota()
-		        });
-		    }
-
+	        modeloActividades.addRow(new Object[]{
+	            act.getNombre(),
+	            act.getObjetivos(),
+	            periodo,
+	            fechas,
+	            act.getCuota()
+	        });
+	    }
 	}
 
 	private JScrollPane getScrollPane() {
@@ -331,7 +331,7 @@ public class VentanaInscripcion extends JFrame {
 
 	private void comprobarData() {
 		if (service.getAct() == null) {
-			JOptionPane.showMessageDialog(null, "Actividad sin escoger. Pulse el botón seleccionar.", "Error",
+			JOptionPane.showMessageDialog(null, "Actividad sin escoger. Pulse el botï¿½n seleccionar.", "Error",
 					JOptionPane.ERROR_MESSAGE);
 
 		} else if (!compruebaTexto(getTxApellido().getText())) {
