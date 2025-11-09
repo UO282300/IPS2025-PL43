@@ -347,10 +347,8 @@ public class VentanaPagoProfesores extends JFrame {
             }
         }
 
-        // ✅ Registrar el pago si se confirma o si no hay incidencia
         us.registrarPagoProfesor(idProfesorSeleccionado, idFactura, idActividadSeleccionada, fecha.toString(), cantidad);
 
-        // Recalcular totales después del pago
         Map<String, Object> totales = us.obtenerTotalesFacturaProfesor(idFactura);
         double neto = ((Number) totales.getOrDefault("total_pagado", 0.0)).doubleValue()
                      - ((Number) totales.getOrDefault("total_devuelto", 0.0)).doubleValue();
@@ -363,7 +361,6 @@ public class VentanaPagoProfesores extends JFrame {
             us.marcarFacturaComoPagada(idFactura);
         }
 
-        // Mostrar mensaje informativo final
         String mensaje;
         if (exceso > 0.01) {
             mensaje = String.format("Pago registrado. Se ha pagado %.2f € de más.", exceso);
@@ -420,7 +417,6 @@ public class VentanaPagoProfesores extends JFrame {
             return;
         }
 
-        // Confirmar si la devolución no es completa
         double diferenciaAntes = netoActual - importeFactura;
         if (diferenciaAntes > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
@@ -437,13 +433,11 @@ public class VentanaPagoProfesores extends JFrame {
             }
         }
 
-        // Registrar la devolución normal
         if (!us.registrarDevolucionProfesor(idProfesorSeleccionado, idActividadSeleccionada, idFactura, fecha.toString(), cantidad)) {
             JOptionPane.showMessageDialog(this, "Error al registrar la devolución.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Actualizar totales después
         totales = us.obtenerTotalesFacturaProfesor(idFactura);
         totalPagado = ((Number) totales.getOrDefault("total_pagado", 0.0)).doubleValue();
         totalDevuelto = ((Number) totales.getOrDefault("total_devuelto", 0.0)).doubleValue();

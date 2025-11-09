@@ -37,7 +37,6 @@ public class VentanaPagosAlumnos extends JFrame {
     private static final long serialVersionUID = 1L;
     private PagosController us;
 
-    // === Componentes principales ===
     private JTable tableActividades;
     private JTable tableInscripciones;
     private DefaultTableModel modelActividades;
@@ -49,7 +48,6 @@ public class VentanaPagosAlumnos extends JFrame {
     private JLabel lblPendiente;
     private JTextField tfPendiente;
     private JTextField tfTotalPagado;
-    // === Datos ===
     private Map<Integer, Map<String, Object>> actividadData = new HashMap<>();
     private Map<Integer, Map<String, Object>> inscripcionData = new HashMap<>();
     private double cuotaSeleccionada = 0;
