@@ -39,19 +39,16 @@ CREATE TABLE Actividad (
     nombre VARCHAR(150) NOT NULL,
     objetivos TEXT,
     contenidos TEXT,
-    id_profesor INTEGER,
-    remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
-    fecha DATE,
-    hora_inicio TIME,
-    hora_fin TIME,
     inicio_inscripcion DATE,
     fin_inscripcion DATE,
+    fecha_inicio DATE,
+    fecha_fin DATE,
     cuota DECIMAL(10,2) DEFAULT 0,
     es_gratuita BOOLEAN DEFAULT 0,
     total_plazas INTEGER,
-    isClosed BOOLEAN,
-    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
+    empresa VARCHAR(100),
+    isClosed BOOLEAN DEFAULT 0
 );
 
 
