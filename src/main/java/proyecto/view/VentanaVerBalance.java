@@ -404,7 +404,7 @@ public class VentanaVerBalance extends JFrame {
 	        Object[] fila = {
 	            f.getFecha().toString(),
 	            f.getNombre(),
-	            f.estaCerrada() ? "Finalizada" : "En curso",
+	            f.getEstado(),
 	            f.getIngresos(),
 	            f.getGastos(),
 	            f.getBalance(),
@@ -417,26 +417,6 @@ public class VentanaVerBalance extends JFrame {
 	    return modelo;
 	}
 
-	private JTable crearTablaFacturas(List<Factura> lista) {
-	    String[] columnas = {"Fecha", "Nombre", "Estado", "Ingresos", "Total Gastos","Balance","Ingresos Estimados","Balance Estimado"};
-	    DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
-
-	    for (Factura f : lista) {
-	        Object[] fila = {
-	            f.getFecha().toString(),
-	            f.getNombre(),
-	            f.estaCerrada() ? "Finalizada" : "En curso",
-	            f.getIngresos(),
-	            f.getGastos(),
-	            f.getBalance(),
-	            f.getIngEstimados(),
-	            f.getEstimado()
-	        };
-	        modelo.addRow(fila);
-	    }
-
-	    return new JTable(modelo);
-	}
 	
 	private JTable getTablaAcabadas() {
 	    if (tablaAcabadas == null) {

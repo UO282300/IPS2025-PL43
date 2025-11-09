@@ -36,7 +36,7 @@ public class VentanaResponsable extends JFrame {
     // Profesores asignados
     private JComboBox<String> cmbProfesor;
     private JTextField txtRemuneracion;
-    private JButton btnAñadirProfesor;
+    private JButton btnAnadirProfesor;
     private JButton btnEliminarProfesor;
     private JTable tableProfesoresAsignados;
     private DefaultTableModel modelProfesores;
@@ -53,7 +53,7 @@ public class VentanaResponsable extends JFrame {
     private JCheckBox chkGratuita;
     private JComboBox<String> cmbCuotas;
     private JTextField txtValorCuota;
-    private JButton btnAñadirCuota;
+    private JButton btnAnadirCuota;
     private JButton btnEliminarCuota;
     private JTable tableCuotasAsignadas;
     private DefaultTableModel modelCuotas;
@@ -174,7 +174,7 @@ public class VentanaResponsable extends JFrame {
 
         txtRemuneracion = new JTextField(6); panelTop.add(new JLabel("Remuneración:")); panelTop.add(txtRemuneracion);
 
-        btnAñadirProfesor = new JButton("Añadir"); panelTop.add(btnAñadirProfesor);
+        btnAnadirProfesor = new JButton("Añadir"); panelTop.add(btnAnadirProfesor);
         btnEliminarProfesor = new JButton("Eliminar"); panelTop.add(btnEliminarProfesor);
 
         panel.add(panelTop, BorderLayout.NORTH);
@@ -191,7 +191,7 @@ public class VentanaResponsable extends JFrame {
         panel.add(panelSurProfesores, BorderLayout.SOUTH);
 
 
-        btnAñadirProfesor.addActionListener(e -> {
+        btnAnadirProfesor.addActionListener(e -> {
             String prof = (String)cmbProfesor.getSelectedItem();
             String remuneracion = txtRemuneracion.getText().trim();
             if(prof != null && !remuneracion.isEmpty()) {
@@ -261,7 +261,7 @@ public class VentanaResponsable extends JFrame {
 
         txtValorCuota = new JTextField(6); panelTop.add(new JLabel("Valor:")); panelTop.add(txtValorCuota);
 
-        btnAñadirCuota = new JButton("Añadir"); panelTop.add(btnAñadirCuota);
+        btnAnadirCuota = new JButton("Añadir"); panelTop.add(btnAnadirCuota);
         btnEliminarCuota = new JButton("Eliminar"); panelTop.add(btnEliminarCuota);
 
         panel.add(panelTop, BorderLayout.NORTH);
@@ -276,7 +276,7 @@ public class VentanaResponsable extends JFrame {
         panelCheckbox.add(chkGratuita);
         panel.add(panelCheckbox, BorderLayout.SOUTH);
 
-        btnAñadirCuota.addActionListener(e -> {
+        btnAnadirCuota.addActionListener(e -> {
             if(chkGratuita.isSelected()) return;
             String categoria = (String)cmbCuotas.getSelectedItem();
             String valor = txtValorCuota.getText().trim();
@@ -293,7 +293,7 @@ public class VentanaResponsable extends JFrame {
 
         chkGratuita.addActionListener(e -> {
             boolean seleccionada = chkGratuita.isSelected();
-            btnAñadirCuota.setEnabled(!seleccionada);
+            btnAnadirCuota.setEnabled(!seleccionada);
             btnEliminarCuota.setEnabled(!seleccionada);
         });
 
