@@ -1,9 +1,11 @@
 -- Limpiar datos previos
---DELETE FROM Matricula;
---DELETE FROM Actividad;
---DELETE FROM Alumno;
---DELETE FROM Profesor;
---DELETE FROM Administrador;
+DELETE FROM Matricula;
+DELETE FROM Actividad;
+DELETE FROM Alumno;
+DELETE FROM Profesor;
+DELETE FROM Administrador;
+DELETE FROM Matricula;
+DELETE FROM FacturaP;
 
 -- Administradores
 INSERT INTO Administrador(nombre, email, password) VALUES
