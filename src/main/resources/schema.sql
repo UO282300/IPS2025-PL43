@@ -8,6 +8,8 @@ DROP TABLE IF EXISTS Devoluciones;
 DROP TABLE IF EXISTS FacturaP;
 DROP TABLE IF EXISTS PagoProfesor;
 DROP TABLE IF EXISTS PagoAlumno;
+DROP TABLE IF EXISTS DevolucionProfesor;
+
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -39,19 +41,16 @@ CREATE TABLE Actividad (
     nombre VARCHAR(150) NOT NULL,
     objetivos TEXT,
     contenidos TEXT,
-    id_profesor INTEGER,
-    remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
-    fecha DATE,
-    hora_inicio TIME,
-    hora_fin TIME,
     inicio_inscripcion DATE,
     fin_inscripcion DATE,
+    fecha_inicio DATE,
+    fecha_fin DATE,
     cuota DECIMAL(10,2) DEFAULT 0,
     es_gratuita BOOLEAN DEFAULT 0,
     total_plazas INTEGER,
-    isClosed BOOLEAN,
-    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
+    empresa VARCHAR(100),
+    isClosed BOOLEAN DEFAULT 0
 );
 
 
@@ -117,4 +116,19 @@ CREATE TABLE Devoluciones (
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 
+);
+
+CREATE TABLE DevolucionProfesor (
+    id_devolucion INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    id_factura INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
+    fecha_devolucion DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    motivo TEXT,
+    esta_pagado BOOLEAN NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
+    FOREIGN KEY (id_factura) REFERENCES FacturaP(id_factura),
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );
