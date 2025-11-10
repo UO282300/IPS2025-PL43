@@ -421,7 +421,9 @@ public class VentanaPagoProfesores extends JFrame {
         if (diferenciaAntes > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
-                String.format("Actualmente hay %.2f € de exceso pagado al profesor.\n¿Desea continuar con la devolución de %.2f €?", diferenciaAntes, cantidad),
+                String.format("Se estan devolviendo %.2f €\n"
+                		+ "Quedaban por devolver %.2f €\n" +
+                		"¿Quieres registrar la devolución?", cantidad,diferenciaAntes),
                 "Confirmar devolución",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
@@ -453,12 +455,12 @@ public class VentanaPagoProfesores extends JFrame {
         } 
         else if (diferencia > 0.01) {
             JOptionPane.showMessageDialog(this,
-                String.format("Devolución registrada.\nAún quedan por devolver %.2f €.", diferencia),
+                    String.format("Devolución parcial.\nQuedan %.2f € por devolver.", Math.abs(diferencia)),
                 "Aviso: pago en exceso", JOptionPane.WARNING_MESSAGE);
         } 
         else {
             JOptionPane.showMessageDialog(this,
-                String.format("Devolución parcial.\nQuedan %.2f € por devolver.", Math.abs(diferencia)),
+                String.format("Devolución registrada.\nSe debe efecturar pago compensatorio de %.2f €. ",  Math.abs(diferencia)),
                 "Aviso: devolución incompleta", JOptionPane.WARNING_MESSAGE);
         }
 

@@ -66,7 +66,6 @@ public class PagosController {
         }
         return LocalDate.parse(fechaStr);
     }
-
     public Map<String, Object> getActividadDetalles(int idActividad) {
         Map<String,Object> resultado = new HashMap<>();
 
@@ -78,39 +77,40 @@ public class PagosController {
         resultado.putAll(act);
         resultado.put("estado", obtenerEstadoActividad(act));
 
-        int plazasOcupadas = db.executeQueryMap(
-        	    "SELECT COUNT(*) as total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1 AND (isCancelada IS NULL OR isCancelada = 0)",
-        	    idActividad
-        	).get(0).get("total") == null ? 0 : ((Number) db.executeQueryMap(
-        	    "SELECT COUNT(*) as total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1 AND (isCancelada IS NULL OR isCancelada = 0)",
-        	    idActividad
-        	).get(0).get("total")).intValue();
-        
-        int totalPlazas = ((Number) db.executeQueryMap("SELECT total_plazas as total FROM Actividad WHERE id_Actividad=?", idActividad).get(0).get("total")).intValue();
+        List<Map<String, Object>> plazasOcupadasResult = db.executeQueryMap(
+            "SELECT COUNT(*) as total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1 AND (isCancelada IS NULL OR isCancelada = 0)",
+            idActividad
+        );
+        int plazasOcupadas = plazasOcupadasResult.get(0).get("total") == null ? 0 :
+                             ((Number) plazasOcupadasResult.get(0).get("total")).intValue();
 
+        int totalPlazas = ((Number) db.executeQueryMap(
+            "SELECT total_plazas as total FROM Actividad WHERE id_actividad = ?", idActividad
+        ).get(0).get("total")).intValue();
 
         int plazasDisponibles = totalPlazas - plazasOcupadas;
         resultado.put("plazas_disponibles", plazasDisponibles);
 
-        // Inscripciones
         List<Map<String, Object>> inscripciones = db.executeQueryMap(
-        	    "SELECT m.id_matricula, " +
-        	    "al.nombre, " +
-        	    "al.apellido, " +
-        	    "al.telefono, " +
-        	    "al.nombre || ' ' || al.apellido AS nombre_alumno, " +
-        	    "m.fecha_matricula, " +
-        	    "CASE " +
-        	    "   WHEN m.esta_pagado = 1 THEN 'Cobrada' " +
-        	    "   ELSE 'Pendiente' " +
-        	    "END AS estado " +
-        	    "FROM Matricula m " +
-        	    "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
-        	    "WHERE m.id_actividad = ? " +
-        	    "AND (m.isCancelada IS NULL OR m.isCancelada = 0)",
-        	    idActividad
-        	    );
-        
+            "SELECT m.id_matricula, " +
+            "al.nombre, " +
+            "al.apellido, " +
+            "al.telefono, " +
+            "al.nombre || ' ' || al.apellido AS nombre_alumno, " +
+            "m.fecha_matricula, " +
+            "m.esta_pagado, " +
+            "m.isCancelada, " +
+            "CASE " +
+            "   WHEN m.isCancelada = 1 THEN 'Cancelada' " +
+            "   WHEN m.esta_pagado = 1 THEN 'Cobrada' " +
+            "   ELSE 'Pendiente' " +
+            "END AS estado " +
+            "FROM Matricula m " +
+            "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
+            "WHERE m.id_actividad = ?",
+            idActividad
+        );
+
         for (Map<String, Object> ins : inscripciones) {
             Object fechaMatriculaObj = ins.get("fecha_matricula");
             if (fechaMatriculaObj != null) {
@@ -125,7 +125,7 @@ public class PagosController {
                 ins.put("fecha_limite_pago", "-");
             }
         }
-        
+
         resultado.put("inscripciones", inscripciones);
 
         double ingresosConfirmados = inscripciones.stream()
@@ -136,7 +136,6 @@ public class PagosController {
                 }).sum();
 
         double ingresosEstimados = inscripciones.size() * Double.parseDouble(String.valueOf(act.get("cuota")));
-
         double gastosEstimados = act.get("remuneracion") != null ? Double.parseDouble(String.valueOf(act.get("remuneracion"))) : 0;
         double gastosConfirmados = gastosEstimados; 
 
@@ -147,6 +146,7 @@ public class PagosController {
 
         return resultado;
     }
+
 
     public LocalDate getFechaMatricula(int idMatricula) {
         try {
@@ -318,6 +318,7 @@ public class PagosController {
             datos.put("total_devuelto", totalDevuelto);
             datos.put("pendiente", pendiente);
             datos.put("a_devolver", aDevolver);
+            datos.put("is_cancelada", isCancelada ? 1.0 : 0.0); 
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -326,6 +327,7 @@ public class PagosController {
 
         return datos;
     }
+
 
 
     public boolean registrarDevolucion(int idMatricula, double montoDevuelto, LocalDate fechaDevolucion) {
