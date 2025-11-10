@@ -3,6 +3,7 @@ package proyecto.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,37 +111,12 @@ public class UserService {
     public List<Map<String, Object>> listarActividades() {
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, " +
-            "cuota, isClosed " +
+            "isClosed " +
             "FROM Actividad ORDER BY fecha_inicio"
         );
 
         for (Map<String,Object> act : actividades) {
             act.put("estado", obtenerEstadoActividad(act));
-        }
-        return actividades;
-    }
-    
-    public List<Map<String, Object>> imprimirActividades() {
-        List<Map<String,Object>> actividades = db.executeQueryMap(
-            "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, " +
-            "cuota" +
-            "FROM Actividad ORDER BY fecha_inicio"
-        );
-
-        for (Map<String,Object> act : actividades) {
-            String estado = obtenerEstadoActividad(act);
-            act.put("estado", estado);
-
-            System.out.println("===== Actividad =====");
-            System.out.println("ID: " + act.get("id_actividad"));
-            System.out.println("Nombre: " + act.get("nombre"));
-            System.out.println("Inicio inscripcion: " + act.get("inicio_inscripcion"));
-            System.out.println("Fin inscripcion: " + act.get("fin_inscripcion"));
-            System.out.println("Fecha inicio actividad: " + act.get("fecha_inicio"));
-            System.out.println("Fecha fin actividad: " + act.get("fecha_fin"));
-            System.out.println("Cuota: " + act.get("cuota"));
-            System.out.println("Estado: " + estado);
-            System.out.println("====================\n");
         }
         return actividades;
     }
@@ -190,11 +166,10 @@ public class UserService {
         return LocalDate.parse(fechaStr);
     }
     
-    // Obtiene todos los detalles de una actividad
     public Map<String, Object> getActividadDetalles(int idActividad) {
         Map<String,Object> resultado = new HashMap<>();
 
-        // Datos bÃ¡sicos de la actividad
+        // Datos básicos de la actividad
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT * FROM Actividad WHERE id_actividad = ?", idActividad
         );
@@ -217,6 +192,7 @@ public class UserService {
             "SELECT m.id_matricula, " +
             "al.nombre || ' ' || al.apellido AS nombre_alumno, " +
             "m.fecha_matricula, " +
+            "m.monto_pagado, " + // asegurarse de tener este campo
             "CASE WHEN m.esta_pagado = 1 THEN 'Cobrada' ELSE 'Pendiente' END AS estado " +
             "FROM Matricula m " +
             "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
@@ -227,29 +203,36 @@ public class UserService {
         resultado.put("inscripciones", inscripciones);
 
         // Finanzas
-        // Ingresos confirmados: sumamos cuotas de inscripciones pagadas
         double ingresosConfirmados = inscripciones.stream()
                 .filter(i -> "Cobrada".equals(i.get("estado")))
                 .mapToDouble(i -> {
-                    try {
-                        return Double.parseDouble(String.valueOf(i.get("monto_pagado"))); // si tienes ese campo en Matricula
-                    } catch(Exception e) {
-                        return 0;
-                    }
+                    try { return Double.parseDouble(String.valueOf(i.get("monto_pagado"))); }
+                    catch(Exception e) { return 0; }
                 }).sum();
 
-        // Ingresos estimados: sumamos todas las cuotas previstas (Matricula o algÃºn campo de cuota en Actividad)
-        double cuota = act.get("cuota") != null ? Double.parseDouble(String.valueOf(act.get("cuota"))) : 0;
-        double ingresosEstimados = inscripciones.size() * cuota;
+        // Obtener cuotas asociadas a la actividad
+        List<Map<String,Object>> cuotas = db.executeQueryMap(
+            "SELECT valor FROM CuotaActividad WHERE id_actividad = ?", idActividad
+        );
 
-        // Gastos: sumamos todas las facturas asociadas a esta actividad
+        double cuotaMedia = 0.0;
+        if (!cuotas.isEmpty()) {
+            cuotaMedia = cuotas.stream()
+                               .mapToDouble(x -> ((Number)x.get("valor")).doubleValue())
+                               .average()
+                               .orElse(0.0);
+        }
+
+        double ingresosEstimados = inscripciones.size() * cuotaMedia;
+
+        // Gastos
         List<Map<String,Object>> facturas = db.executeQueryMap(
             "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
         );
         double gastosConfirmados = facturas.stream()
                 .mapToDouble(f -> Double.parseDouble(String.valueOf(f.get("cantidad"))))
                 .sum();
-        double gastosEstimados = gastosConfirmados; // asumimos que siempre se confirma la remuneraciÃ³n
+        double gastosEstimados = gastosConfirmados;
 
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
@@ -273,25 +256,6 @@ public class UserService {
         );
         if (result.isEmpty()) return null;
         return (Integer) result.get(0).get("id_matricula");
-    }
-	
-
-    public List<Map<String, Object>> listarActividadesConPagosPendientes() {
-        List<Map<String, Object>> actividades = db.executeQueryMap(
-            """
-            SELECT DISTINCT a.id_actividad, a.nombre, a.inicio_inscripcion, a.fin_inscripcion, a.fecha_inicio, a.cuota
-            FROM Actividad a
-            JOIN Matricula m ON a.id_actividad = m.id_actividad
-            WHERE m.esta_pagado = 0
-            ORDER BY a.fecha_inicio
-            """
-        );
-
-        for (Map<String, Object> act : actividades) {
-            act.put("estado", obtenerEstadoActividad(act));
-        }
-
-        return actividades;
     }
 
     
@@ -320,63 +284,6 @@ public class UserService {
             return null;
         }
     }
-
-
-    public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago) {
-        try {
-            // Obtener datos de la matrÃƒÆ’Ã‚Â­cula y actividad
-            List<Map<String, Object>> datos = db.executeQueryMap("""
-                SELECT a.id_actividad, a.cuota, a.total_plazas,
-                       (SELECT COUNT(*) 
-                        FROM Matricula 
-                        WHERE id_actividad = a.id_actividad AND esta_pagado = 1) AS plazas_ocupadas
-                FROM Matricula m
-                JOIN Actividad a ON m.id_actividad = a.id_actividad
-                WHERE m.id_matricula = ?
-            """, idMatricula);
-
-            if (datos.isEmpty()) {
-                JOptionPane.showMessageDialog(null,
-                        "No se encontrÃƒÆ’Ã‚Â³ la matrÃƒÆ’Ã‚Â­cula o la actividad asociada.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
-
-            Map<String, Object> info = datos.get(0);
-            double cuota = ((Number) info.get("cuota")).doubleValue();
-            int totalPlazas = ((Number) info.get("total_plazas")).intValue();
-            int plazasOcupadas = ((Number) info.get("plazas_ocupadas")).intValue();
-
-            // Validar monto
-            if (Math.abs(montoPagado - cuota) > 0.01) {
-                JOptionPane.showMessageDialog(null,
-                        "La cantidad pagada debe coincidir con la cuota del curso (" + cuota + " ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬).",
-                        "Monto incorrecto", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
-
-            // Registrar pago
-            db.executeUpdate("""
-                UPDATE Matricula
-                SET monto_pagado = ?, esta_pagado = 1
-                WHERE id_matricula = ?
-            """, montoPagado, idMatricula);
-
-            // Recalcular plazas ocupadas despuÃƒÆ’Ã‚Â©s del pago
-            plazasOcupadas++; // ya se acaba de registrar este pago
-            boolean hayPlazas = plazasOcupadas <= totalPlazas;
-
-            return hayPlazas;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null,
-                    "Error al registrar el pago en la base de datos.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
-    }
-
 
 	public void guardarNombre(String text) {
 		a.setNombre(text);
@@ -542,47 +449,67 @@ public class UserService {
 	    );
 	}
 
-	
-	public List<Factura> recuperarActividadesEnRango(LocalDate min, LocalDate max) {
+	private List<Factura> recuperarActividadesEnRango(LocalDate min, LocalDate max) {
 	    List<Factura> listaActividades = new ArrayList<>();
 	    String sql = "SELECT * FROM Actividad WHERE fecha_inicio >= ? AND fecha_fin <= ? ORDER BY fecha_inicio ASC";
 
 	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, min.toString(), max.toString());
 
 	    for (Map<String, Object> fila : resultados) {
-	        double cuota = fila.get("cuota") != null ? ((Number) fila.get("cuota")).doubleValue() : 0;
+	        int idActividad = (int) fila.get("id_actividad");
 	        int totalPlazas = (int) fila.get("total_plazas");
 
 	        Factura f = new Factura(totalPlazas);
-	        f.setId_actividad((int) fila.get("id_actividad"));
+	        f.setId_actividad(idActividad);
 	        f.setNombre((String) fila.get("nombre"));
 
-	       
+	        // === Recuperar las cuotas asociadas a la actividad ===
+	        List<Map<String, Object>> cuotas = db.executeQueryMap(
+	            "SELECT c.categoria, ca.valor FROM CuotaActividad ca " +
+	            "JOIN Cuota c ON c.id_cuota = ca.id_cuota " +
+	            "WHERE ca.id_actividad = ?", idActividad
+	        );
+
+	        double cuotaMedia = 0.0;
+	        if (!cuotas.isEmpty()) {
+	            // Puedes hacer la media, o tomar una en concreto si la lógica lo requiere
+	            cuotaMedia = cuotas.stream()
+	                               .mapToDouble(x -> ((Number) x.get("valor")).doubleValue())
+	                               .average()
+	                               .orElse(0.0);
+	        }
+
+	        // === Recuperar gastos (de profesores, por ejemplo) ===
 	        List<Map<String, Object>> facturas = db.executeQueryMap(
-	            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", f.getId_actividad()
+	            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
 	        );
 	        double gastos = facturas.stream()
 	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
 	                                .sum();
 	        f.setGastos(gastos);
 
-	        int pagadas = recuperarPlazasPagadas(f.getId_actividad());
+	        // === Plazas ===
+	        int pagadas = recuperarPlazasPagadas(idActividad);
 	        f.setPlazasOcupPagadas(pagadas);
-	        int plazasOcup = recuperarPlazasOcupadas(f.getId_actividad());
+	        int plazasOcup = recuperarPlazasOcupadas(idActividad);
 	        f.setPlazasOcup(plazasOcup);
-	        f.calcularIngresosReales(cuota);
-	        f.calcularIngresosEstimados(cuota);
-	        f.calcularEstimado(cuota);
-	        f.setBalance();
-	        f.getBalance();
 
+	        // === Ingresos y balance ===
+	        f.calcularIngresosReales(cuotaMedia);
+	        f.calcularIngresosEstimados(cuotaMedia);
+	        f.calcularEstimado(cuotaMedia);
+	        f.setBalance();
+
+	        // === Otros datos ===
 	        f.setFecha(LocalDate.parse((String) fila.get("fecha_inicio")));
-	        f.setEstado((String) getActividadDetalles(f.getId_actividad()).get("estado"));
+	        f.setEstado((String) getActividadDetalles(idActividad).get("estado"));
+
 	        listaActividades.add(f);
 	    }
 
 	    return listaActividades;
 	}
+
 	
 	private int recuperarPlazasPagadas(int idActividad) {
 	    List<Map<String, Object>> resultado = db.executeQueryMap(
@@ -974,11 +901,11 @@ public class UserService {
 			LocalDate fechaFin, String ubi, int plazas, boolean selected, String empresa) {
 		try {
 			String sql = "INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, "
-					+ "inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, cuota, es_gratuita, "
+					+ "inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, es_gratuita, "
 					+ "total_plazas, empresa, isClosed) "
-					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
 	        db.executeUpdate(sql, nombre, objetivos, contenidos, ubi, inicioIns, finIns, fechaInicio, fechaFin,
-	        		200, selected, plazas, empresa, 0);
+	        		selected, plazas, empresa, 0);
 	        
 	        List<Map<String,Object>> r = db.executeQueryMap("SELECT last_insert_rowid() AS id");
 	        return ((Number)r.get(0).get("id")).intValue();
@@ -1003,15 +930,61 @@ public class UserService {
 	}
 
 	public List<Map<String, Object>> listarCuotas() {
-		// TODO Auto-generated method stub
-		return null;
+		return db.executeQueryMap("SELECT * FROM Cuota");
 	}
 
 	public boolean cargarCuota(String categoria) {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+			String checkSql = "SELECT COUNT(*) AS total FROM Cuota WHERE categoria = ?";
+			List<Map<String, Object>> res = db.executeQueryMap(checkSql, categoria);
+			if (((Number) res.get(0).get("total")).intValue() > 0) {
+				System.out.println("La categoría de cuota '" + categoria + "' ya existe.");
+				return false;
+			}
+
+			String sql = "INSERT INTO Cuota(categoria) VALUES (?)";
+			db.executeUpdate(sql, categoria);
+			System.out.println("Cuota aniadida correctamente: " + categoria);
+			return true;
+
+		} catch (Exception e) {
+			System.out.println("Error al insertar cuota: " + e.getMessage());
+			return false;
+		}
+	}
+	
+	public void asociarCuotaActividad(int idActividad, String categoria, double valor) {
+	    try {
+	        List<Map<String,Object>> result = db.executeQueryMap(
+	            "SELECT id_cuota FROM Cuota WHERE categoria = ?", categoria
+	        );
+
+	        int idCuota = ((Number) result.get(0).get("id_cuota")).intValue();
+
+	        String sql = "INSERT INTO CuotaActividad (id_actividad, id_cuota, valor) VALUES (?, ?, ?)";
+	        db.executeUpdate(sql, idActividad, idCuota, valor);
+
+	        System.out.println("Cuota asociada correctamente a la actividad.");
+	    } catch (Exception e) {
+	        System.err.println("Error al asociar cuota a la actividad: " + e.getMessage());
+	    }
 	}
 
-	
+	public List<Map<String, Object>> listarCuotasPorActividad(int idActividad) {
+		try {
+			String sql = """
+				SELECT c.categoria, ca.valor
+				FROM CuotaActividad ca
+				JOIN Cuota c ON ca.id_cuota = c.id_cuota
+				WHERE ca.id_actividad = ?
+				ORDER BY c.id_cuota
+				""";
+			return db.executeQueryMap(sql, idActividad);
+
+		} catch (Exception e) {
+			System.out.println("Error al listar cuotas por actividad: " + e.getMessage());
+			return Collections.emptyList();
+		}
+	}
 
 }
