@@ -16,6 +16,7 @@ public class Factura {
 	private String estado;
 	private int plazas_ocupadas;
 	private double ing_estimados;
+	private int plazas_ocupadasPagadas;
 	
 	
 	public Factura(int plazas) {
@@ -87,14 +88,14 @@ public class Factura {
 
 	public boolean estaAbierta() {
 	    System.out.println("Revisando apertura: '" + estado + "'");
-	    String e = estado.trim().toLowerCase();
-	    return e.equals("planificada") || e.equals("en periodo de inscripcion") || e.equals("en curso") || e.equals("inscripcion cerrada");
+	    String e = estado.trim();
+	    return e.equals("Planificada") || e.equals("En periodo de inscripcion") || e.equals("En curso") || e.equals("Inscripcion cerrada");
 	}
 
 	public boolean estaCerrada() {
 	    System.out.println("Revisando cierre: '" + estado + "'");
-	    String e = estado.trim().toLowerCase();
-	    return e.equals("finalizada")|| e.equals("cerrada");
+	    String e = estado.trim();
+	    return e.equals("Finalizada")|| e.equals("Cerrada");
 	}
 
 	
@@ -124,7 +125,7 @@ public class Factura {
 	}
 	
 	public void setIngEstimados(double cuota) {
-		this.ing_estimados = cuota*plazas;
+		this.ing_estimados = cuota*plazas_ocupadas;
 	}
 	
 	public double getIngEstimados() {
@@ -132,15 +133,20 @@ public class Factura {
 	}
 	
 	public void calcularIngresosReales(double cuota) {
-	    this.ingresos = cuota * plazas_ocupadas;
+	    this.ingresos = cuota * plazas_ocupadasPagadas;
 	}
 
 	public void calcularIngresosEstimados(double cuota) {
-	    this.ing_estimados = cuota * plazas;
+	    this.ing_estimados = cuota * plazas_ocupadas;
 	}
 
 	public void calcularEstimado(double cuota) {
-	    this.estimado = (cuota * plazas) - gastos;
+	    this.estimado = getIngEstimados() - gastos;
+	}
+
+	public void setPlazasOcupPagadas(int pagadas) {
+		this.plazas_ocupadasPagadas = pagadas;
+		
 	}
 	
 

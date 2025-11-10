@@ -1,6 +1,7 @@
 package proyecto.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import proyecto.model.Database;
 public class PagosController {
 	private Database db;
 	private LocalDate fechaHoy;
+	public static final double LIMITE_EFECTIVO = 100;
 	
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
@@ -20,7 +22,9 @@ public class PagosController {
         crearDataBase();
         cargarDataBase();
 	}
-	
+	public double getLimiteEfectivo() {
+	    return LIMITE_EFECTIVO;
+	}
 	public void crearDataBase() {
     	db.createDatabase(false);
     }
@@ -41,7 +45,7 @@ public class PagosController {
             LocalDate hoy = fechaHoy;
             LocalDate inicio = parseFecha((String) act.get("inicio_inscripcion"));
             LocalDate fin = parseFecha((String) act.get("fin_inscripcion"));
-            LocalDate fecha = parseFecha((String) act.get("fecha"));
+            LocalDate fecha = parseFecha((String) act.get("fecha_inicio"));
 
             if (hoy.isBefore(inicio)) return "Planificada";
             if (!hoy.isBefore(inicio) && !hoy.isAfter(fin)) return "En periodo de inscripcion";
@@ -74,7 +78,6 @@ public class PagosController {
         resultado.putAll(act);
         resultado.put("estado", obtenerEstadoActividad(act));
 
-        // Plazas Ocupadas, totales y disponibles
         int plazasOcupadas = db.executeQueryMap(
         	    "SELECT COUNT(*) as total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1 AND (isCancelada IS NULL OR isCancelada = 0)",
         	    idActividad
@@ -125,7 +128,6 @@ public class PagosController {
         
         resultado.put("inscripciones", inscripciones);
 
-        // Finanzas
         double ingresosConfirmados = inscripciones.stream()
                 .filter(i -> "Cobrada".equals(i.get("estado")))
                 .mapToDouble(i -> {
@@ -136,7 +138,7 @@ public class PagosController {
         double ingresosEstimados = inscripciones.size() * Double.parseDouble(String.valueOf(act.get("cuota")));
 
         double gastosEstimados = act.get("remuneracion") != null ? Double.parseDouble(String.valueOf(act.get("remuneracion"))) : 0;
-        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciÃ¯Â¿Â½n
+        double gastosConfirmados = gastosEstimados; 
 
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
@@ -173,28 +175,28 @@ public class PagosController {
     }
     
     public List<Map<String, Object>> listarActividades() {
-        List<Map<String,Object>> actividades = db.executeQueryMap(
-            "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha, " +
-            "cuota, remuneracion, isClosed " +
-            "FROM Actividad ORDER BY fecha"
+        List<Map<String, Object>> actividades = db.executeQueryMap(
+            "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha_inicio, " +
+            "cuota, isClosed " +
+            "FROM Actividad ORDER BY fecha_inicio"
         );
 
-        for (Map<String,Object> act : actividades) {
+        for (Map<String, Object> act : actividades) {
             act.put("estado", obtenerEstadoActividad(act));
         }
         return actividades;
     }
 
 
-    public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago) {
+    public boolean registrarPago(int idMatricula, double montoPagado, LocalDate fechaPago, boolean porEfectivo) {
         try {
-            // 1️⃣ Registrar el pago en la tabla de pagos
+            String metodoPago = porEfectivo ? "Efectivo" : "Transferencia";
+
             db.executeUpdate(
-                "INSERT INTO PagoAlumno (id_matricula, fecha_pago, cantidad) VALUES (?, ?, ?)",
-                idMatricula, fechaPago.toString(), montoPagado
+                "INSERT INTO PagoAlumno (id_matricula, fecha_pago, cantidad, metodo_pago) VALUES (?, ?, ?, ?)",
+                idMatricula, fechaPago.toString(), montoPagado, metodoPago
             );
 
-            // 2️⃣ Obtener datos de la matrícula y la actividad
             Map<String, Object> info = db.executeQueryMap(
                 "SELECT a.id_actividad, a.cuota, IFNULL(SUM(p.cantidad), 0) AS total_pagado " +
                 "FROM Matricula m " +
@@ -209,19 +211,13 @@ public class PagosController {
             double cuota = ((Number) info.get("cuota")).doubleValue();
             double totalPagado = ((Number) info.get("total_pagado")).doubleValue();
 
-            // 3️⃣ Determinar si la matrícula ha completado el pago
-            boolean estaPagado = false;
-            if (totalPagado >= cuota - 0.01) {
-                estaPagado = true;
-            }
+            boolean estaPagado = totalPagado >= cuota - 0.01;
 
-            // 4️⃣ Actualizar monto pagado y estado de la matrícula
             db.executeUpdate(
                 "UPDATE Matricula SET monto_pagado = ?, esta_pagado = ? WHERE id_matricula = ?",
                 totalPagado, estaPagado ? 1 : 0, idMatricula
             );
 
-            // 5️⃣ Verificar plazas libres solo si la matrícula acaba de completarse
             if (estaPagado) {
                 List<Map<String, Object>> res = db.executeQueryMap(
                     "SELECT (a.total_plazas - COUNT(CASE WHEN m.esta_pagado = 1 AND (m.isCancelada IS NULL OR m.isCancelada = 0) THEN 1 END)) AS plazas_libres " +
@@ -235,7 +231,6 @@ public class PagosController {
                 int plazasLibres = ((Number) res.get(0).get("plazas_libres")).intValue();
 
                 if (plazasLibres < 0) {
-                    // Cancelar matrícula si no hay plazas disponibles
                     db.executeUpdate(
                         "UPDATE Matricula SET isCancelada = 1 WHERE id_matricula = ?",
                         idMatricula
@@ -254,7 +249,6 @@ public class PagosController {
                 }
             }
 
-            
             return true;
 
         } catch (Exception e) {
@@ -267,7 +261,7 @@ public class PagosController {
             );
             return false;
         }
-    } 
+    }
 
 
     
@@ -281,7 +275,6 @@ public class PagosController {
         Map<String, Double> datos = new HashMap<>();
 
         try {
-            // Obtener matrícula y actividad
             List<Map<String, Object>> result = db.executeQueryMap("""
                 SELECT a.cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
                 FROM Matricula m
@@ -295,7 +288,6 @@ public class PagosController {
             double totalPagado = ((Number) result.get(0).get("monto_pagado")).doubleValue();
             boolean isCancelada = result.get(0).get("isCancelada") != null && ((Number) result.get(0).get("isCancelada")).intValue() == 1;
 
-            // Sumar todas las devoluciones
             List<Map<String, Object>> devoluciones = db.executeQueryMap("""
                 SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
                 FROM Devoluciones
@@ -309,16 +301,13 @@ public class PagosController {
             double aDevolver;
 
             if (isCancelada) {
-                // Matrícula cancelada: todo lo pagado menos lo ya devuelto -> deuda si devolvemos más
                 pendiente = Math.max(0, -neto);
                 aDevolver = Math.max(0, neto);
             } else {
-                // Matrícula activa
                 pendiente = Math.max(0, cuota - neto);
                 aDevolver = Math.max(0, neto - cuota);
             }
 
-            // Redondeo
             totalPagado = Math.round(totalPagado * 100.0) / 100.0;
             totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
             pendiente = Math.round(pendiente * 100.0) / 100.0;
@@ -341,7 +330,6 @@ public class PagosController {
 
     public boolean registrarDevolucion(int idMatricula, double montoDevuelto, LocalDate fechaDevolucion) {
         try {
-            // --- Obtener datos básicos de matrícula, alumno y actividad ---
             List<Map<String, Object>> datos = db.executeQueryMap("""
                 SELECT 
                     m.id_alumno, 
@@ -372,15 +360,13 @@ public class PagosController {
                 return false;
             }
 
-            // --- Insertar registro en la tabla Devoluciones ---
             db.executeUpdate("""
                 INSERT INTO Devoluciones (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, idMatricula, idAlumno, idActividad, fechaDevolucion.toString(), fechaHoy.toString(), montoDevuelto);
 
-            // --- Actualizar estado de pago ---
-            double totalPagado = pagado - montoDevuelto; // neto, aunque sea negativo
-            boolean estaPagado = totalPagado >= 0; // si queda negativo, sigue siendo "no pagado" o deuda
+            double totalPagado = pagado - montoDevuelto; 
+            boolean estaPagado = totalPagado >= 0; 
 
             db.executeUpdate("""
                 UPDATE Matricula
@@ -422,7 +408,7 @@ public class PagosController {
                   AND pp.id_actividad = a.id_actividad
                   AND pp.estado_pago = 'Pagado'
             )
-            ORDER BY a.fecha
+            ORDER BY a.fecha_pago
             """
         );
     }
@@ -540,9 +526,9 @@ public class PagosController {
     public List<Map<String, Object>> listarTodosLosCursosConProfesores() {
         return db.executeQueryMap(
             """
-            SELECT a.id_actividad, a.nombre, a.remuneracion
+            SELECT a.id_actividad, a.nombre
             FROM Actividad a
-            ORDER BY a.fecha
+            ORDER BY a.fecha_inicio
             """
         );
     }
@@ -550,113 +536,19 @@ public class PagosController {
     public List<Map<String, Object>> obtenerProfesoresPorActividad(int idActividad) {
         return db.executeQueryMap(
             """
-            SELECT p.id_profesor, p.nombre AS profesor_nombre, p.apellido AS profesor_apellido, p.telefono AS profesor_telefono
+            SELECT DISTINCT p.id_profesor, 
+                            p.nombre AS profesor_nombre, 
+                            p.apellido AS profesor_apellido, 
+                            p.telefono AS profesor_telefono
             FROM Profesor p
-            JOIN Actividad a ON a.id_profesor = p.id_profesor
-            WHERE a.id_actividad = ?
+            JOIN FacturaP f ON f.id_profesor = p.id_profesor
+            WHERE f.id_actividad = ?
             """,
             idActividad
         );
     }
-    
-    public void imprimirResumenPagosPorCurso() {
-        System.out.println("\n======================== 📘 RESUMEN DE PAGOS POR CURSO ========================");
 
-        try {
-            // 1️⃣ Obtener todos los cursos
-            List<Map<String, Object>> cursos = db.executeQueryMap(
-                "SELECT id_actividad, nombre, remuneracion FROM Actividad ORDER BY id_actividad"
-            );
 
-            for (Map<String, Object> curso : cursos) {
-                int idActividad = ((Number) curso.get("id_actividad")).intValue();
-                String nombreActividad = (String) curso.get("nombre");
-                double remuneracion = curso.get("remuneracion") != null ? ((Number) curso.get("remuneracion")).doubleValue() : 0.0;
-
-                System.out.println("\n──────────────────────────────────────────────");
-                System.out.println("📚 CURSO: " + nombreActividad.toUpperCase() + " (ID: " + idActividad + ")");
-                System.out.println("💰 Remuneración total prevista: " + String.format("%.2f €", remuneracion));
-
-                // 2️⃣ Facturas asociadas
-                List<Map<String, Object>> facturas = db.executeQueryMap(
-                    """
-                    SELECT f.id_factura, f.numero_factura, f.fecha_factura, f.cantidad,
-                           f.emisor_nombre, f.emisor_nif, f.emisor_direccion,
-                           p.id_profesor, p.nombre AS profesor_nombre, p.apellido AS profesor_apellido
-                    FROM FacturaP f
-                    JOIN Profesor p ON p.id_profesor = f.id_profesor
-                    WHERE f.id_actividad = ?
-                    ORDER BY f.id_factura
-                    """,
-                    idActividad
-                );
-
-                if (facturas.isEmpty()) {
-                    System.out.println("  ⚠️ No hay facturas registradas para este curso.");
-                    continue;
-                }
-
-                for (Map<String, Object> fac : facturas) {
-                    int idFactura = ((Number) fac.get("id_factura")).intValue();
-                    String numFactura = (String) fac.get("numero_factura");
-                    String fechaFactura = (String) fac.get("fecha_factura");
-                    double cantidadFactura = ((Number) fac.get("cantidad")).doubleValue();
-                    String profesorNombre = fac.get("profesor_nombre") + " " + fac.get("profesor_apellido");
-                    String nif = (String) fac.get("emisor_nif");
-                    String direccion = (String) fac.get("emisor_direccion");
-
-                    System.out.println("  🧾 FACTURA " + numFactura + " (ID: " + idFactura + ")");
-                    System.out.println("     📅 Fecha: " + fechaFactura + " | 💵 Importe: " + String.format("%.2f €", cantidadFactura));
-                    System.out.println("     👤 Profesor: " + profesorNombre + " | NIF: " + nif);
-                    System.out.println("     📍 Dirección emisor: " + direccion);
-
-                    // 3️⃣ Pagos asociados a la factura
-                    List<Map<String, Object>> pagos = db.executeQueryMap(
-                        """
-                        SELECT id_pago, fecha_pago, cantidad, estado_pago
-                        FROM PagoProfesor
-                        WHERE id_factura = ?
-                        ORDER BY fecha_pago
-                        """,
-                        idFactura
-                    );
-
-                    if (pagos.isEmpty()) {
-                        System.out.println("       ⚠️ No hay pagos registrados para esta factura.");
-                    } else {
-                        double totalPagado = 0.0;
-
-                        for (Map<String, Object> pag : pagos) {
-                            int idPago = ((Number) pag.get("id_pago")).intValue();
-                            String fechaPago = (String) pag.get("fecha_pago");
-                            double cantidadPago = ((Number) pag.get("cantidad")).doubleValue();
-                            String estadoPago = (String) pag.get("estado_pago");
-                            totalPagado += cantidadPago;
-
-                            System.out.println("       💸 Pago ID: " + idPago +
-                                    " | Fecha: " + fechaPago +
-                                    " | Cantidad: " + String.format("%.2f €", cantidadPago) +
-                                    " | Estado: " + estadoPago);
-                        }
-
-                        double pendiente = cantidadFactura - totalPagado;
-                        if (pendiente < 0) pendiente = 0;
-
-                        System.out.println("       ────────────────────────────────");
-                        System.out.println("       🔹 Total pagado: " + String.format("%.2f €", totalPagado));
-                        System.out.println("       🔸 Pendiente: " + String.format("%.2f €", pendiente));
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            System.err.println("❌ Error al generar el resumen de pagos: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        System.out.println("\n============================= 🔚 FIN DEL RESUMEN =============================");
-    }
-    
     
     public boolean registrarDevolucionProfesor(int idProfesor, int idActividad, int idFactura, String fecha, double cantidad) {
         try {
@@ -669,74 +561,10 @@ public class PagosController {
             );
             return true;
         } catch (Exception e) {
-            System.err.println("❌ Error al registrar la devolución: " + e.getMessage());
+            System.err.println("Error al registrar la devolución: " + e.getMessage());
             return false;
         }
     }
-    public void verificarConsistenciaFinanciera() {
-        System.out.println("🔍 Iniciando verificación de consistencia financiera...");
-
-        // --- 1️⃣ Verificar profesores ---
-        List<Map<String, Object>> facturas = db.executeQueryMap("""
-            SELECT 
-                f.id_factura,
-                p.nombre || ' ' || p.apellido AS profesor,
-                a.nombre AS actividad,
-                f.cantidad AS importe_factura,
-                COALESCE(SUM(DISTINCT pp.cantidad), 0) AS total_pagado,
-                COALESCE(SUM(DISTINCT dp.cantidad), 0) AS total_devuelto
-            FROM FacturaP f
-            LEFT JOIN Profesor p ON p.id_profesor = f.id_profesor
-            LEFT JOIN Actividad a ON a.id_actividad = f.id_actividad
-            LEFT JOIN PagoProfesor pp ON pp.id_factura = f.id_factura
-            LEFT JOIN DevolucionProfesor dp ON dp.id_factura = f.id_factura
-            GROUP BY f.id_factura
-        """);
-
-        for (Map<String, Object> row : facturas) {
-            double importeFactura = ((Number) row.get("importe_factura")).doubleValue();
-            double totalPagado = ((Number) row.get("total_pagado")).doubleValue();
-            double totalDevuelto = ((Number) row.get("total_devuelto")).doubleValue();
-            double neto = totalPagado - totalDevuelto;
-
-            if (Math.abs(neto - importeFactura) > 0.01) {
-                System.out.printf("⚠️ Inconsistencia detectada (Profesor): %s | Actividad: %s | Factura #%s%n", 
-                    row.get("profesor"), row.get("actividad"), row.get("id_factura"));
-                System.out.printf("   - Importe factura: %.2f | Pagado: %.2f | Devuelto: %.2f | Neto: %.2f%n",
-                    importeFactura, totalPagado, totalDevuelto, neto);
-            }
-        }
-
-        List<Map<String, Object>> matriculas = db.executeQueryMap("""
-            SELECT 
-                m.id_matricula,
-                al.nombre || ' ' || al.apellido AS alumno,
-                ac.nombre AS actividad,
-                m.monto_pagado,
-                COALESCE(SUM(d.monto_devuelto), 0) AS total_devuelto
-            FROM Matricula m
-            LEFT JOIN Alumno al ON al.id_alumno = m.id_alumno
-            LEFT JOIN Actividad ac ON ac.id_actividad = m.id_actividad
-            LEFT JOIN Devoluciones d ON d.id_matricula = m.id_matricula
-            GROUP BY m.id_matricula
-        """);
-
-        for (Map<String, Object> row : matriculas) {
-            double pagado = ((Number) row.get("monto_pagado")).doubleValue();
-            double devuelto = ((Number) row.get("total_devuelto")).doubleValue();
-            if (devuelto > pagado + 0.01) {
-                System.out.printf("Error (Alumno): %s | Actividad: %s | Devolvió %.2f€ de %.2f€ pagados.%n",
-                    row.get("alumno"), row.get("actividad"), devuelto, pagado);
-            } else if (Math.abs(devuelto - pagado) > 0.01) {
-                System.out.printf("Pendiente o parcial (Alumno): %s | Actividad: %s | Pagado %.2f€ | Devuelto %.2f€%n",
-                    row.get("alumno"), row.get("actividad"), pagado, devuelto);
-            }
-        }
-
-        System.out.println("Verificación finalizada.");
-    }
-
-
     
-
+  
 }

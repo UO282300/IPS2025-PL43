@@ -43,13 +43,11 @@ public class VentanaPagoProfesores extends JFrame {
         JPanel contentPane = new JPanel(new BorderLayout(10, 10));
         setContentPane(contentPane);
 
-        // Título
         JLabel lblTitulo = new JLabel("Registrar Pagos y Devoluciones a Profesores", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 20));
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         contentPane.add(lblTitulo, BorderLayout.NORTH);
 
-        // Panel central: tablas y factura
         JPanel panelCentral = new JPanel(new GridLayout(2, 1, 10, 10));
         initTablaCursos(panelCentral);
         initTablaProfesores(panelCentral);
@@ -68,7 +66,6 @@ public class VentanaPagoProfesores extends JFrame {
         centroExtendido.add(panelFactura, BorderLayout.SOUTH);
         contentPane.add(centroExtendido, BorderLayout.CENTER);
 
-        // Panel inferior: movimiento
         JPanel panelInferior = new JPanel(new BorderLayout(10, 10));
         panelInferior.setBorder(BorderFactory.createTitledBorder("Registrar movimiento"));
         initPanelMovimiento(panelInferior);
@@ -77,7 +74,7 @@ public class VentanaPagoProfesores extends JFrame {
 
     @SuppressWarnings("serial")
 	private void initTablaCursos(JPanel panel) {
-        modelCursos = new DefaultTableModel(new Object[]{"ID Actividad", "Nombre", "Remuneración (€)"}, 0) {
+        modelCursos = new DefaultTableModel(new Object[]{"ID Actividad", "Nombre"}, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         tableCursos = new JTable(modelCursos);
@@ -225,16 +222,20 @@ public class VentanaPagoProfesores extends JFrame {
         if (idProfesorSeleccionado == -1 || idActividadSeleccionada == -1) return;
 
         Map<String, Object> factura = us.obtenerDatosFacturaPorProfesorYActividad(idProfesorSeleccionado, idActividadSeleccionada);
-        if (factura == null || factura.isEmpty()) return;
+        if (factura == null || factura.isEmpty()) {
+            idFactura = -1; 
+            return;
+        }
 
-        tfIdFactura.setText(String.valueOf(factura.get("id_factura")));
         idFactura = ((Number) factura.get("id_factura")).intValue();
+        tfIdFactura.setText(String.valueOf(idFactura));
         tfNumeroFactura.setText(String.valueOf(factura.get("numero_factura")));
         tfNifEmisor.setText(String.valueOf(factura.get("emisor_nif")));
         tfDireccionEmisor.setText(String.valueOf(factura.get("direccion_emisor")));
         tfCantidadFactura.setText(String.format("%.2f", ((Number) factura.get("cantidad")).doubleValue()));
         tfFechaFactura.setText(String.valueOf(factura.get("fecha")));
     }
+
 
     private void cargarTotalesProfesor() {
         if (idProfesorSeleccionado == -1 || idActividadSeleccionada == -1) return;
@@ -255,6 +256,9 @@ public class VentanaPagoProfesores extends JFrame {
             tfCantidadPendiente.setText(String.format("%.2f", Math.max(0, importeFactura - neto)));
         }
     }
+
+
+
 
     private void registrarMovimiento() {
         if (idProfesorSeleccionado == -1 || idActividadSeleccionada == -1) {
@@ -295,13 +299,11 @@ public class VentanaPagoProfesores extends JFrame {
         }
 
         cargarTotalesProfesor();
-//        limpiarCamposMovimiento();
         tfCantidad.setText("");
 
     }
 
     private void procesarPagoProfesor(double cantidad, LocalDate fecha, int idFactura) {
-        // Obtener totales actuales antes del pago
         Map<String, Object> totalesAntes = us.obtenerTotalesFacturaProfesor(idFactura);
         double totalPagadoAntes = ((Number) totalesAntes.getOrDefault("total_pagado", 0.0)).doubleValue();
         double totalDevueltoAntes = ((Number) totalesAntes.getOrDefault("total_devuelto", 0.0)).doubleValue();
@@ -312,13 +314,12 @@ public class VentanaPagoProfesores extends JFrame {
         double excesoPrevisto = Math.max(0, nuevoNeto - importeFactura);
         double pendientePrevista = Math.max(0, importeFactura - nuevoNeto);
 
-        // ⚠️ Si el pago genera incidencia, pedir confirmación
         if (excesoPrevisto > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
                 String.format(
-                    "Este pago provocará un exceso de %.2f € respecto al importe de la factura (%.2f €).\n\n¿Desea continuar?",
-                    excesoPrevisto, importeFactura
+                    "Se están pagando %.2f € en vez de %.2f €\n Se provocará un exceso de %.2f €.\n¿Desea continuar?",
+                    cantidad, importeFactura, excesoPrevisto
                 ),
                 "Confirmar pago en exceso",
                 JOptionPane.YES_NO_OPTION,
@@ -333,8 +334,8 @@ public class VentanaPagoProfesores extends JFrame {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
                 String.format(
-                    "Este pago es parcial. Tras registrar %.2f €, quedarán %.2f € pendientes por pagar.\n\n¿Desea continuar?",
-                    cantidad, pendientePrevista
+                		 "Se están pagando %.2f € en vez de %.2f €\n Quedarán pendiente de pago %.2f €.\n¿Desea continuar?",
+                         cantidad, importeFactura,pendientePrevista
                 ),
                 "Confirmar pago parcial",
                 JOptionPane.YES_NO_OPTION,
@@ -347,10 +348,8 @@ public class VentanaPagoProfesores extends JFrame {
             }
         }
 
-        // ✅ Registrar el pago si se confirma o si no hay incidencia
         us.registrarPagoProfesor(idProfesorSeleccionado, idFactura, idActividadSeleccionada, fecha.toString(), cantidad);
 
-        // Recalcular totales después del pago
         Map<String, Object> totales = us.obtenerTotalesFacturaProfesor(idFactura);
         double neto = ((Number) totales.getOrDefault("total_pagado", 0.0)).doubleValue()
                      - ((Number) totales.getOrDefault("total_devuelto", 0.0)).doubleValue();
@@ -363,7 +362,6 @@ public class VentanaPagoProfesores extends JFrame {
             us.marcarFacturaComoPagada(idFactura);
         }
 
-        // Mostrar mensaje informativo final
         String mensaje;
         if (exceso > 0.01) {
             mensaje = String.format("Pago registrado. Se ha pagado %.2f € de más.", exceso);
@@ -374,7 +372,6 @@ public class VentanaPagoProfesores extends JFrame {
         }
 
         JOptionPane.showMessageDialog(this, mensaje, "Resultado del pago", JOptionPane.INFORMATION_MESSAGE);
-        us.verificarConsistenciaFinanciera();
         cargarTotalesProfesor();
     }
 
@@ -420,7 +417,6 @@ public class VentanaPagoProfesores extends JFrame {
             return;
         }
 
-        // Confirmar si la devolución no es completa
         double diferenciaAntes = netoActual - importeFactura;
         if (diferenciaAntes > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
@@ -437,13 +433,11 @@ public class VentanaPagoProfesores extends JFrame {
             }
         }
 
-        // Registrar la devolución normal
         if (!us.registrarDevolucionProfesor(idProfesorSeleccionado, idActividadSeleccionada, idFactura, fecha.toString(), cantidad)) {
             JOptionPane.showMessageDialog(this, "Error al registrar la devolución.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Actualizar totales después
         totales = us.obtenerTotalesFacturaProfesor(idFactura);
         totalPagado = ((Number) totales.getOrDefault("total_pagado", 0.0)).doubleValue();
         totalDevuelto = ((Number) totales.getOrDefault("total_devuelto", 0.0)).doubleValue();
@@ -467,10 +461,10 @@ public class VentanaPagoProfesores extends JFrame {
                 String.format("Devolución parcial.\nQuedan %.2f € por devolver.", Math.abs(diferencia)),
                 "Aviso: devolución incompleta", JOptionPane.WARNING_MESSAGE);
         }
-        us.verificarConsistenciaFinanciera();
 
 
         cargarTotalesProfesor();
     }
+
 
 }
