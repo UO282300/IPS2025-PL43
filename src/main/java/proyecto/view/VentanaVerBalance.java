@@ -2,14 +2,11 @@ package proyecto.view;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.EventQueue;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import proyecto.model.entity.Factura;
@@ -22,8 +19,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.util.List;
 import java.awt.event.ActionEvent;
@@ -39,9 +34,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 
 public class VentanaVerBalance extends JFrame {
 
@@ -153,10 +145,10 @@ public class VentanaVerBalance extends JFrame {
 	    switch (bt) {
         case 0:
             getTablaAcabadas().setModel(crearModeloFacturas(service.recuperaAcabadasEnRango(inicio, fin)));
-            getTablaSinAcabar().setModel(new DefaultTableModel()); // tabla vacía
+            getTablaSinAcabar().setModel(new DefaultTableModel()); // tabla vacï¿½a
             break;
         case 1:
-            getTablaAcabadas().setModel(new DefaultTableModel()); // tabla vacía
+            getTablaAcabadas().setModel(new DefaultTableModel()); // tabla vacï¿½a
             getTablaSinAcabar().setModel(crearModeloFacturas(service.recuperaSinAcabarEnRango(inicio, fin)));
             break;
         case 2:

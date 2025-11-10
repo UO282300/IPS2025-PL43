@@ -165,19 +165,14 @@ public class UserService {
             
            
             if (hoy.isBefore(inicioIns)) {
-            	System.out.println("Devuelve planif");
                 return "Planificada";
             } else if (!hoy.isBefore(inicioIns) && !hoy.isAfter(finIns)) {
-            	System.out.println("Devuelve periodo inscr");
                 return "En periodo de inscripcion";
             } else if (hoy.isAfter(finIns) && hoy.isBefore(fechaInicio)) {
-            	System.out.println("Devuelve inscr cerrada");
                 return "Inscripcion cerrada";
             } else if ((hoy.isEqual(fechaInicio) || hoy.isAfter(fechaInicio)) && hoy.isBefore(fechaFin)) {
-            	System.out.println("Devuelve en curso");
                 return "En curso";
             } else if (!hoy.isBefore(fechaFin)) {
-            	System.out.println("Devuelve f");
                 return "Finalizada";
             }
         } catch (Exception e) {
@@ -837,25 +832,8 @@ public class UserService {
 	        idProfesor, idFactura, idActividad, fechaPago, cantidad, "Pagado"
 	    );
 	}
-	public void imprimirPagosProfesor() {
-	    List<Map<String, Object>> pagos = db.executeQueryMap("SELECT * FROM PagoProfesor");
-
-	    System.out.println("=== Tabla PagoProfesor ===");
-	    for (Map<String, Object> p : pagos) {
-	        System.out.println(
-	            "id_pago=" + p.get("id_pago") +
-	            ", id_profesor=" + p.get("id_profesor") +
-	            ", id_factura=" + p.get("id_factura") +
-	            ", fecha_pago=" + p.get("fecha_pago") +
-	            ", cantidad=" + p.get("cantidad") +
-	            ", estado_pago=" + p.get("estado_pago")
-	        );
-	    }
-	    System.out.println("==========================");
-	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
-		System.out.println("ESTO FUNCIONA");
 	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 0";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
@@ -863,11 +841,9 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosProfesores(int idActividad) {
-		System.out.println("TIENE QUE ENTRAR AQUI");
 	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pagos = ((Number) result.get(0).get("total")).intValue();
-	    System.out.println("################# " + pagos);
 	    return pagos > 0;
 	}
 	
