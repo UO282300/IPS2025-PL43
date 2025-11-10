@@ -154,7 +154,6 @@ public class VentanaPagoProfesores extends JFrame {
 
         rbPago.addActionListener(e -> cargarTotalesProfesor());
         rbDevolucion.addActionListener(e -> cargarTotalesProfesor());
-        us.obtenerDetalleCompletoTodasFacturasConPagosYDevoluciones();
     }
 
     private JTextField crearCampo(JPanel panel, String label) {
@@ -298,7 +297,6 @@ public class VentanaPagoProfesores extends JFrame {
         } else {
             procesarDevolucionProfesor(cantidad, fecha, idFactura);
         }
-        us.obtenerDetalleCompletoTodasFacturasConPagosYDevoluciones();
 
         cargarTotalesProfesor();
         tfCantidad.setText("");
