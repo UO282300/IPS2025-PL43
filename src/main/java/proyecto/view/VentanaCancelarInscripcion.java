@@ -20,7 +20,7 @@ public class VentanaCancelarInscripcion extends JFrame {
 
     public VentanaCancelarInscripcion(UserService service) {
         this.service = service;
-        setTitle("Cancelar Inscripción de Actividades");
+        setTitle("Cancelar Inscripciï¿½n de Actividades");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 500);
         setLocationRelativeTo(null);
@@ -28,37 +28,37 @@ public class VentanaCancelarInscripcion extends JFrame {
 
         // === PANEL CENTRAL (TABLA) ===
         modelMatriculas = new DefaultTableModel(
-                new Object[]{"ID", "Actividad", "Fecha", "Pagado (€)", "Acción"}, 0
+                new Object[]{"ID", "Actividad", "Fecha", "Pagado (ï¿½)", "Acciï¿½n"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 4; // solo el botón
+                return column == 4; // solo el botï¿½n
             }
         };
 
         tableMatriculas = new JTable(modelMatriculas);
         tableMatriculas.setRowHeight(30);
 
-        // Renderizar botón real en la columna "Acción"
-        tableMatriculas.getColumn("Acción").setCellRenderer(new ButtonRenderer());
-        tableMatriculas.getColumn("Acción").setCellEditor(new ButtonEditor(new JCheckBox(), this));
+        // Renderizar botï¿½n real en la columna "Acciï¿½n"
+        tableMatriculas.getColumn("Acciï¿½n").setCellRenderer(new ButtonRenderer());
+        tableMatriculas.getColumn("Acciï¿½n").setCellEditor(new ButtonEditor(new JCheckBox(), this));
 
         JScrollPane scroll = new JScrollPane(tableMatriculas);
         scroll.setBorder(new TitledBorder("Actividades inscritas"));
         add(scroll, BorderLayout.CENTER);
 
-        // === Cargar inscripciones automáticamente ===
+        // === Cargar inscripciones automï¿½ticamente ===
         cargarMatriculasAlumno();
     }
 
-    /** Carga las matrículas del alumno actual **/
+    /** Carga las matrï¿½culas del alumno actual **/
     private void cargarMatriculasAlumno() {
         modelMatriculas.setRowCount(0);
         int idAlumno = service.getIdAlumnoCancel();
 
         if (idAlumno == 0) {
             JOptionPane.showMessageDialog(this,
-                    "No se ha seleccionado ningún alumno en la ventana principal.",
+                    "No se ha seleccionado ningï¿½n alumno en la ventana principal.",
                     "Alumno no seleccionado", JOptionPane.WARNING_MESSAGE);
             dispose();
             return;
@@ -82,7 +82,6 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
     }
 
-    /** Lógica de cancelación **/
     public void cancelarInscripcion(int row) {
         int idAlumno = service.getIdAlumnoCancel();
         int idMatricula = (int) modelMatriculas.getValueAt(row, 0);
@@ -92,15 +91,15 @@ public class VentanaCancelarInscripcion extends JFrame {
 
         double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado);
 
-        String msg = "¿Desea cancelar la inscripción a '" + nombreActividad + "'?\n" +
-                     "Se devolverán " + String.format("%.2f €", montoDevuelto) + ".";
-        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelación", JOptionPane.YES_NO_OPTION);
+        String msg = "ï¿½Desea cancelar la inscripciï¿½n a '" + nombreActividad + "'?\n" +
+                     "Se devolverï¿½n " + String.format("%.2f ï¿½", montoDevuelto) + ".";
+        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelaciï¿½n", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
             int idActividad = (int) service.obtenerIdActividadPorMatricula(idMatricula);
 
             service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
-            JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " €.");
+            JOptionPane.showMessageDialog(this, "Inscripciï¿½n cancelada correctamente.\nDevoluciï¿½n: " + montoDevuelto + " ï¿½.");
             cargarMatriculasAlumno();
         }
     }
@@ -122,7 +121,7 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
     }
 
-    // === Editor para manejar clics en el botón ===
+    // === Editor para manejar clics en el botï¿½n ===
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
         private String label;

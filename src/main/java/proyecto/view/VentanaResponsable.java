@@ -17,23 +17,19 @@ public class VentanaResponsable extends JFrame {
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
 
-    // Panel norte
     private JPanel pnNorte;
 
-    // Datos generales
     private JTextField txtNombre;
     private JTextArea txtObjetivos;
     private JTextArea txtContenidos;
     private JTextField txtPlazas;
 
-    // Programación
     private JTextField txtInicioInscripcion;
     private JTextField txtFinInscripcion;
     private JTextField txtFechaInicio;
     private JTextField txtFechaFin;
     private JTextField txtUbicacion;
 
-    // Profesores asignados
     private JComboBox<String> cmbProfesor;
     private JTextField txtRemuneracion;
     private JButton btnAnadirProfesor;
@@ -42,14 +38,12 @@ public class VentanaResponsable extends JFrame {
     private DefaultTableModel modelProfesores;
     JTextField txtEmpresa;
 
-    // Nuevo profesor
     private JTextField txtNuevoNombre;
     private JTextField txtNuevoApellido;
     private JTextField txtNuevoEmail;
     private JTextField txtNuevoTelefono;
     private JButton btnGuardarNuevoProfesor;
 
-    // Cuotas asignadas
     private JCheckBox chkGratuita;
     private JComboBox<String> cmbCuotas;
     private JTextField txtValorCuota;
@@ -58,11 +52,9 @@ public class VentanaResponsable extends JFrame {
     private JTable tableCuotasAsignadas;
     private DefaultTableModel modelCuotas;
 
-    // Nueva cuota
     private JTextField txtNuevaCategoria;
     private JButton btnGuardarNuevaCuota;
 
-    // Panel sur
     private JButton btnCancelar;
     private JButton btnGuardarActividad;
 
@@ -103,15 +95,12 @@ public class VentanaResponsable extends JFrame {
         JPanel panelCentral = new JPanel(new GridLayout(3,2,10,10));
         panelCentral.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
-        // Fila 1
         panelCentral.add(getPanelDatosGenerales());
         panelCentral.add(getPanelProgramacion());
 
-        // Fila 2
         panelCentral.add(getPanelProfesoresAsignados());
         panelCentral.add(getPanelNuevoProfesor());
 
-        // Fila 3
         panelCentral.add(getPanelCuotasAsignadas());
         panelCentral.add(getPanelNuevaCuota());
 
@@ -295,6 +284,10 @@ public class VentanaResponsable extends JFrame {
             boolean seleccionada = chkGratuita.isSelected();
             btnAnadirCuota.setEnabled(!seleccionada);
             btnEliminarCuota.setEnabled(!seleccionada);
+            txtValorCuota.setEnabled(!seleccionada);
+            if (seleccionada) {
+                modelCuotas.setRowCount(0);
+            }
         });
 
         return panel;
@@ -366,7 +359,6 @@ public class VentanaResponsable extends JFrame {
     private void guardarActividad() {
     	LocalDate inicioIns, finIns, fechaInicio, fechaFin, fechaHoy = LocalDate.now();
     	
-    	// Validación de nombre obligatorio
         if (txtNombre.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Debe indicar un nombre para la actividad.",
@@ -375,7 +367,6 @@ public class VentanaResponsable extends JFrame {
             return;
         }
 
-        // Comprobación de profesores
         if (modelProfesores.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this,
                     "Debe añadir al menos un profesor asignado.",
@@ -384,7 +375,6 @@ public class VentanaResponsable extends JFrame {
             return;
         }
 
-        // Comprobación de cuotas
         if (!chkGratuita.isSelected() && modelCuotas.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this,
                     "Debe añadir al menos una cuota o marcar la actividad como gratuita.",
@@ -393,7 +383,6 @@ public class VentanaResponsable extends JFrame {
             return;
         }
 
-        // Validar formato de fechas
         try {
             inicioIns = LocalDate.parse(txtInicioInscripcion.getText().trim());
             finIns = LocalDate.parse(txtFinInscripcion.getText().trim());
@@ -407,7 +396,6 @@ public class VentanaResponsable extends JFrame {
             return;
         }
 
-        // Validación de orden cronológico de fechas
         if (inicioIns.isAfter(finIns)) {
             JOptionPane.showMessageDialog(this,
                     "La fecha de inicio de inscripción no puede ser posterior a la fecha de fin de inscripción.",
@@ -432,7 +420,6 @@ public class VentanaResponsable extends JFrame {
             return;
         }
 
-        // Validación respecto a la fecha actual
         if (fechaHoy.isAfter(inicioIns) || fechaHoy.isAfter(fechaInicio)) {
             JOptionPane.showMessageDialog(this,
                     "No puedes iniciar una inscripción o actividad en una fecha anterior a hoy.",
@@ -486,6 +473,25 @@ public class VentanaResponsable extends JFrame {
                 String emisorDireccion = "N/A";
 
                 service.insertFacturaP(idProfesor, idActividad, numeroFactura, fechaFactura, remuneracion, emisorNombre, emisorNif, emisorDireccion);
+            }
+            
+            if (!chkGratuita.isSelected()) {
+                int filasCuotas = modelCuotas.getRowCount();
+                for (int r = 0; r < filasCuotas; r++) {
+                    String categoria = (String) modelCuotas.getValueAt(r, 0);
+                    String valorTxt = modelCuotas.getValueAt(r, 1).toString().replace(",", ".").trim();
+                    double valor = 0.0;
+                    try {
+                        valor = Double.parseDouble(valorTxt);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this,
+                                "Valor de cuota inválido en la fila " + (r+1),
+                                "Error al registrar actividad",
+                                JOptionPane.ERROR_MESSAGE);
+                        continue;
+                    }
+                    service.asociarCuotaActividad(idActividad, categoria, valor);
+                }
             }
         	
             JOptionPane.showMessageDialog(this,

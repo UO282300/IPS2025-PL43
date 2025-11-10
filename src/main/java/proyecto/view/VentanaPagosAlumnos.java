@@ -75,7 +75,7 @@ public class VentanaPagosAlumnos extends JFrame {
         JPanel panelCentral = new JPanel(new GridLayout(2, 1, 10, 10));
 
         modelActividades = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Cuota (€)", "Plazas disp."}, 0
+                new Object[]{"ID", "Nombre", "Plazas disp."}, 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -222,12 +222,10 @@ public class VentanaPagosAlumnos extends JFrame {
         for (Map<String, Object> act : actividades) {
             Object idObj = act.get("id_actividad");
             Object nombreObj = act.get("nombre");
-            Object cuotaObj = act.get("cuota");
-            if (idObj == null || nombreObj == null || cuotaObj == null) continue;
+            if (idObj == null || nombreObj == null) continue;
 
             int id = ((Number) idObj).intValue();
             String nombre = String.valueOf(nombreObj);
-            double cuota = Double.parseDouble(String.valueOf(cuotaObj));
 
             Map<String, Object> detalles = us.getActividadDetalles(id);
             if (detalles == null) continue;
@@ -238,7 +236,7 @@ public class VentanaPagosAlumnos extends JFrame {
                 if (plazas < 0) plazas = 0;
             }
             
-            modelActividades.addRow(new Object[]{id, nombre, cuota, plazas});
+            modelActividades.addRow(new Object[]{id, nombre, plazas});
             actividadData.put(id, act);
         }
         if (modelActividades.getRowCount() == 0) {
@@ -250,9 +248,8 @@ public class VentanaPagosAlumnos extends JFrame {
         tableActividades.setEnabled(modelActividades.getRowCount() > 0);
     }
 
-    @SuppressWarnings("unchecked")
     private void cargarInscripcionesPendientes() {
-        modelInscripciones.setRowCount(0);
+    	modelInscripciones.setRowCount(0);
         inscripcionData.clear();
         idMatriculaSeleccionada = -1;
 
@@ -260,9 +257,9 @@ public class VentanaPagosAlumnos extends JFrame {
 
         Map<String, Object> actividad = us.getActividadDetalles(idActividadSeleccionada);
         if (actividad == null) return;
-        cuotaSeleccionada = Double.parseDouble(String.valueOf(actividad.get("cuota")));
 
-        List<Map<String, Object>> inscripciones = (List<Map<String, Object>>) actividad.get("inscripciones");
+        @SuppressWarnings("unchecked")
+		List<Map<String, Object>> inscripciones = (List<Map<String, Object>>) actividad.get("inscripciones");
         if (inscripciones == null || inscripciones.isEmpty()) return;
 
         for (Map<String, Object> ins : inscripciones) {
@@ -281,7 +278,7 @@ public class VentanaPagosAlumnos extends JFrame {
             } catch (Exception e) {
                 fechaLimite = "-";
             }
-            
+
             String estado;
             Object isCanceladaObj = ins.get("isCancelada");
             Object estaPagadoObj = ins.get("esta_pagado");
@@ -295,6 +292,8 @@ public class VentanaPagosAlumnos extends JFrame {
 
             modelInscripciones.addRow(new Object[]{idMatricula, nombre, apellido, telefono, fechaMatricula, fechaLimite, estado});
             inscripcionData.put(idMatricula, ins);
+
+            cuotaSeleccionada = us.getCuotaMatricula(idMatricula);
         }
     }
 
