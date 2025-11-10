@@ -19,6 +19,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import proyecto.service.UserService;
 
@@ -226,31 +228,32 @@ public class VentanaPrincipal {
         btnCancelarInscripciones.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCancelarInscripciones.setEnabled(false);
         pnCancelarInscripciones.add(btnCancelarInscripciones);
+       
+        comboAlumnosCancelar.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                // Limpia el combo antes de recargar
+                comboAlumnosCancelar.removeAllItems();
+                
+                // Carga alumnos desde la BD cada vez que se abre
+                cargarAlumnosEnCombo(comboAlumnosCancelar, "----------");
+                
+                seleccionaAlumnoCancelar(e);
+            }
 
-        // === Cargar alumnos desde la BD ===
-        cargarAlumnosEnCombo(comboAlumnosCancelar, "----------");
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                // No hace falta nada aquí
+            }
 
-        // Evento: cuando se selecciona un alumno
-        comboAlumnosCancelar.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int index = comboAlumnosCancelar.getSelectedIndex();
-
-                if (index == 0) { 
-                    // "----------" seleccionado
-                    service.setIdAlumnoCancel(0);
-                    System.out.println("Ningï¿½n alumno seleccionado (ID 0)");
-                    return;
-                }
-
-                // Si hay lista cargada y el ï¿½ndice es vï¿½lido
-                if (listaAlumnos != null && index - 1 < listaAlumnos.size()) {
-                    Map<String, Object> alumno = listaAlumnos.get(index - 1); // -1 porque el primer item es "----------"
-                    int idAlumno = (int) alumno.get("id_alumno");
-                    service.setIdAlumnoCancel(idAlumno);
-                    System.out.println("Alumno seleccionado: " + alumno.get("nombre") + " (ID " + idAlumno + ")");
-                }
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+                // No hace falta nada aquí
             }
         });
+        
+        
+      
 
         // Evento: abrir ventana cancelar inscripciï¿½n
         btnCancelarInscripciones.addActionListener(new ActionListener() {
@@ -354,6 +357,26 @@ public class VentanaPrincipal {
 	    vEA.setLocationRelativeTo(null); 
 	    vEA.setVisible(true);             
 	}
+	
+	private void seleccionaAlumnoCancelar(PopupMenuEvent e) {
+		int index = comboAlumnosCancelar.getSelectedIndex();
+
+        if (index == 0) { 
+            // "----------" seleccionado
+            service.setIdAlumnoCancel(0);
+            System.out.println("Ningï¿½n alumno seleccionado (ID 0)");
+            return;
+        }
+
+        // Si hay lista cargada y el ï¿½ndice es vï¿½lido
+        if (listaAlumnos != null && index - 1 < listaAlumnos.size()) {
+            Map<String, Object> alumno = listaAlumnos.get(index - 1); // -1 porque el primer item es "----------"
+            int idAlumno = (int) alumno.get("id_alumno");
+            service.setIdAlumnoCancel(idAlumno);
+            System.out.println("Alumno seleccionado: " + alumno.get("nombre") + " (ID " + idAlumno + ")");
+        }
+    }
+
 	
 	private void cargarAlumnosEnCombo(JComboBox<String> combo, String primerItem) {
 	    listaAlumnos = service.listarAlumnos(); // obtenemos lista de alumnos
