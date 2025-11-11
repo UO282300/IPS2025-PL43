@@ -46,8 +46,8 @@ public class UserService {
 
 	public UserService() {
         this.db = new Database();
-        crearDataBase();
-        cargarDataBase();
+        //crearDataBase();
+        //cargarDataBase();
     }
 	
     public void eliminarTodosLosDatos() {
