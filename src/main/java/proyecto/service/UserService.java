@@ -610,39 +610,30 @@ public class UserService {
 
 	    return listaActividades;
 	}
-	
+
+	private int recuperarPlazasOcupadas(int idActividad) {
+	    
+		List<Map<String, Object>> resultado = db.executeQueryMap("""
+		        SELECT COALESCE(SUM(numero_matriculados), 0) as total 
+		        FROM Matricula 
+		        WHERE id_actividad = ?
+		        AND (isCancelada IS NULL OR isCancelada = 0)
+		        """, idActividad);
+		    
+		    return ((Number) resultado.get(0).get("total")).intValue();
+	}
+
 	private int recuperarPlazasPagadas(int idActividad) {
-	    List<Map<String, Object>> resultado = db.executeQueryMap(
-	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 1",
-	        idActividad
-	    );
-	    if (resultado.isEmpty() || resultado.get(0).get("total") == null) {
-	        return 0;
-	    }
+	    
+	    List<Map<String, Object>> resultado = db.executeQueryMap("""
+	        SELECT COALESCE(SUM(numero_matriculados), 0) as total 
+	        FROM Matricula 
+	        WHERE id_actividad = ? AND esta_pagado = 1
+	        AND (isCancelada IS NULL OR isCancelada = 0)
+	        """, idActividad);
+	    
 	    return ((Number) resultado.get(0).get("total")).intValue();
 	}
-	
-	private int recuperarPlazasOcupadas(int idActividad) {
-	    List<Map<String,Object>> res = db.executeQueryMap(
-	        "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (isCancelada IS NULL OR isCancelada = 0)",
-	        idActividad
-	    );
-	    if (res.isEmpty() || res.get(0).get("total") == null) return 0;
-	    return ((Number)res.get(0).get("total")).intValue();
-	}
-	
-	private int recuperarPlazasLibres(int id) {
-		 Map<String, Object> resultados = getActividadDetalles(id);
-		 if (resultados.isEmpty()) {
-			
-			 return Integer.MAX_VALUE;
-		 }
-		 Number plazasObj = (Number) resultados.get("plazas_disponibles");
-		 int plazas_libres = plazasObj.intValue();
-		 return plazas_libres;
-   
-	}
-	
 	
 	public List<Factura> recuperaAcabadas(){
 		List<Factura> lista= recuperarActividadesEnRango();

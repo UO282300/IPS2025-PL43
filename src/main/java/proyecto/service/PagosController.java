@@ -16,7 +16,7 @@ public class PagosController {
 	
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
-		//this.db = new Database();
+		this.db = new Database();
         //crearDataBase();
         //cargarDataBase();
 	}
@@ -276,7 +276,7 @@ public class PagosController {
         try {
             // Obtener matrÃ­cula y actividad
             List<Map<String, Object>> result = db.executeQueryMap("""
-                SELECT a.cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
+                SELECT a.cuota*m.numero_matriculados as cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
                 FROM Matricula m
                 JOIN Actividad a ON m.id_actividad = a.id_actividad
                 WHERE m.id_matricula = ?
@@ -630,6 +630,29 @@ public class PagosController {
 
         System.out.println("VerificaciÃ³n finalizada.");
     }
+
+	public double getMontoTotalMatricula(int idMatriculaSeleccionada) {
+		try {
+	        List<Map<String, Object>> result = db.executeQueryMap("""
+	            SELECT 
+	                a.cuota * m.numero_matriculados as monto_total
+	            FROM Matricula m
+	            JOIN Actividad a ON m.id_actividad = a.id_actividad
+	            WHERE m.id_matricula = ?
+	            """, 
+	            idMatriculaSeleccionada
+	        );
+
+	        if (result.isEmpty()) return 0.0;
+	        
+	        Object montoTotalObj = result.get(0).get("monto_total");
+	        return montoTotalObj != null ? ((Number) montoTotalObj).doubleValue() : 0.0;
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return 0.0;
+	    }
+	}
 
 
     
