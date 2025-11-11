@@ -514,7 +514,7 @@ public class UserService {
 	private void insertaMatricula() {
 		db.executeUpdate(
 	            "INSERT INTO Matricula (id_alumno, id_actividad, esta_pagado, monto_pagado, fecha_matricula, numero_matriculados, integrantes_ids) " +
-	            "VALUES (?, ?, ?, ?, ?)",
+	            "VALUES (?, ?, ?, ?, ?, ?, ?)",
 	            a.getIdAlumno(),
 	            ac.getId_Actividad(),
 	            false,
