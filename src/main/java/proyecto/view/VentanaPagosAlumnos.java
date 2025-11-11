@@ -556,6 +556,7 @@ public class VentanaPagosAlumnos extends JFrame {
             tfTotalPagado.setText(String.format("%.2f", totalDevuelto));
             tfPendiente.setText(String.format("%.2f", aDevolver)); 
         }
+        us.imprimirMatriculasYPagos();
     }
     
     public String verificarPlazoPago(LocalDate fechaMovimiento, int idMatricula) {
