@@ -789,7 +789,7 @@ public class UserService {
         String sql = """
             SELECT *
             FROM Actividad
-            ORDER BY fecha
+            ORDER BY fecha_inicio
         """;
 
         // Obtenemos todas las actividades
