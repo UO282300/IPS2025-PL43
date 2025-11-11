@@ -7,6 +7,10 @@ DROP TABLE IF EXISTS Administrador;
 DROP TABLE IF EXISTS Devoluciones;
 DROP TABLE IF EXISTS FacturaP;
 DROP TABLE IF EXISTS PagoProfesor;
+DROP TABLE IF EXISTS PagoAlumno;
+DROP TABLE IF EXISTS DevolucionProfesor;
+DROP TABLE IF EXISTS CuotaActividad;
+DROP TABLE IF EXISTS Cuota;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -38,33 +42,41 @@ CREATE TABLE Actividad (
     nombre VARCHAR(150) NOT NULL,
     objetivos TEXT,
     contenidos TEXT,
-    id_profesor INTEGER,
-    remuneracion DECIMAL(10,2),
     espacio VARCHAR(100),
-    fecha DATE,
-    hora_inicio TIME,
-    hora_fin TIME,
     inicio_inscripcion DATE,
     fin_inscripcion DATE,
-    cuota DECIMAL(10,2) DEFAULT 0,
+    fecha_inicio DATE,
+    fecha_fin DATE,
     es_gratuita BOOLEAN DEFAULT 0,
     total_plazas INTEGER,
-    isClosed BOOLEAN,
-    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor)
+    empresa VARCHAR(100),
+    isClosed BOOLEAN DEFAULT 0
 );
 
 
 CREATE TABLE Matricula (
     id_matricula INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_cuota_actividad INTEGER NOT NULL,
     id_alumno INTEGER NOT NULL,
     id_actividad INTEGER NOT NULL,
     fecha_matricula DATE NOT NULL,
     monto_pagado DECIMAL(10,2) DEFAULT 0,
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     isCancelada BOOLEAN DEFAULT 0,
+    FOREIGN KEY (id_cuota_actividad) REFERENCES CuotaActividad(id_cuota_actividad),
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );
+
+CREATE TABLE PagoAlumno (
+    id_pago INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_matricula INTEGER NOT NULL,
+    fecha_pago DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    metodo_pago VARCHAR(50) DEFAULT 'Transferencia',
+    FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula)
+);
+
 
 CREATE TABLE FacturaP (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,6 +88,7 @@ CREATE TABLE FacturaP (
     emisor_nombre VARCHAR(100) NOT NULL,
     emisor_nif VARCHAR(20) NOT NULL,
     emisor_direccion VARCHAR(255) NOT NULL,
+    esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );
@@ -105,4 +118,35 @@ CREATE TABLE Devoluciones (
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 
+);
+
+CREATE TABLE DevolucionProfesor (
+    id_devolucion INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_profesor INTEGER NOT NULL,
+    id_factura INTEGER NOT NULL,
+    id_actividad INTEGER NOT NULL,
+    fecha_devolucion DATE NOT NULL,
+    cantidad DECIMAL(10,2) NOT NULL,
+    motivo TEXT,
+    esta_pagado BOOLEAN NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (id_profesor) REFERENCES Profesor(id_profesor),
+    FOREIGN KEY (id_factura) REFERENCES FacturaP(id_factura),
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+);
+
+CREATE TABLE CuotaActividad (
+	id_cuota_actividad INTEGER PRIMARY KEY AUTOINCREMENT,
+	id_cuota INTEGER NOT NULL,
+	id_actividad INTEGER NOT NULL,
+	valor DECIMAL(10,2) DEFAULT 0,
+	
+	FOREIGN KEY (id_cuota) REFERENCES Cuota(id_cuota),
+	FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
+	
+);
+
+CREATE TABLE Cuota (
+	id_cuota INTEGER PRIMARY KEY AUTOINCREMENT,
+	categoria VARCHAR(100) NOT NULL
 );

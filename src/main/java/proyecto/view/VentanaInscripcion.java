@@ -1,23 +1,21 @@
 package proyecto.view;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -49,11 +47,8 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel pnBotones;
 	private JButton btSelect;
 	private JScrollPane scrollPane;
-	private JList<Actividad> list;
-	private JPanel pnPertenece;
-	private JRadioButton rdbtNo;
-	private JRadioButton rdbtEscuela;
-	private final ButtonGroup buttonGroup = new ButtonGroup();
+	private JPanel pnCuotas;
+	private JComboBox<String> cbCuotas;
 	private JButton btInscrip;
 	private JPanel pnCorreo;
 	private JLabel lbCorreo;
@@ -104,11 +99,11 @@ public class VentanaInscripcion extends JFrame {
 			getTxApellido().setText(a.getApellido());
 			getTxCorreo().setText(a.getCorreo());
 			getTxTf().setText(a.getTelefono());
-			if (a.pertenece()) {
-				getRdbtEscuela().setSelected(true);
-			} else {
-				getRdbtNo().setSelected(true);
-			}
+//			if (a.pertenece()) {
+//				getRdbtEscuela().setSelected(true);
+//			} else {
+//				getRdbtNo().setSelected(true);
+//			}
 			desactivarFormulario();
 		} else {
 			limpiarCampos();
@@ -121,9 +116,6 @@ public class VentanaInscripcion extends JFrame {
 		getTxApellido().setEditable(false);
 		getTxCorreo().setEditable(false);
 		getTxTf().setEditable(false);
-		getRdbtEscuela().setEnabled(false);
-		getRdbtNo().setEnabled(false);
-
 	}
 
 	private JPanel getPanelFecha() {
@@ -153,7 +145,7 @@ public class VentanaInscripcion extends JFrame {
 			panelFormulario.add(getLbApellidos());
 			panelFormulario.add(getPnCorreo());
 			panelFormulario.add(getPanel());
-			panelFormulario.add(getPnPertenece());
+			panelFormulario.add(getPnCuotas());
 			panelFormulario.add(getPanel_1());
 		}
 		return panelFormulario;
@@ -200,14 +192,31 @@ public class VentanaInscripcion extends JFrame {
 	}
 
 	protected void seleccionActividad() {
-		Actividad selec = getActividadSeleccionada();
-		if (selec != null) {
-			service.selectActividad(selec);
-		} else {
-			JOptionPane.showMessageDialog(null, "No hay actividad seleccionada. Por favor selecciona actividad.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-		}
+	    Actividad selec = getActividadSeleccionada();
+	    if (selec != null) {
+	        service.selectActividad(selec);
+	        cargarCuotasActividad(selec.getId_Actividad()); // NUEVO MÃ‰TODO
+	    } else {
+	        JOptionPane.showMessageDialog(null, "No hay actividad seleccionada. Por favor selecciona actividad.",
+	                "Error", JOptionPane.ERROR_MESSAGE);
+	    }
+	}
+	
+	private void cargarCuotasActividad(int idActividad) {
+	    cbCuotas.removeAllItems();
+	    List<Map<String, Object>> cuotas = service.listarCuotasPorActividad(idActividad);
 
+	    if (cuotas.isEmpty()) {
+	        cbCuotas.addItem("No hay cuotas disponibles");
+	        cbCuotas.setEnabled(false);
+	    } else {
+	        cbCuotas.setEnabled(true);
+	        for (Map<String, Object> cuota : cuotas) {
+	            String categoria = (String) cuota.get("categoria");
+	            double valor = ((Number) cuota.get("valor")).doubleValue();
+	            cbCuotas.addItem(categoria + " - " + valor + "â‚¬");
+	        }
+	    }
 	}
 	
 	private Actividad getActividadSeleccionada() {
@@ -220,14 +229,11 @@ public class VentanaInscripcion extends JFrame {
 	private JTable getTablaActividades() {
 	    if (tablaActividades == null) {
 	        modeloActividades = new DefaultTableModel(
-	            new Object[]{"Nombre","Descripcion",  "Periodo inscripción", "Fecha", "Precio"}, 0
+	            new Object[]{"Nombre","Descripcion","Periodo inscripciï¿½n","Fechas","Precio"}, 0
 	        ) {
-	            /**
-				 * 
-				 */
-				private static final long serialVersionUID = 1L;
+	            private static final long serialVersionUID = 1L;
 
-				@Override
+	            @Override
 	            public boolean isCellEditable(int row, int column) {
 	                return false;
 	            }
@@ -240,24 +246,27 @@ public class VentanaInscripcion extends JFrame {
 	    }
 	    return tablaActividades;
 	}
+
 	
 	protected void cargarActividades() {
-		 modeloActividades.setRowCount(0); 
+	    modeloActividades.setRowCount(0); 
 
-		 List<Actividad> actividades = service.recuperarActividades();
-		 for (Actividad act : actividades) {
-		     String periodo = act.getInicio_insc() + " a " + act.getFin_inscr();
-		     String estado = act.isEs_gratuita() ? "Gratuita" : "De pago";
+	    List<Actividad> actividades = service.recuperarActividades();
+	    for (Actividad act : actividades) {
+	        // Periodo de inscripciÃ³n
+	        String periodo = act.getInicio_insc() + " a " + act.getFin_inscr();
+	        // Rango de fechas de la actividad
+	        String fechas = act.getFechaInicio() + " a " + act.getFechaFin();
+	        String estado = act.isEs_gratuita() ? "Gratuita" : "De pago";
 
-		     modeloActividades.addRow(new Object[]{
-		    		act.getNombre(),
-		    		act.getObjetivos(),
-		            periodo,
-		            act.getFecha(),
-		            act.getCuota()
-		        });
-		    }
-
+	        modeloActividades.addRow(new Object[]{
+	            act.getNombre(),
+	            act.getObjetivos(),
+	            periodo,
+	            fechas,
+	            act.getCuota()
+	        });
+	    }
 	}
 
 	private JScrollPane getScrollPane() {
@@ -268,43 +277,18 @@ public class VentanaInscripcion extends JFrame {
 		return scrollPane;
 	}
 
-	private JList<Actividad> getList() {
-		if (list == null) {
-			list = new JList<Actividad>(modelo);
-			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			list.setFixedCellHeight(30);
-			cargarActividades();
-		}
-		return list;
+	private JPanel getPnCuotas() {
+	    if (pnCuotas == null) {
+	    	pnCuotas = new JPanel();
+	    	pnCuotas.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 30));
+	        
+	        cbCuotas = new JComboBox<>();
+	        cbCuotas.addItem("Seleccione cuota");
+	        pnCuotas.add(cbCuotas);
+	    }
+	    return pnCuotas;
 	}
 
-	private JPanel getPnPertenece() {
-		if (pnPertenece == null) {
-			pnPertenece = new JPanel();
-			//pnPertenece.setBackground(new Color(255, 128, 64));
-			pnPertenece.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 30));
-			pnPertenece.add(getRdbtEscuela());
-			pnPertenece.add(getRdbtNo());
-		}
-		return pnPertenece;
-	}
-
-	private JRadioButton getRdbtNo() {
-		if (rdbtNo == null) {
-			rdbtNo = new JRadioButton("No pertenezco");
-			buttonGroup.add(rdbtNo);
-		}
-		return rdbtNo;
-	}
-
-	private JRadioButton getRdbtEscuela() {
-		if (rdbtEscuela == null) {
-			rdbtEscuela = new JRadioButton("Pertenezco a la escuela");
-			rdbtEscuela.setSelected(true);
-			buttonGroup.add(rdbtEscuela);
-		}
-		return rdbtEscuela;
-	}
 
 	private JButton getBtInscrip() {
 		if (btInscrip == null) {
@@ -331,7 +315,7 @@ public class VentanaInscripcion extends JFrame {
 
 	private void comprobarData() {
 		if (service.getAct() == null) {
-			JOptionPane.showMessageDialog(null, "Actividad sin escoger. Pulse el botón seleccionar.", "Error",
+			JOptionPane.showMessageDialog(null, "Actividad sin escoger. Pulse el botï¿½n seleccionar.", "Error",
 					JOptionPane.ERROR_MESSAGE);
 
 		} else if (!compruebaTexto(getTxApellido().getText())) {
@@ -425,7 +409,7 @@ public class VentanaInscripcion extends JFrame {
 		service.guardarApellidos(getTxApellido().getText());
 		service.guardarTf(getTxTf().getText());
 		service.guardarCorreo(getTxCorreo().getText());
-		service.guardarPertenece(!getRdbtNo().isSelected());
+		//service.guardarPertenece(!getRdbtNo().isSelected());
 
 	}
 
@@ -536,7 +520,6 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanel_1() {
 		if (panel_1 == null) {
 			panel_1 = new JPanel();
-			//panel_1.setBackground(new Color(255, 128, 64));
 			FlowLayout flowLayout = (FlowLayout) panel_1.getLayout();
 			flowLayout.setVgap(70);
 			panel_1.add(getBtInscrip());
