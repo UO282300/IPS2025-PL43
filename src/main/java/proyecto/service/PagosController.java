@@ -1,7 +1,6 @@
 package proyecto.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,8 @@ public class PagosController {
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
 		this.db = new Database();
-       
+        //crearDataBase();
+        //cargarDataBase();
 	}
 	public double getLimiteEfectivo() {
 	    return LIMITE_EFECTIVO;
