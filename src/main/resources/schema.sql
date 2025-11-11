@@ -60,6 +60,8 @@ CREATE TABLE Matricula (
     monto_pagado DECIMAL(10,2) DEFAULT 0,
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     isCancelada BOOLEAN DEFAULT 0,
+    numero_matriculados INTEGER NOT NULL,
+    integrantes_ids TEXT,
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );

@@ -35,17 +35,17 @@ INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, inicio_inscripcion
 ('Node.js Intermedio', 'Backend Node', 'Express, API REST', 'E-02', '2025-10-01', '2025-10-20', '2025-11-22', '2025-11-27', 100.00, 0, 15, 'CodeWorks', 0);
 
 -- Matrículas
-INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
-(1, 1, '2025-10-08', 100.00, 1),
-(2, 1, '2025-10-09', 0.00, 0),
-(3, 1, '2025-10-09', 0.00, 0),
-(3, 3, '2025-10-10', 80.00, 1),
-(4, 4, '2025-10-11', 0.00, 0),
-(5, 5, '2025-10-12', 0.00, 0),
-(6, 6, '2025-10-13', 100.00, 1),
-(1, 3, '2025-10-14', 0.00, 0),
-(2, 2, '2025-10-15', 150.00, 1),
-(3, 5, '2025-10-16', 0.00, 0);
+INSERT INTO Matricula(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids) VALUES
+(1, 1, '2025-10-08', 100.00, 1,1,1),
+(2, 1, '2025-10-09', 0.00, 0,1,2),
+(3, 1, '2025-10-09', 0.00, 0,1,3),
+(3, 3, '2025-10-10', 80.00, 1,1,3),
+(4, 4, '2025-10-11', 0.00, 0,1,4),
+(5, 5, '2025-10-12', 0.00, 0,1,5),
+(6, 6, '2025-10-13', 100.00, 1,1,6),
+(1, 3, '2025-10-14', 0.00, 0,1,1),
+(2, 2, '2025-10-15', 150.00, 1,1,2),
+(3, 5, '2025-10-16', 0.00, 0,1,3);
 
 -- Facturas 
 INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) VALUES

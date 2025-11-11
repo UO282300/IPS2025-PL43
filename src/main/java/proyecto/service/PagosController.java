@@ -16,9 +16,9 @@ public class PagosController {
 	
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
-		this.db = new Database();
-        crearDataBase();
-        cargarDataBase();
+		//this.db = new Database();
+        //crearDataBase();
+        //cargarDataBase();
 	}
 	
 	public void crearDataBase() {
@@ -135,7 +135,7 @@ public class PagosController {
         double ingresosEstimados = inscripciones.size() * Double.parseDouble(String.valueOf(act.get("cuota")));
 
         double gastosEstimados = act.get("remuneracion") != null ? Double.parseDouble(String.valueOf(act.get("remuneracion"))) : 0;
-        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciÃ¯Â¿Â½n
+        double gastosConfirmados = gastosEstimados; // asumimos que siempre se confirma remuneraciÃƒÂ¯Ã‚Â¿Ã‚Â½n
 
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
@@ -154,7 +154,7 @@ public class PagosController {
 
             if (result.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encuentra la matrícula especificada.",
+                        "No se encuentra la matrÃ­cula especificada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return null;
             }
@@ -165,7 +165,7 @@ public class PagosController {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al obtener la fecha de matrícula.",
+                    "Error al obtener la fecha de matrÃ­cula.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -237,9 +237,9 @@ public class PagosController {
                     JOptionPane.showMessageDialog(
                         null,
                         "No quedaban plazas disponibles.\n\n" +
-                        "La matrícula ha sido cancelada automáticamente.\n" +
-                        "El pago realizado queda registrado y podrá gestionarse manualmente desde la ventana de devoluciones.",
-                        "Matrícula cancelada",
+                        "La matrÃ­cula ha sido cancelada automÃ¡ticamente.\n" +
+                        "El pago realizado queda registrado y podrÃ¡ gestionarse manualmente desde la ventana de devoluciones.",
+                        "MatrÃ­cula cancelada",
                         JOptionPane.WARNING_MESSAGE
                     );
 
@@ -274,7 +274,7 @@ public class PagosController {
         Map<String, Double> datos = new HashMap<>();
 
         try {
-            // Obtener matrícula y actividad
+            // Obtener matrÃ­cula y actividad
             List<Map<String, Object>> result = db.executeQueryMap("""
                 SELECT a.cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
                 FROM Matricula m
@@ -344,7 +344,7 @@ public class PagosController {
 
             if (datos.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encontró la matrícula especificada.",
+                        "No se encontrÃ³ la matrÃ­cula especificada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
@@ -382,7 +382,7 @@ public class PagosController {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al registrar la devolución en la base de datos.",
+                    "Error al registrar la devoluciÃ³n en la base de datos.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -565,12 +565,12 @@ public class PagosController {
             );
             return true;
         } catch (Exception e) {
-            System.err.println("❌ Error al registrar la devolución: " + e.getMessage());
+            System.err.println("â�Œ Error al registrar la devoluciÃ³n: " + e.getMessage());
             return false;
         }
     }
     public void verificarConsistenciaFinanciera() {
-        System.out.println("🔍 Iniciando verificación de consistencia financiera...");
+        System.out.println("ðŸ”� Iniciando verificaciÃ³n de consistencia financiera...");
 
         List<Map<String, Object>> facturas = db.executeQueryMap("""
             SELECT 
@@ -595,7 +595,7 @@ public class PagosController {
             double neto = totalPagado - totalDevuelto;
 
             if (Math.abs(neto - importeFactura) > 0.01) {
-                System.out.printf("⚠️ Inconsistencia detectada (Profesor): %s | Actividad: %s | Factura #%s%n", 
+                System.out.printf("âš ï¸� Inconsistencia detectada (Profesor): %s | Actividad: %s | Factura #%s%n", 
                     row.get("profesor"), row.get("actividad"), row.get("id_factura"));
                 System.out.printf("   - Importe factura: %.2f | Pagado: %.2f | Devuelto: %.2f | Neto: %.2f%n",
                     importeFactura, totalPagado, totalDevuelto, neto);
@@ -620,15 +620,15 @@ public class PagosController {
             double pagado = ((Number) row.get("monto_pagado")).doubleValue();
             double devuelto = ((Number) row.get("total_devuelto")).doubleValue();
             if (devuelto > pagado + 0.01) {
-                System.out.printf("Error (Alumno): %s | Actividad: %s | Devolvió %.2f€ de %.2f€ pagados.%n",
+                System.out.printf("Error (Alumno): %s | Actividad: %s | DevolviÃ³ %.2fâ‚¬ de %.2fâ‚¬ pagados.%n",
                     row.get("alumno"), row.get("actividad"), devuelto, pagado);
             } else if (Math.abs(devuelto - pagado) > 0.01) {
-                System.out.printf("Pendiente o parcial (Alumno): %s | Actividad: %s | Pagado %.2f€ | Devuelto %.2f€%n",
+                System.out.printf("Pendiente o parcial (Alumno): %s | Actividad: %s | Pagado %.2fâ‚¬ | Devuelto %.2fâ‚¬%n",
                     row.get("alumno"), row.get("actividad"), pagado, devuelto);
             }
         }
 
-        System.out.println("Verificación finalizada.");
+        System.out.println("VerificaciÃ³n finalizada.");
     }
 
 
