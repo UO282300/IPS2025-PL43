@@ -84,7 +84,7 @@ public class VentanaPagosAlumnos extends JFrame {
         tableActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scrollActividades = new JScrollPane(tableActividades);
-        scrollActividades.setBorder(BorderFactory.createTitledBorder("Cursos con pagos pendientes"));
+        scrollActividades.setBorder(BorderFactory.createTitledBorder("Cursos"));
         panelCentral.add(scrollActividades);
 
         modelInscripciones = new DefaultTableModel(
@@ -97,7 +97,7 @@ public class VentanaPagosAlumnos extends JFrame {
         tableInscripciones.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
-        scrollInscripciones.setBorder(BorderFactory.createTitledBorder("Alumnos con pagos pendientes"));
+        scrollInscripciones.setBorder(BorderFactory.createTitledBorder("Alumnos"));
         panelCentral.add(scrollInscripciones);
         contentPane.add(panelCentral, BorderLayout.CENTER);
 
@@ -395,7 +395,7 @@ public class VentanaPagosAlumnos extends JFrame {
 
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
-	        double cuota = cuotaSeleccionada;
+	        double cuota = us.getCuotaMatricula(idMatriculaSeleccionada);
 	
 	        double netoActual = totalPagado - totalDevuelto;
 	        double pendienteAntes = Math.max(0, cuota - netoActual);
@@ -461,6 +461,8 @@ public class VentanaPagosAlumnos extends JFrame {
 
 	    }
 
+	    
+	    
 	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
@@ -555,7 +557,8 @@ public class VentanaPagosAlumnos extends JFrame {
             tfTotalPagado.setText(String.format("%.2f", totalDevuelto));
             tfPendiente.setText(String.format("%.2f", aDevolver)); 
         }
-    }
+        us.imprimirMatriculasYPagos();
+       }
     
     public String verificarPlazoPago(LocalDate fechaMovimiento, int idMatricula) {
         LocalDate fechaMatricula = us.getFechaMatricula(idMatricula);
