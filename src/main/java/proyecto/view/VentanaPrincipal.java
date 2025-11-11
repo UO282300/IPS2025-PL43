@@ -238,12 +238,12 @@ public class VentanaPrincipal {
                 // Carga alumnos desde la BD cada vez que se abre
                 cargarAlumnosEnCombo(comboAlumnosCancelar, "----------");
                 
-                seleccionaAlumnoCancelar(e);
+                
             }
 
             @Override
             public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                // No hace falta nada aquí
+            	seleccionaAlumnoCancelar(e);
             }
 
             @Override
