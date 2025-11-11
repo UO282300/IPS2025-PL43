@@ -19,8 +19,8 @@ public class PagosController {
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
 		this.db = new Database();
-        crearDataBase();
-        cargarDataBase();
+        //crearDataBase();
+        //cargarDataBase();
 	}
 	public double getLimiteEfectivo() {
 	    return LIMITE_EFECTIVO;
