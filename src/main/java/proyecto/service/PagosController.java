@@ -1,7 +1,6 @@
 package proyecto.service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,19 +18,12 @@ public class PagosController {
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
 		this.db = new Database();
-        crearDataBase();
-        cargarDataBase();
+        //crearDataBase();
+        //cargarDataBase();
 	}
 	public double getLimiteEfectivo() {
 	    return LIMITE_EFECTIVO;
 	}
-	public void crearDataBase() {
-    	db.createDatabase(false);
-    }
-    
-    public void cargarDataBase() {	
-    	db.loadDatabase();
-    }
 
  
  // Ventana Registrar Pagos Alumnos  
@@ -91,14 +83,14 @@ public class PagosController {
         // Inscripciones
         List<Map<String, Object>> inscripciones = db.executeQueryMap(
             "SELECT m.id_matricula, " +
-            "al.nombre || ' ' || al.apellido AS nombre_alumno, " +
-            "m.fecha_matricula, " +
+            "al.nombre || ' ' || al.apellido AS nombre_alumno, al.telefono,  " +
+            "m.fecha_matricula, m.esta_pagado,m.isCancelada," +
             "m.monto_pagado, " + // asegurarse de tener este campo
             "CASE WHEN m.esta_pagado = 1 THEN 'Cobrada' ELSE 'Pendiente' END AS estado " +
             "FROM Matricula m " +
             "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
             "WHERE m.id_actividad = ? " +
-            "AND (m.isCancelada IS NULL OR m.isCancelada = 0)",
+            "AND (m.isCancelada IS NULL OR m.isCancelada = 0 OR 1=1)",
             idActividad
         );
         resultado.put("inscripciones", inscripciones);
@@ -311,17 +303,21 @@ public class PagosController {
             double aDevolver;
 
             if (isCancelada) {
-                pendiente = Math.max(0, -neto);
-                aDevolver = Math.max(0, neto);
+                pendiente =0;
+                totalPagado =0;
+                totalDevuelto = 0;
             } else {
                 pendiente = Math.max(0, cuota - neto);
-                aDevolver = Math.max(0, neto - cuota);
+                pendiente = Math.round(pendiente * 100.0) / 100.0;
+                totalPagado = Math.round(totalPagado * 100.0) / 100.0;
+                totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
             }
 
-            // Redondeo
-            totalPagado = Math.round(totalPagado * 100.0) / 100.0;
-            totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
-            pendiente = Math.round(pendiente * 100.0) / 100.0;
+            aDevolver = Math.max(0, neto - cuota);
+            
+            
+            
+            
             aDevolver = Math.round(aDevolver * 100.0) / 100.0;
 
             datos.put("cuota", cuota);
@@ -398,6 +394,60 @@ public class PagosController {
         }
     }
 
+    public void imprimirMatriculasYPagos() {
+        try {
+        	
+            // Traemos todas las matrículas junto con su información de alumno y actividad
+            List<Map<String, Object>> matriculas = db.executeQueryMap(
+                "SELECT m.id_matricula, " +
+                "a.nombre AS nombre_alumno, a.apellido AS apellido_alumno, " +
+                "act.nombre AS nombre_actividad, m.fecha_matricula, m.monto_pagado, m.esta_pagado, m.isCancelada " +
+                "FROM Matricula m " +
+                "JOIN Alumno a ON m.id_alumno = a.id_alumno " +
+                "JOIN Actividad act ON m.id_actividad = act.id_actividad " +
+                "ORDER BY m.id_matricula"
+            );
+
+            for (Map<String, Object> m : matriculas) {
+                int idMatricula = ((Number) m.get("id_matricula")).intValue();
+                System.out.println("\n📘 Matrícula #" + idMatricula);
+                System.out.println("  Alumno: " + m.get("nombre_alumno") + " " + m.get("apellido_alumno"));
+                System.out.println("  Actividad: " + m.get("nombre_actividad"));
+                System.out.println("  Fecha matrícula: " + m.get("fecha_matricula"));
+                System.out.println("  Monto pagado: " + m.get("monto_pagado"));
+                System.out.println("  Pagado: " + (((Number) m.get("esta_pagado")).intValue() == 1));
+                System.out.println("  Cancelada: " + (((Number) m.get("isCancelada")).intValue() == 1));
+
+                // Traemos los pagos asociados a esta matrícula
+                List<Map<String, Object>> pagos = db.executeQueryMap(
+                    "SELECT id_pago, fecha_pago, cantidad, metodo_pago " +
+                    "FROM PagoAlumno WHERE id_matricula = ?",
+                    idMatricula
+                );
+
+                if (pagos.isEmpty()) {
+                    System.out.println("  💸 Pagos: (sin pagos registrados)");
+                } else {
+                    System.out.println("  💸 Pagos:");
+                    for (Map<String, Object> p : pagos) {
+                        System.out.println("    Pago #" + p.get("id_pago") +
+                                           " | Fecha: " + p.get("fecha_pago") +
+                                           " | Cantidad: " + p.get("cantidad") +
+                                           " | Método: " + p.get("metodo_pago"));
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(
+                null,
+                "Error al imprimir matrículas y pagos:\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+    }
 
     
 //Ventana Registrar pagos profesores
