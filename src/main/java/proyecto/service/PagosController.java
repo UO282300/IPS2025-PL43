@@ -108,6 +108,7 @@ public class PagosController {
             "SELECT valor FROM CuotaActividad WHERE id_actividad = ?", idActividad
         );
 
+
         double cuotaMedia = 0.0;
         if (!cuotas.isEmpty()) {
             cuotaMedia = cuotas.stream()
@@ -127,6 +128,10 @@ public class PagosController {
                 .sum();
         double gastosEstimados = gastosConfirmados;
 
+        
+        
+
+
         resultado.put("ingresos_estimados", ingresosEstimados);
         resultado.put("ingresos_confirmados", ingresosConfirmados);
         resultado.put("gastos_estimados", gastosEstimados);
@@ -145,7 +150,7 @@ public class PagosController {
 
             if (result.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encuentra la matrícula especificada.",
+                        "No se encuentra la matrÃ­cula especificada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return null;
             }
@@ -156,7 +161,7 @@ public class PagosController {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al obtener la fecha de matrícula.",
+                    "Error al obtener la fecha de matrÃ­cula.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -237,9 +242,9 @@ public class PagosController {
                     JOptionPane.showMessageDialog(
                         null,
                         "No quedaban plazas disponibles.\n\n" +
-                        "La matrícula ha sido cancelada automáticamente.\n" +
-                        "El pago realizado queda registrado y podrá gestionarse manualmente desde la ventana de devoluciones.",
-                        "Matrícula cancelada",
+                        "La matrÃ­cula ha sido cancelada automÃ¡ticamente.\n" +
+                        "El pago realizado queda registrado y podrÃ¡ gestionarse manualmente desde la ventana de devoluciones.",
+                        "MatrÃ­cula cancelada",
                         JOptionPane.WARNING_MESSAGE
                     );
 
@@ -272,11 +277,10 @@ public class PagosController {
     
     public Map<String, Double> getEstadoPagoAlumno(int idMatricula) {
         Map<String, Double> datos = new HashMap<>();
-
+        //SELECT a.cuota*m.numero_matriculados as cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
         try {
-            // Obtenemos la matrícula junto con el valor de la cuota asociada
             List<Map<String, Object>> result = db.executeQueryMap("""
-                SELECT ca.valor AS cuota, m.monto_pagado, m.isCancelada, m.id_actividad, m.id_alumno
+                SELECT ca.valor*m.numero_matriculados AS cuota, m.monto_pagado, m.isCancelada, m.id_actividad, m.id_alumno
                 FROM Matricula m
                 JOIN CuotaActividad ca ON m.id_cuota_actividad = ca.id_cuota_actividad
                 WHERE m.id_matricula = ?
@@ -347,7 +351,7 @@ public class PagosController {
 
             if (datos.isEmpty()) {
                 JOptionPane.showMessageDialog(null,
-                        "No se encontró la matrícula especificada.",
+                        "No se encontrÃ³ la matrÃ­cula especificada.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
@@ -383,7 +387,7 @@ public class PagosController {
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al registrar la devolución en la base de datos.",
+                    "Error al registrar la devoluciÃ³n en la base de datos.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -619,11 +623,13 @@ public class PagosController {
             );
             return true;
         } catch (Exception e) {
+
             System.err.println("Error al registrar la devolución: " + e.getMessage());
             return false;
         }
     }
-	public double getCuotaMatricula(int idMatricula) {
+
+    public double getCuotaMatricula(int idMatricula) {
 		Map<String, Object> data = db.executeQueryMap(
 		        "SELECT ca.valor " +
 		        "FROM Matricula m " +
@@ -633,6 +639,31 @@ public class PagosController {
 
 		    return data != null ? ((Number) data.get("valor")).doubleValue() : 0.0;
 	}
+
+	public double getMontoTotalMatricula(int idMatriculaSeleccionada) {
+		try {
+	        List<Map<String, Object>> result = db.executeQueryMap("""
+	            SELECT 
+	                ca.valor * m.numero_matriculados as monto_total
+	            FROM Matricula m
+	            JOIN Actividad a ON m.id_actividad = a.id_actividad
+	            JOIN CuotaActividad ca on ca.id_cuota_actividad = m.id_cuota_actividad
+	            WHERE m.id_matricula = ?
+	            """, 
+	            idMatriculaSeleccionada
+	        );
+
+	        if (result.isEmpty()) return 0.0;
+	        
+	        Object montoTotalObj = result.get(0).get("monto_total");
+	        return montoTotalObj != null ? ((Number) montoTotalObj).doubleValue() : 0.0;
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return 0.0;
+	    }
+	}
+
     
   
 }

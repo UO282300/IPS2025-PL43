@@ -15,6 +15,8 @@ INSERT INTO Administrador(nombre, email, password) VALUES
 -- Profesores
 INSERT INTO Profesor(nombre, apellido, email, telefono) VALUES
 ('Juan', 'Perez', 'juan.perez@escuela.com', '654321123'),
+('Claudio', 'Perez', 'c.perez@escuela.com', '684321123'),
+('Raquel', 'Perez', 'r.perez@escuela.com', '694321123'),
 ('Ana', 'Gomez', 'ana.gomez@escuela.com', '456321123');
 
 -- Alumnos
@@ -24,6 +26,8 @@ INSERT INTO Alumno(nombre, apellido, email, telefono, es_interno) VALUES
 ('Pedro', 'Sanchez', 'pedro.sanchez@gmail.com', '345678912', 1),
 ('Marcos', 'Arias', 'marcos.arias@gmail.com', '456789123', 1),
 ('Ana', 'Torres', 'ana.torres@gmail.com', '567891234', 0),
+('Alicia', 'Torres', 'al.torres@gmail.com', '567891234', 0),
+('Juan', 'Torres', 'jt.torres@gmail.com', '567891234', 0),
 ('Luis', 'Fernandez', 'luis.fernandez@gmail.com', '678912345', 0);
 
 -- Cuotas
@@ -39,6 +43,7 @@ INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, inicio_inscripcion
 ('Fundamentos de SQL', 'Aprender SQL desde cero', 'Select, Insert, Update, Delete', 'B-10', '2025-10-01', '2025-10-31', '2025-11-20', '2025-11-25', 0, 15, 'DataSchool', 0),
 ('Diseño Web Básico', 'HTML, CSS y JS', 'Construcción de páginas web', 'C-05', '2025-10-01', '2025-10-31', '2025-11-25', '2025-11-30', 0, 20, 'DesignHub', 0),
 ('React Avanzado', 'React avanzado', 'Hooks, Context, Redux', 'D-01', '2025-11-01', '2025-12-05', '2025-12-10', '2025-12-15', 0, 15, 'FrontTech', 0),
+('Nuevas técnicas de Prueba','Técnicas nuevas de prueba','Tecnicas modernas para hacer test','C-02','2025-07-01','2025-07-31','2025-09-01','2025-09-03',0,10,'CodeCorp', 0),
 ('Node.js Intermedio', 'Backend Node', 'Express, API REST', 'E-02', '2025-10-01', '2025-10-20', '2025-11-22', '2025-11-27', 0, 15, 'CodeWorks', 0);
 
 -- Cuotas por Actividad
@@ -60,20 +65,25 @@ INSERT INTO CuotaActividad(id_cuota, id_actividad, valor) VALUES
 (3, 5, 80.00),
 (1, 6, 100.00),
 (2, 6, 85.00),
-(3, 6, 65.00);
+(3, 6, 65.00),
+(1, 7, 400.00),
+(2, 7, 200.00);
 
 -- Matrículas
-INSERT INTO Matricula(id_cuota_actividad, id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado) VALUES
-(1, 1, 1, '2025-10-08', 100.00, 1),
-(2, 2, 1, '2025-10-09', 0.00, 0),
-(3, 3, 1, '2025-10-09', 0.00, 0),
-(1, 3, 3, '2025-10-10', 80.00, 1),
-(2, 4, 4, '2025-10-11', 0.00, 0),
-(1, 5, 5, '2025-10-12', 0.00, 0),
-(1, 6, 6, '2025-10-13', 100.00, 1),
-(3, 1, 3, '2025-10-14', 0.00, 0),
-(1, 2, 2, '2025-10-15', 150.00, 1),
-(3, 3, 5, '2025-10-16', 0.00, 0);
+INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids) VALUES
+(1, 1, 1, '2025-10-08', 100.00, 1,1,1),
+(2, 2, 1, '2025-10-09', 0.00, 0,1,2),
+(3, 3, 1, '2025-10-09', 0.00, 0,1,3),
+(3, 1, 3, '2025-10-10', 80.00, 1,1,3),
+(4, 2, 4, '2025-10-11', 0.00, 0,1,4),
+(5, 1, 5, '2025-10-12', 0.00, 0,1,5),
+(6, 1, 6, '2025-10-13', 100.00, 1,1,8),
+(1, 3, 3, '2025-10-14', 0.00, 0,1,1),
+(2, 1, 2, '2025-10-15', 150.00, 1,1,2),
+(6, 2, 6, '2025-07-15', 0.00, 0,1,6),
+(7, 1, 6, '2025-07-20', 0.00, 0,1,7),
+(3, 3, 5, '2025-10-16', 0.00, 0,1,3);
+
 
 -- Facturas profesores
 INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) VALUES
@@ -82,5 +92,6 @@ INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, fecha_factura, c
 (1, 3, 'F003', '2025-11-21', 200.00, 'Juan Perez', '12345678A', 'Calle Falsa 123', 0),
 (2, 4, 'F004', '2025-11-26', 220.00, 'Ana Gomez', '87654321B', 'Avenida Siempre Viva 45', 1),
 (1, 5, 'F005', '2025-12-11', 250.00, 'Juan Perez', '12345678A', 'Calle Falsa 123', 0),
+(2, 6, 'F007', '2025-09-04', 400.00, "Claudio", '741258963C','Avenido Ave del Paraiso', 0),
 (2, 6, 'F006', '2025-11-23', 230.00, 'Ana Gomez', '87654321B', 'Avenida Siempre Viva 45', 1);
 

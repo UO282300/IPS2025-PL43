@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import proyecto.model.entity.Alumno;
 import proyecto.service.UserService;
 
 public class VentanaEstadoAF extends JFrame {
@@ -182,11 +185,17 @@ public class VentanaEstadoAF extends JFrame {
         List<Map<String,Object>> inscripciones = (List<Map<String,Object>>) act.get("inscripciones");
         if (inscripciones != null) {
             for (Map<String,Object> ins : inscripciones) {
-                modelInscripciones.addRow(new Object[]{
-                    ins.get("nombre_alumno"),
-                    ins.get("fecha_matricula"),
-                    ins.get("estado")
-                });
+            	String ids = (String) ins.get("integrantes_ids");
+            	List<String> id = Arrays.asList(ids.split(","));
+            	for(String i: id) {
+            		Alumno a = service.getAlumnoById(i);
+            		modelInscripciones.addRow(new Object[]{
+                            a.getNombre(),
+                            ins.get("fecha_matricula"),
+                            ins.get("estado")
+                        });
+            	}
+                
             }
         }
 
