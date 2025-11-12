@@ -882,7 +882,7 @@ public class UserService {
     	int retrasada = db.queryInt("SELECT isRetrasada FROM Matricula WHERE id_matricula = ?", idMatricula);
     	
     	if(cancelada == 1 || retrasada == 1) {
-    		return cuota;
+    		return Math.min(montoPagado,cuota);
     	}
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
         montoPagado=Math.min(montoPagado,cuota);
