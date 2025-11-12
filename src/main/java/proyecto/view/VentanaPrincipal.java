@@ -292,6 +292,16 @@ public class VentanaPrincipal {
             }
         });
         pnCentro.add(btnCancelarAF);
+        
+        JButton btnRetrasarAF = new JButton("Responsable - Retrasar Actividad");
+        btnRetrasarAF.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnRetrasarAF.setEnabled(false);
+        btnRetrasarAF.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaRetrasarAF();
+            }
+        });
+        pnCentro.add(btnRetrasarAF);
 
         
         JLabel label = new JLabel("");
@@ -375,6 +385,14 @@ public class VentanaPrincipal {
 	    vCAF.setLocationRelativeTo(null);
 	    vCAF.setVisible(true);
 	}
+	
+private void mostrarVentanaRetrasarAF() {
+	    
+	    VentanaRetrasarAF vRAF = new VentanaRetrasarAF(service);
+	    vRAF.setLocationRelativeTo(null);
+	    vRAF.setVisible(true);
+	}
+
 
 	private void seleccionaAlumnoCancelar(PopupMenuEvent e) {
 		int index = comboAlumnosCancelar.getSelectedIndex();
