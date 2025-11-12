@@ -7,6 +7,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import proyecto.service.UserService;
@@ -17,48 +18,55 @@ public class VentanaCancelarInscripcion extends JFrame {
     private final UserService service;
     private JTable tableMatriculas;
     private DefaultTableModel modelMatriculas;
+    
+    // Lista para almacenar los IDs (aunque no se muestren)
+    private List<Integer> idsMatriculas;
 
     public VentanaCancelarInscripcion(UserService service) {
         this.service = service;
-        setTitle("Cancelar Inscripciï¿½n de Actividades");
+        setTitle("Cancelar Inscripción de Actividades");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 500);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
+        idsMatriculas = new ArrayList<>();
+
         // === PANEL CENTRAL (TABLA) ===
         modelMatriculas = new DefaultTableModel(
-                new Object[]{"ID", "Actividad", "Fecha", "Pagado (ï¿½)", "Acciï¿½n"}, 0
+                new Object[]{"Actividad", "Fecha", "Pagado (euros)", "Acción"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 4; // solo el botï¿½n
+                return column == 3; // solo el botón
             }
         };
 
         tableMatriculas = new JTable(modelMatriculas);
         tableMatriculas.setRowHeight(30);
 
-        // Renderizar botï¿½n real en la columna "Acciï¿½n"
-        tableMatriculas.getColumn("Acciï¿½n").setCellRenderer(new ButtonRenderer());
-        tableMatriculas.getColumn("Acciï¿½n").setCellEditor(new ButtonEditor(new JCheckBox(), this));
+        // Renderizar botón real en la columna "Acción"
+        tableMatriculas.getColumn("Acción").setCellRenderer(new ButtonRenderer());
+        tableMatriculas.getColumn("Acción").setCellEditor(new ButtonEditor(new JCheckBox(), this));
 
         JScrollPane scroll = new JScrollPane(tableMatriculas);
         scroll.setBorder(new TitledBorder("Actividades inscritas"));
         add(scroll, BorderLayout.CENTER);
 
-        // === Cargar inscripciones automï¿½ticamente ===
+        // === Cargar inscripciones automáticamente ===
         cargarMatriculasAlumno();
     }
 
-    /** Carga las matrï¿½culas del alumno actual **/
+    /** Carga las matrículas del alumno actual **/
     private void cargarMatriculasAlumno() {
         modelMatriculas.setRowCount(0);
+        idsMatriculas.clear();
+
         int idAlumno = service.getIdAlumnoCancel();
 
         if (idAlumno == 0) {
             JOptionPane.showMessageDialog(this,
-                    "No se ha seleccionado ningï¿½n alumno en la ventana principal.",
+                    "No se ha seleccionado ningún alumno en la ventana principal.",
                     "Alumno no seleccionado", JOptionPane.WARNING_MESSAGE);
             dispose();
             return;
@@ -72,8 +80,8 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
 
         for (Map<String, Object> m : matriculas) {
+            idsMatriculas.add((Integer) m.get("id_matricula")); // Guardamos el ID fuera de la tabla
             modelMatriculas.addRow(new Object[]{
-                    m.get("id_matricula"),
                     m.get("actividad"),
                     m.get("fecha"),
                     m.get("monto_pagado"),
@@ -84,22 +92,23 @@ public class VentanaCancelarInscripcion extends JFrame {
 
     public void cancelarInscripcion(int row) {
         int idAlumno = service.getIdAlumnoCancel();
-        int idMatricula = (int) modelMatriculas.getValueAt(row, 0);
-        String nombreActividad = modelMatriculas.getValueAt(row, 1).toString();
-        LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 2).toString());
-        double montoPagado = Double.parseDouble(modelMatriculas.getValueAt(row, 3).toString());
+        int idMatricula = idsMatriculas.get(row); // Recuperamos el ID oculto
+        String nombreActividad = modelMatriculas.getValueAt(row, 0).toString();
+        LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 1).toString());
+        double montoPagado = Double.parseDouble(modelMatriculas.getValueAt(row, 2).toString());
 
-        double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado);
+        double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado, idMatricula);
 
-        String msg = "ï¿½Desea cancelar la inscripciï¿½n a '" + nombreActividad + "'?\n" +
-                     "Se devolverï¿½n " + String.format("%.2f ï¿½", montoDevuelto) + ".";
-        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelaciï¿½n", JOptionPane.YES_NO_OPTION);
+        String msg = "¿Desea cancelar la inscripcion a '" + nombreActividad + "'?\n" +
+                     "Se devolveran " + String.format("%.2f", montoDevuelto) + " euros.\n" +
+                     "Si hubiera habido pagos incorrectos, el importe se abonara aunque no figure en este monto.";
+        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelacion", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
             int idActividad = (int) service.obtenerIdActividadPorMatricula(idMatricula);
 
             service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
-            JOptionPane.showMessageDialog(this, "Inscripciï¿½n cancelada correctamente.\nDevoluciï¿½n: " + montoDevuelto + " ï¿½.");
+            JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " euros.");
             cargarMatriculasAlumno();
         }
     }
@@ -121,7 +130,7 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
     }
 
-    // === Editor para manejar clics en el botï¿½n ===
+    // === Editor para manejar clics en el botón ===
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
         private String label;
@@ -137,11 +146,7 @@ public class VentanaCancelarInscripcion extends JFrame {
             button.setBackground(new Color(220, 53, 69));
             button.setForeground(Color.WHITE);
             button.setFont(new Font("Arial", Font.BOLD, 12));
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    fireEditingStopped();
-                }
-            });
+            button.addActionListener(e -> fireEditingStopped());
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value,
@@ -167,11 +172,11 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
 
         protected void fireEditingStopped() {
-        	try {
-            super.fireEditingStopped();
-        	}catch( Exception e) {
-        		
-        	}
+            try {
+                super.fireEditingStopped();
+            } catch (Exception e) {
+                // Silenciar excepción
+            }
         }
     }
 }
