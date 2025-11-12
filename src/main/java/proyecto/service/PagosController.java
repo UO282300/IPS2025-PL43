@@ -90,7 +90,7 @@ public class PagosController {
             "FROM Matricula m " +
             "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
             "WHERE m.id_actividad = ? " +
-            "AND (m.isCancelada IS NULL OR m.isCancelada = 0)",
+            "AND (m.isCancelada IS NULL OR m.isCancelada = 0 OR 1=1)",
             idActividad
         );
         resultado.put("inscripciones", inscripciones);
@@ -303,16 +303,21 @@ public class PagosController {
             double aDevolver;
 
             if (isCancelada) {
-                pendiente = Math.max(0, -neto);
-                aDevolver = Math.max(0, neto);
+                pendiente =0;
+                totalPagado =0;
+                totalDevuelto = 0;
             } else {
                 pendiente = Math.max(0, cuota - neto);
-                aDevolver = Math.max(0, neto - cuota);
+                pendiente = Math.round(pendiente * 100.0) / 100.0;
+                totalPagado = Math.round(totalPagado * 100.0) / 100.0;
+                totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
             }
 
-            totalPagado = Math.round(totalPagado * 100.0) / 100.0;
-            totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
-            pendiente = Math.round(pendiente * 100.0) / 100.0;
+            aDevolver = Math.max(0, neto - cuota);
+            
+            
+            
+            
             aDevolver = Math.round(aDevolver * 100.0) / 100.0;
 
             datos.put("cuota", cuota);

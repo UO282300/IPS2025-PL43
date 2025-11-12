@@ -824,8 +824,11 @@ public class UserService {
         return db.executeQueryMap(sql, idAlumno);
     }
 
-    public double calcularMontoDevolucion(LocalDate fechaActividad, double montoPagado) {
+    public double calcularMontoDevolucion(LocalDate fechaActividad, double montoPagado, int idMatricula) {
+    	int id_cuota = db.queryInt( "SELECT id_cuota_actividad FROM Matricula WHERE id_matricula = ?", idMatricula);
+    	double cuota = db.queryDouble("SELECT valor FROM CuotaActividad WHERE id_cuota_actividad = ?", id_cuota);
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
+        montoPagado=Math.min(montoPagado,cuota);
         if (diasFaltan >= 7) return montoPagado;
         else if (diasFaltan >= 3) return montoPagado * 0.5;
         else return 0;
@@ -833,13 +836,16 @@ public class UserService {
 
     public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto) {
         LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
-
-        db.executeUpdate("""
-            INSERT INTO Devoluciones (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """, idMatricula, idAlumno, idActividad, hoy.toString(), hoy.toString(), montoDevuelto);
-
+        double montoPagadoActual = db.queryDouble(
+                "SELECT monto_pagado FROM Matricula WHERE id_matricula = ?", 
+                idMatricula
+            );
+        double montoTotal=montoDevuelto + montoPagadoActual;
+        
         db.executeUpdate("UPDATE Matricula SET isCancelada = 1 WHERE id_matricula = ?", idMatricula);
+        
+        db.executeUpdate("UPDATE Matricula SET monto_pagado = ? WHERE id_matricula = ?", montoTotal,idMatricula);
+
     }
     
     
