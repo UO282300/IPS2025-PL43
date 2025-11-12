@@ -11,6 +11,8 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class VentanaResponsable extends JFrame {
 
@@ -57,9 +59,16 @@ public class VentanaResponsable extends JFrame {
 
     private JButton btnCancelar;
     private JButton btnGuardarActividad;
-
+    private JLabel lbEmpresa;
     private UserService service;
     private Map<String, Integer> mapaProfesores = new HashMap<>();
+    private Map<String, Integer> mapaEmpresas = new HashMap<>();
+    private JComboBox<String> cbEmpresa;
+    private JCheckBox chckNuevaEmpresa;
+    private JLabel lbNuevaEmpresa;
+    private JLabel lbRemu;
+    private JTextField txtRemu;
+    private JCheckBox chckEmpresa;
 
     public VentanaResponsable(UserService service) {
         this.service = service;
@@ -167,6 +176,18 @@ public class VentanaResponsable extends JFrame {
         btnEliminarProfesor = new JButton("Eliminar"); panelTop.add(btnEliminarProfesor);
 
         panel.add(panelTop, BorderLayout.NORTH);
+        
+        chckEmpresa = new JCheckBox("Impartido por empresa");
+        chckEmpresa.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		lbEmpresa.setEnabled(true);
+        		cbEmpresa.setEnabled(true);
+        		chckNuevaEmpresa.setEnabled(true);
+        		lbRemu.setEnabled(true);
+        		txtRemu.setEnabled(true);
+        	}
+        });
+        panelTop.add(chckEmpresa);
 
         modelProfesores = new DefaultTableModel(new Object[]{"Profesor","Remuneración"},0);
         tableProfesoresAsignados = new JTable(modelProfesores);
@@ -174,10 +195,43 @@ public class VentanaResponsable extends JFrame {
         panel.add(scroll, BorderLayout.CENTER);
         
         JPanel panelSurProfesores = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelSurProfesores.add(new JLabel("Empresa:"));
+        lbEmpresa = new JLabel("Empresa:");
+        lbEmpresa.setEnabled(false);
+        panelSurProfesores.add(lbEmpresa);
+        
+        cbEmpresa = new JComboBox<>();
+        cbEmpresa.setEditable(true);
+        cbEmpresa.setEnabled(false);cargarEmpresas();
+        panelSurProfesores.add(cbEmpresa);
+        
+        chckNuevaEmpresa = new JCheckBox("Nueva");
+        chckNuevaEmpresa.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		lbNuevaEmpresa.setEnabled(true);
+        		
+        		txtEmpresa.setEnabled(true);
+        		
+        	}
+        });
+        chckNuevaEmpresa.setEnabled(false);
+        panelSurProfesores.add(chckNuevaEmpresa);
+        
+        lbNuevaEmpresa = new JLabel("Nombre:");
+        lbNuevaEmpresa.setEnabled(false);
+        panelSurProfesores.add(lbNuevaEmpresa);
         txtEmpresa = new JTextField(15);
+        txtEmpresa.setEnabled(false);
         panelSurProfesores.add(txtEmpresa);
         panel.add(panelSurProfesores, BorderLayout.SOUTH);
+        
+        lbRemu = new JLabel("Remuneraci\u00F3n:");
+        lbRemu.setEnabled(false);
+        panelSurProfesores.add(lbRemu);
+        
+        txtRemu = new JTextField();
+        txtRemu.setEnabled(false);
+        panelSurProfesores.add(txtRemu);
+        txtRemu.setColumns(10);
 
 
         btnAnadirProfesor.addActionListener(e -> {
@@ -347,6 +401,18 @@ public class VentanaResponsable extends JFrame {
         }
     }
 
+    private void cargarEmpresas() {
+        cbEmpresa.removeAllItems();
+        mapaEmpresas.clear();
+        List<Map<String,Object>> empresas = service.listarEmpresas();
+        for(Map<String,Object> emp : empresas) {
+            String nombre = (String) emp.get("nombre");
+            cbEmpresa.addItem(nombre);
+            mapaEmpresas.put(nombre, (Integer)emp.get("id_profesor"));
+        }
+    }
+
+    
     private void cargarCuotas() {
         cmbCuotas.removeAllItems();
         List<Map<String,Object>> cuotas = service.listarCuotas();
@@ -378,6 +444,22 @@ public class VentanaResponsable extends JFrame {
         if (!chkGratuita.isSelected() && modelCuotas.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this,
                     "Debe añadir al menos una cuota o marcar la actividad como gratuita.",
+                    "Error al registrar actividad",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (!chckEmpresa.isSelected() && txtRemu.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Se debe marcar remuneracion si la actividad la imparte una empresa.",
+                    "Error al registrar actividad",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (!chckNuevaEmpresa.isSelected() && txtRemu.getText().trim().isEmpty()&& txtEmpresa.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Se debe proporcionar remuneracion y nombre si la empresa es nueva.",
                     "Error al registrar actividad",
                     JOptionPane.WARNING_MESSAGE);
             return;
@@ -443,6 +525,46 @@ public class VentanaResponsable extends JFrame {
         	);
         
         if (idActividad != -1) {
+        	if(chckEmpresa.isSelected()) {
+        		double remu=0;
+        		if(chkGratuita.isSelected()) {
+        			remu =0;
+        		}else {
+        			try {
+        				remu = Double.parseDouble(txtRemu.getText().trim());
+        			}catch (NumberFormatException ex) {
+                    	JOptionPane.showMessageDialog(this,
+                                "Remuneracion empresa invalida",
+                                "Error al registrar actividad",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+        			
+        		}
+        		
+        		 String empresaTexto;
+        		 int idEmpresa;
+        		 if(chckNuevaEmpresa.isSelected()) {
+        			 empresaTexto= txtEmpresa.getName();
+        			 idEmpresa = service.insertarEmpresa(empresaTexto);
+        		 }else {
+        			 empresaTexto=(String)cbEmpresa.getSelectedItem();
+        			 idEmpresa = mapaEmpresas.get(empresaTexto);
+        		 }
+                  
+        		 String numeroFactura = "AUTO-" + idActividad + "-" + (0);
+                 String fechaFactura = LocalDate.now().toString();
+
+                 String emisorNombre = empresaTexto;
+                 String emisorNif = "N/A";
+                 String emisorDireccion = "N/A";
+
+        		service.insertFacturaP(idEmpresa, idActividad, numeroFactura, fechaFactura, remu, emisorNombre, emisorNif, emisorDireccion);
+        		JOptionPane.showMessageDialog(this,
+                        "Actividad guardada correctamente.");
+                dispose();
+        	}else {
+        		
+        	
         	int filas = modelProfesores.getRowCount();
             for (int r = 0; r < filas; r++) {
                 String profesorTexto = (String) modelProfesores.getValueAt(r, 0);
@@ -497,7 +619,7 @@ public class VentanaResponsable extends JFrame {
             JOptionPane.showMessageDialog(this,
                     "Actividad guardada correctamente.");
             dispose();
-            
+        	}
         } else {
             JOptionPane.showMessageDialog(this,
                     "No se pudo guardar la actividad.",

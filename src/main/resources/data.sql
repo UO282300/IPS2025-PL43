@@ -13,11 +13,12 @@ INSERT INTO Administrador(nombre, email, password) VALUES
 ('Rosa', 'admin@escuela.com', 'admin123');
 
 -- Profesores
-INSERT INTO Profesor(nombre, apellido, email, telefono) VALUES
-('Juan', 'Perez', 'juan.perez@escuela.com', '654321123'),
-('Claudio', 'Perez', 'c.perez@escuela.com', '684321123'),
-('Raquel', 'Perez', 'r.perez@escuela.com', '694321123'),
-('Ana', 'Gomez', 'ana.gomez@escuela.com', '456321123');
+INSERT INTO Profesor(nombre, apellido, email, telefono,isEmpresa) VALUES
+('Juan', 'Perez', 'juan.perez@escuela.com', '654321123',0),
+('Claudio', 'Perez', 'c.perez@escuela.com', '684321123',0),
+('Raquel', 'Perez', 'r.perez@escuela.com', '694321123',0),
+('Indra', '', 'r.perez@.com', '694321123',1),
+('Ana', 'Gomez', 'ana.gomez@escuela.com', '456321123',0);
 
 -- Alumnos
 INSERT INTO Alumno(nombre, apellido, email, telefono, es_interno) VALUES

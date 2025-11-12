@@ -92,9 +92,14 @@ public class UserService {
     }
 	
 	public List<Map<String, Object>> listarProfesores() {
-	    return db.executeQueryMap("SELECT id_profesor, nombre, apellido FROM Profesor ORDER BY nombre");
+	    return db.executeQueryMap("SELECT id_profesor, nombre, apellido FROM Profesor WHERE isEmpresa = 0 ORDER BY nombre");
 	}
 
+	public List<Map<String, Object>> listarEmpresas() {
+	    return db.executeQueryMap("SELECT id_profesor, nombre FROM Profesor WHERE isEmpresa = 1 ORDER BY nombre");
+	}
+
+	
 	public LocalDate getFecha() {
 		return fechaHoy;
 	}
@@ -1260,6 +1265,38 @@ public class UserService {
 	        return String.format("%.2f € - %.2f €", min, max);
 	    }
 	}
-		
+
+	public int insertarEmpresa(String empresaTexto) {
+	    if (empresaTexto == null || empresaTexto.trim().isEmpty()) {
+	        throw new IllegalArgumentException("El nombre de la empresa no puede estar vacío");
+	    }
+
+	    // Generar un email válido único
+	    String email = empresaTexto.replaceAll("\\s+", "").toLowerCase()
+	                 + "_" + System.currentTimeMillis() + "@empresa.local";
+
+	    // Insertar la empresa como profesor con isEmpresa = 1
+	    try {
+	        String sql = "INSERT INTO Profesor (nombre, apellido, email, telefono, isEmpresa) "
+	                   + "VALUES (?, '', ?, '', 1)";
+	        db.executeUpdate(sql, empresaTexto, email);
+
+	        // Recuperar el id_profesor recién insertado
+	        List<Map<String, Object>> result = db.executeQueryMap(
+	            "SELECT id_profesor FROM Profesor WHERE email = ?", email
+	        );
+
+	        if (!result.isEmpty()) {
+	            return ((Number) result.get(0).get("id_profesor")).intValue();
+	        } else {
+	            throw new RuntimeException("No se pudo obtener el id de la empresa insertada.");
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return -1; // En caso de error
+	    }
+	}
+
 
 }
