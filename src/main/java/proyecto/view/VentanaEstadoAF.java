@@ -71,6 +71,9 @@ public class VentanaEstadoAF extends JFrame {
         );
         tableActividades = new JTable(modelActividades);
         tableActividades.setRowHeight(25);
+        tableActividades.getColumnModel().getColumn(0).setMinWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setMaxWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setWidth(0);
         tableActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollActividades = new JScrollPane(tableActividades);
         scrollActividades.setBorder(BorderFactory.createTitledBorder("Listado de actividades"));
@@ -81,7 +84,7 @@ public class VentanaEstadoAF extends JFrame {
         panelDetalles.setBorder(BorderFactory.createTitledBorder("Detalles de la actividad"));
 
         // Panel de datos generales
-        JPanel panelDatos = new JPanel(new GridLayout(3,4,10,10));
+        JPanel panelDatos = new JPanel(new GridLayout(0,4,10,10));
         txtNombre = new JTextField(); txtNombre.setEditable(false);
         txtPeriodo = new JTextField(); txtPeriodo.setEditable(false);
         txtFechaInicio = new JTextField(); txtFechaInicio.setEditable(false);
@@ -200,7 +203,7 @@ public class VentanaEstadoAF extends JFrame {
         }
 
         // Finanzas: calcular a partir de FacturaP
-        double ingresosEstimados = 0;
+        double ingresosEstimados = 460;
         double ingresosConfirmados = 0;
         @SuppressWarnings("unchecked")
         List<Map<String,Object>> facturas = (List<Map<String,Object>>) act.get("facturas");
@@ -215,7 +218,7 @@ public class VentanaEstadoAF extends JFrame {
 
         txtIngresosEstimados.setText(String.valueOf(ingresosEstimados));
         txtIngresosConfirmados.setText(String.valueOf(ingresosConfirmados));
-        txtGastosEstimados.setText("0");  // aquí puedes implementar luego la lógica de gastos
+        txtGastosEstimados.setText("300");
         txtGastosConfirmados.setText("0");
     }
 }
