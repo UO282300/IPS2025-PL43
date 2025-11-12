@@ -2,29 +2,25 @@ package proyecto.view;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.EventQueue;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
-
-
+import proyecto.model.entity.Factura;
 import proyecto.service.UserService;
 
 import java.awt.GridLayout;
 
-
+import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -33,8 +29,11 @@ import java.awt.FlowLayout;
 import java.awt.Color;
 
 import javax.swing.border.MatteBorder;
+import javax.swing.table.DefaultTableModel;
+
 import java.awt.Font;
-import javax.swing.ButtonGroup;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 
 public class VentanaVerBalance extends JFrame {
 
@@ -50,11 +49,10 @@ public class VentanaVerBalance extends JFrame {
 	private JPanel pnFechas;
 	private JPanel pnRadioBotones;
 	private JPanel pnBotonFiltrar;
-	private JButton btTodo;
+	private JTable tablaAcabadas;
+	private JTable tablaSinAcabar;
 	private JScrollPane scrollPane;
 	private JScrollPane scrollPane2;
-	private JTextArea txSinAcabar;
-	private JTextArea txAcabar;
 	private UserService service;
 	private JTextField txFecha;
 	private JTextField txFinal;
@@ -72,6 +70,7 @@ public class VentanaVerBalance extends JFrame {
 	 * Create the frame.
 	 */
 	public VentanaVerBalance(UserService ser) {
+		setTitle("Ver Balances");
 		this.service = ser;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 1162, 950);
@@ -79,9 +78,10 @@ public class VentanaVerBalance extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setContentPane(contentPane);
-		contentPane.setLayout(new GridLayout(0, 2, 0, 0));
-		contentPane.add(getPnBotones());
+		contentPane.setLayout(new BorderLayout(0, 0));
+		contentPane.add(getPnBotones(), BorderLayout.NORTH);
 		contentPane.add(getPnInfo());
+		
 	}
 
 	protected void checkearDatos() {
@@ -139,40 +139,69 @@ public class VentanaVerBalance extends JFrame {
 	
 	
 	private void filtrado(int bt) {
-		
 	    LocalDate inicio = service.getFechaFiltrado().getFechaIn();
 	    LocalDate fin = service.getFechaFiltrado().getFechaFin();
-	    switch(bt) {
-	        case 0: 
-	            getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango(inicio, fin));
-	            getTxSinAcabar().setText("");
-	            break;
-	        case 1: 
-	            getTxAcabar().setText("");
-	            getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango(inicio, fin));
-	            break;
-	        case 2: // Ambas
-	            getTxAcabar().setText(service.getFacturasTextoAcabadasEnRango(inicio, fin));
-	            getTxSinAcabar().setText(service.getFacturasTextoSinAcabarEnRango(inicio, fin));
-	            break;
-	    }
+
+	    switch (bt) {
+        case 0:
+            getTablaAcabadas().setModel(crearModeloFacturas(service.recuperaAcabadasEnRango(inicio, fin)));
+            getTablaSinAcabar().setModel(new DefaultTableModel()); // tabla vac�a
+            break;
+        case 1:
+            getTablaAcabadas().setModel(new DefaultTableModel()); // tabla vac�a
+            getTablaSinAcabar().setModel(crearModeloFacturas(service.recuperaSinAcabarEnRango(inicio, fin)));
+            break;
+        case 2:
+            getTablaAcabadas().setModel(crearModeloFacturas(service.recuperaAcabadasEnRango(inicio, fin)));
+            getTablaSinAcabar().setModel(crearModeloFacturas(service.recuperaSinAcabarEnRango(inicio, fin)));
+            break;
+    }
 	}
 
 	private JPanel getPnFechas() {
 	    if (pnFechas == null) {
-	        pnFechas = new JPanel();
-	        pnFechas.setBorder(new MatteBorder(3, 3, 3, 3, Color.BLACK));
-	        pnFechas.setBackground(new Color(255, 128, 128));
-	        FlowLayout fl = new FlowLayout();
-	        fl.setHgap(500);
-	        fl.setVgap(20);
-	        pnFechas.setLayout(fl);
+	    	 pnFechas = new JPanel(new GridBagLayout());
+	         pnFechas.setBorder(new MatteBorder(3, 0, 3, 0, (Color) new Color(0, 0, 0)));
+	         //pnFechas.setBackground(new Color(255, 128, 128));
 
-	        pnFechas.add(getLbFechaI());
-	        pnFechas.add(getTxFecha());
-	        pnFechas.add(getLbFechaF());
-	        pnFechas.add(getTxFinal());
-	        pnFechas.add(getLbInstruc());
+	         GridBagConstraints gbc = new GridBagConstraints();
+	         gbc.insets = new Insets(5, 10, 5, 10);
+	         gbc.anchor = GridBagConstraints.WEST;
+
+	         gbc.gridx = 0;
+	         gbc.gridy = 0;
+	         pnFechas.add(getLbFechaI(), gbc);
+	         
+	         GridBagConstraints gbc2 = new GridBagConstraints();
+	         gbc2.insets = new Insets(5, 10, 5, 10);
+	         gbc2.anchor = GridBagConstraints.WEST;
+	         gbc2.gridy = 0;
+	         gbc2.gridx = 1;
+	         pnFechas.add(getTxFecha(), gbc2);
+	         
+	         GridBagConstraints gbc3 = new GridBagConstraints();
+	         gbc3.insets = new Insets(5, 10, 5, 10);
+	         gbc3.anchor = GridBagConstraints.WEST;	         
+	         gbc3.gridx = 0;
+	         gbc3.gridy = 1;
+	         pnFechas.add(getLbFechaF(), gbc3);
+	         
+	         GridBagConstraints gbc4 = new GridBagConstraints();
+	         gbc4.insets = new Insets(5, 10, 5, 10);
+	         gbc4.anchor = GridBagConstraints.WEST;
+	         gbc4.gridy = 1;
+	         gbc4.gridx = 1;
+
+	         pnFechas.add(getTxFinal(), gbc4);
+	         
+	         
+	         GridBagConstraints gbc5 = new GridBagConstraints();
+	         gbc5.insets = new Insets(5, 10, 5, 10);
+	         gbc5.anchor = GridBagConstraints.WEST;
+	         gbc5.gridx = 0;
+	         gbc5.gridy = 2;
+	         gbc5.gridwidth = 2;
+	         pnFechas.add(getLbInstruc(), gbc5);
 	    }
 	    return pnFechas;
 	}
@@ -219,8 +248,8 @@ public class VentanaVerBalance extends JFrame {
 	private JPanel getPnRadioBotones() {
 	    if (pnRadioBotones == null) {
 	        pnRadioBotones = new JPanel();
-	        pnRadioBotones.setBorder(new MatteBorder(0, 3, 3, 3, Color.BLACK));
-	        pnRadioBotones.setBackground(new Color(255, 128, 128));
+	        pnRadioBotones.setBorder(new MatteBorder(3, 0, 3, 0, (Color) new Color(0, 0, 0)));
+	        //pnRadioBotones.setBackground(new Color(255, 128, 128));
 	        FlowLayout fl = new FlowLayout();
 	        fl.setHgap(30);
 	        fl.setVgap(50);
@@ -252,12 +281,12 @@ public class VentanaVerBalance extends JFrame {
 	    return rdBtSinFin;
 	}
 
-	// Panel del bot�n Filtrar
+	
 	private JPanel getPnBotonFiltrar() {
 	    if (pnBotonFiltrar == null) {
 	        pnBotonFiltrar = new JPanel();
-	        pnBotonFiltrar.setBorder(new MatteBorder(0, 3, 3, 3, Color.BLACK));
-	        pnBotonFiltrar.setBackground(new Color(255, 128, 128));
+	        pnBotonFiltrar.setBorder(new MatteBorder(3, 0, 3, 3, (Color) new Color(0, 0, 0)));
+	        //pnBotonFiltrar.setBackground(new Color(255, 128, 128));
 	        pnBotonFiltrar.add(getBtFiltrar());
 	    }
 	    return pnBotonFiltrar;
@@ -273,7 +302,7 @@ public class VentanaVerBalance extends JFrame {
 			});
 
 	       
-	        btFiltrar.setBackground(new Color(255, 128, 64));
+	        //btFiltrar.setBackground(new Color(255, 128, 64));
 	    }
 	    return btFiltrar;
 	}
@@ -281,7 +310,7 @@ public class VentanaVerBalance extends JFrame {
 	private JPanel getPnInfo() {
 		if (pnInfo == null) {
 			pnInfo = new JPanel();
-			pnInfo.setLayout(new GridLayout(0, 2, 0, 0));
+			pnInfo.setLayout(new GridLayout(2, 0, 0, 0));
 			pnInfo.add(getScrollPane());
 			pnInfo.add(getScrollSin());
 			
@@ -293,65 +322,31 @@ public class VentanaVerBalance extends JFrame {
 	private Component getScrollSin() {
 		if (scrollPane2 == null) {
 			scrollPane2 = new JScrollPane();
-			scrollPane2.setViewportView(getTxSinAcabar());
+			scrollPane2.setViewportView(getTablaSinAcabar());
 			
 			JLabel lbAcabadas = new JLabel("Sin Finalizar");
 			scrollPane2.setColumnHeaderView(lbAcabadas);
 		}
 		return scrollPane2;
 	}
-	private JTextArea getTxSinAcabar() {
-		if (txSinAcabar == null) {
-			txSinAcabar = new JTextArea();
-			txSinAcabar.setLineWrap(true);
-			txSinAcabar.setEditable(false);
-			preparaFacturas(1);
-			
-		}
-		return txSinAcabar;
-	}
+	
 
 	private JScrollPane getScrollPane() {
 		if (scrollPane == null) {
 			scrollPane = new JScrollPane();
-			scrollPane.setViewportView(getTxAcabar());
+			scrollPane.setViewportView(getTablaAcabadas());
 			
 			JLabel lbAcabadas = new JLabel("Finalizadas");
 			scrollPane.setColumnHeaderView(lbAcabadas);
 		}
 		return scrollPane;
 	}
-	private JTextArea getTxAcabar() {
-		if (txAcabar == null) {
-			txAcabar = new JTextArea();
-			txAcabar.setLineWrap(true);
-			txAcabar.setEditable(false);
-			preparaFacturas(0);
-			
-		}
-		return txAcabar;
-	}
-	
-	
-	private JButton getBtTodo() {
-		if (btTodo == null) {
-			btTodo = new JButton("Todos");
-			btTodo.setBackground(new Color(255, 128, 64));
-			btTodo.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					preparaFacturasGeneral();
-				}
-			});
-		}
-		return btTodo;
-	}
 	
 	private JPanel getPnBotones() {
 	    if (pnBotones == null) {
 	        pnBotones = new JPanel();
 	        pnBotones.setLayout(new BorderLayout(0, 0));
-	        pnBotones.add(getBtTodo(), BorderLayout.NORTH);
-	        pnBotones.add(getPnFiltro(), BorderLayout.CENTER);
+	        pnBotones.add(getPnFiltro());
 	        
 	    }
 	    return pnBotones;
@@ -359,8 +354,8 @@ public class VentanaVerBalance extends JFrame {
 
 	private JPanel getPnFiltro() {
 	    if (pnFiltro == null) {
-	        pnFiltro = new JPanel();
-	        pnFiltro.setLayout(new GridLayout(4, 1, 0, 0));
+	    	pnFiltro = new JPanel();
+	        pnFiltro.setLayout(new GridLayout(0, 4, 0, 0));
 	        pnFiltro.add(getPnTituloFiltro());
 	        pnFiltro.add(getPnFechas());
 	        pnFiltro.add(getPnRadioBotones());
@@ -372,31 +367,62 @@ public class VentanaVerBalance extends JFrame {
 	private JPanel getPnTituloFiltro() {
 	    if (pnTituloFiltro == null) {
 	        pnTituloFiltro = new JPanel();
-	        pnTituloFiltro.setBackground(new Color(255, 128, 128));
+	        pnTituloFiltro.setBorder(new MatteBorder(3, 0, 3, 0, (Color) new Color(0, 0, 0)));
+	        //pnTituloFiltro.setBackground(new Color(255, 128, 128));
 	        pnTituloFiltro.setLayout(new BorderLayout());
 	        JLabel lbFiltro = new JLabel("Busqueda con Filtros", SwingConstants.CENTER);
+	        lbFiltro.setBackground(new Color(192, 192, 192));
 	        pnTituloFiltro.add(lbFiltro, BorderLayout.CENTER);
 	    }
 	    return pnTituloFiltro;
 	}
-	
-	
-	
-	
-	protected void preparaFacturasGeneral() {
-		getTxAcabar().setText(service.getFacturasTextoAcabadas());
-		getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
-		checkearDatos();
-		
-	}
 
 	private void preparaFacturas(int orden) {
-		if(orden==0) {
-			getTxAcabar().setText(service.getFacturasTextoAcabadas());
-		}else {
-			getTxSinAcabar().setText(service.getFacturasTextoSinAcabar());
-		}
-		checkearDatos();
-		
+	    if (orden == 0) {
+	    	DefaultTableModel nuevoModelo = crearModeloFacturas(service.recuperaAcabadas());
+	    	getTablaAcabadas().setModel(nuevoModelo);
+	    } else {
+	    	DefaultTableModel nuevoModelo = crearModeloFacturas(service.recuperaSinAcabar());
+	    	getTablaSinAcabar().setModel(nuevoModelo);
+	    }
+	    checkearDatos();
+	}
+	
+	private DefaultTableModel crearModeloFacturas(List<Factura> lista) {
+	    String[] columnas = {"Fecha", "Nombre", "Estado", "Ingresos", "Total Gastos", "Balance", "Ingresos Estimados", "Balance Estimado"};
+	    DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+
+	    for (Factura f : lista) {
+	        Object[] fila = {
+	            f.getFecha().toString(),
+	            f.getNombre(),
+	            f.getEstado(),
+	            f.getIngresos(),
+	            f.getGastos(),
+	            f.getBalance(),
+	            f.getIngEstimados(),
+	            f.getEstimado()
+	        };
+	        modelo.addRow(fila);
+	    }
+
+	    return modelo;
+	}
+
+	
+	private JTable getTablaAcabadas() {
+	    if (tablaAcabadas == null) {
+	        tablaAcabadas = new JTable();
+	        preparaFacturas(0);
+	    }
+	    return tablaAcabadas;
+	}
+
+	private JTable getTablaSinAcabar() {
+	    if (tablaSinAcabar == null) {
+	        tablaSinAcabar = new JTable();
+	        preparaFacturas(1);
+	    }
+	    return tablaSinAcabar;
 	}
 }

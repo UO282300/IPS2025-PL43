@@ -1,55 +1,38 @@
 package proyecto.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.*;
 import java.util.List;
 import java.util.Map;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
-
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import proyecto.service.UserService;
 
 public class VentanaCerrarAF extends JFrame {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private JPanel contentPane;
     private JLabel lbTitulo;
     private JScrollPane scrollActividades;
-    private JList<String> listActividades;
-    private DefaultListModel<String> modeloActividades;
+    private JTable tablaActividades;
+    private DefaultTableModel modeloTabla;
     private JPanel pnBotones;
     private JButton btCerrar;
     private JButton btVolver;
 
     private UserService service;
-    private Map<String, Integer> mapaActividades;
-	
-	public VentanaCerrarAF(UserService service) {
-		this.service = service;
+
+    public VentanaCerrarAF(UserService service) {
+        this.service = service;
 
         setTitle("Cerrar Actividades Formativas");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(900, 700);
+        setSize(950, 700);
         setLocationRelativeTo(null);
-        setResizable(false);
 
-        contentPane = new JPanel(new BorderLayout(0, 10));
+        contentPane = new JPanel(new BorderLayout(10, 10));
         contentPane.setBackground(new Color(230, 240, 255));
         contentPane.setBorder(new EmptyBorder(10, 10, 10, 10));
         setContentPane(contentPane);
@@ -64,95 +47,130 @@ public class VentanaCerrarAF extends JFrame {
     private JLabel getTituloPanel() {
         if (lbTitulo == null) {
             lbTitulo = new JLabel("Gestion de Cierre de Actividades", SwingConstants.CENTER);
-            lbTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            lbTitulo.setOpaque(true);
-            lbTitulo.setBackground(new Color(200, 220, 255));
-            lbTitulo.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
-            lbTitulo.setPreferredSize(new Dimension(100, 50));
+            lbTitulo.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            lbTitulo.setForeground(new Color(30, 50, 90));
+            lbTitulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+            lbTitulo.setOpaque(false);
         }
         return lbTitulo;
     }
 
     private JScrollPane getScrollActividades() {
         if (scrollActividades == null) {
-            modeloActividades = new DefaultListModel<>();
-            listActividades = new JList<>(modeloActividades);
-            listActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            listActividades.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            listActividades.setBackground(new Color(240, 245, 255));
-            listActividades.setBorder(new EmptyBorder(10, 10, 10, 10));
+            String[] columnas = {"Nombre", "Fecha inicio", "Fecha fin", "Estado"};
+            modeloTabla = new DefaultTableModel(columnas, 0) {
+                private static final long serialVersionUID = 1L;
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
 
-            scrollActividades = new JScrollPane(listActividades);
-            scrollActividades.setBorder(new TitledBorder("Actividades disponibles para cerrar"));
-            scrollActividades.setBackground(new Color(240, 245, 255));
+            tablaActividades = new JTable(modeloTabla);
+            tablaActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            tablaActividades.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            tablaActividades.setRowHeight(26);
+            tablaActividades.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+            // Centrar estado
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            tablaActividades.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+
+            scrollActividades = new JScrollPane(tablaActividades);
+            scrollActividades.setBorder(new TitledBorder("Actividades finalizadas:"));
         }
         return scrollActividades;
     }
 
     private JPanel getPanelBotones() {
         if (pnBotones == null) {
-            pnBotones = new JPanel();
-            pnBotones.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 10));
-            pnBotones.setBorder(new MatteBorder(2, 2, 2, 2, Color.BLACK));
-            pnBotones.setBackground(new Color(200, 220, 255));
+            pnBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
+            pnBotones.setBackground(new Color(230, 235, 250));
+
+            btVolver = new JButton("Volver");
+            btVolver.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btVolver.addActionListener(e -> dispose());
 
             btCerrar = new JButton("Cerrar Actividad");
-            btCerrar.setBackground(new Color(255, 140, 80));
+            btCerrar.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            btCerrar.setBackground(new Color(220, 220, 220));
             btCerrar.addActionListener(e -> cerrarActividad());
-            
-                        btVolver = new JButton("Volver");
-                        btVolver.setBackground(new Color(255, 180, 180));
-                        btVolver.addActionListener(e -> dispose());
-                        pnBotones.add(btVolver);
 
+            pnBotones.add(btVolver);
             pnBotones.add(btCerrar);
         }
         return pnBotones;
     }
 
     private void cargarActividades() {
-        modeloActividades.clear();
-        mapaActividades = new java.util.HashMap<>();
+        modeloTabla.setRowCount(0);
 
         List<Map<String, Object>> actividades = service.listarActividades();
 
-        if (actividades == null || actividades.isEmpty()) {
-            modeloActividades.addElement("No hay actividades disponibles para cerrar.");
-            listActividades.setEnabled(false);
-            btCerrar.setEnabled(false);
-            return;
-        }
- 
         for (Map<String, Object> act : actividades) {
-            int id = ((Number) act.get("id_actividad")).intValue();
-            String nombre = (String) act.get("nombre");
-            String fecha = (String) act.get("fecha");
-            String estado = (String) act.get("estado");
-
-            String texto = String.format("Nombre: %s | Fecha: %s | Estado: %s",
-                    nombre, fecha, estado);
-
-            if (estado.equals("Finalizada")) {
-            	modeloActividades.addElement(texto);
-                mapaActividades.put(texto, id);
-            }         
+            String estado = String.valueOf(act.get("estado"));
+            if (estado.equalsIgnoreCase("finalizada")) {
+                String nombre = (String) act.get("nombre");
+                String fechaI = String.valueOf(act.get("fecha_inicio"));
+                String fechaF = String.valueOf(act.get("fecha_fin"));
+                modeloTabla.addRow(new Object[]{nombre, fechaI, fechaF, estado});
+            }
         }
-
-        listActividades.setEnabled(true);
-        btCerrar.setEnabled(true);
+        
+        if (modeloTabla.getRowCount() == 0) {
+        	mostrarMensajeSinActividades("No hay actividades disponibles para cerrar.");
+            btCerrar.setEnabled(false);
+        } else {
+            btCerrar.setEnabled(true);
+        }
+        
+    }
+    
+    private void mostrarMensajeSinActividades(String mensaje) {
+        // Reemplaza el contenido central por un panel de aviso bonito
+        JPanel panelMensaje = new JPanel(new GridBagLayout());
+        panelMensaje.setBackground(new Color(240, 245, 255));
+        
+        JLabel label = new JLabel(mensaje);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        label.setForeground(Color.GRAY);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        panelMensaje.add(label);
+        getContentPane().remove(scrollActividades);
+        getContentPane().add(panelMensaje, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 
     private void cerrarActividad() {
-        String seleccion = listActividades.getSelectedValue();
+        int filaSeleccionada = tablaActividades.getSelectedRow();
 
-        if (seleccion == null || !mapaActividades.containsKey(seleccion)) {
+        if (filaSeleccionada == -1) {
             JOptionPane.showMessageDialog(this,
                     "Selecciona una actividad.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int idActividad = mapaActividades.get(seleccion);
+        // Obtenemos el id de la actividad real a partir del nombre
+        String nombreSeleccionado = (String) modeloTabla.getValueAt(filaSeleccionada, 0);
+        List<Map<String, Object>> actividades = service.listarActividades();
+        int idActividad = -1;
+        for (Map<String, Object> act : actividades) {
+            if (act.get("nombre").equals(nombreSeleccionado)) {
+                idActividad = ((Number) act.get("id_actividad")).intValue();
+                break;
+            }
+        }
+
+        if (idActividad == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Error al obtener el ID de la actividad seleccionada.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         if (service.actividadConMovimientosAlumnos(idActividad)) {
             JOptionPane.showMessageDialog(this,
@@ -160,8 +178,8 @@ public class VentanaCerrarAF extends JFrame {
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        if (service.actividadConMovimientosProfesores(idActividad)) {
+
+        if (!service.actividadConMovimientosProfesores(idActividad)) {
             JOptionPane.showMessageDialog(this,
                     "No se puede cerrar la actividad. Existen pagos pendientes de profesores.",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -169,13 +187,12 @@ public class VentanaCerrarAF extends JFrame {
         }
 
         int opcion = JOptionPane.showConfirmDialog(this,
-                "¿Estas seguro de que deseas cerrar esta actividad?",
+                "Â¿Estas seguro de que deseas cerrar esta actividad?",
                 "Confirmar cierre", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
             if (service.cerrarActividad(idActividad)) {
-                JOptionPane.showMessageDialog(this,
-                        "Actividad cerrada correctamente.");
+                JOptionPane.showMessageDialog(this, "Actividad cerrada correctamente.");
                 cargarActividades();
             } else {
                 JOptionPane.showMessageDialog(this,

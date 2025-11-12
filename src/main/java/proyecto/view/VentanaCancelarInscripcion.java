@@ -7,6 +7,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import proyecto.service.UserService;
@@ -17,6 +18,9 @@ public class VentanaCancelarInscripcion extends JFrame {
     private final UserService service;
     private JTable tableMatriculas;
     private DefaultTableModel modelMatriculas;
+    
+    // Lista para almacenar los IDs (aunque no se muestren)
+    private List<Integer> idsMatriculas;
 
     public VentanaCancelarInscripcion(UserService service) {
         this.service = service;
@@ -26,13 +30,15 @@ public class VentanaCancelarInscripcion extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
+        idsMatriculas = new ArrayList<>();
+
         // === PANEL CENTRAL (TABLA) ===
         modelMatriculas = new DefaultTableModel(
-                new Object[]{"ID", "Actividad", "Fecha", "Pagado (€)", "Acción"}, 0
+                new Object[]{"Actividad", "Fecha", "Pagado (euros)", "Acción"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 4; // solo el botón
+                return column == 3; // solo el botón
             }
         };
 
@@ -54,6 +60,8 @@ public class VentanaCancelarInscripcion extends JFrame {
     /** Carga las matrículas del alumno actual **/
     private void cargarMatriculasAlumno() {
         modelMatriculas.setRowCount(0);
+        idsMatriculas.clear();
+
         int idAlumno = service.getIdAlumnoCancel();
 
         if (idAlumno == 0) {
@@ -72,8 +80,8 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
 
         for (Map<String, Object> m : matriculas) {
+            idsMatriculas.add((Integer) m.get("id_matricula")); // Guardamos el ID fuera de la tabla
             modelMatriculas.addRow(new Object[]{
-                    m.get("id_matricula"),
                     m.get("actividad"),
                     m.get("fecha"),
                     m.get("monto_pagado"),
@@ -82,25 +90,25 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
     }
 
-    /** Lógica de cancelación **/
     public void cancelarInscripcion(int row) {
         int idAlumno = service.getIdAlumnoCancel();
-        int idMatricula = (int) modelMatriculas.getValueAt(row, 0);
-        String nombreActividad = modelMatriculas.getValueAt(row, 1).toString();
-        LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 2).toString());
-        double montoPagado = Double.parseDouble(modelMatriculas.getValueAt(row, 3).toString());
+        int idMatricula = idsMatriculas.get(row); // Recuperamos el ID oculto
+        String nombreActividad = modelMatriculas.getValueAt(row, 0).toString();
+        LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 1).toString());
+        double montoPagado = Double.parseDouble(modelMatriculas.getValueAt(row, 2).toString());
 
-        double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado);
+        double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado, idMatricula);
 
-        String msg = "¿Desea cancelar la inscripción a '" + nombreActividad + "'?\n" +
-                     "Se devolverán " + String.format("%.2f €", montoDevuelto) + ".";
-        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelación", JOptionPane.YES_NO_OPTION);
+        String msg = "¿Desea cancelar la inscripcion a '" + nombreActividad + "'?\n" +
+                     "Se devolveran " + String.format("%.2f", montoDevuelto) + " euros.\n" +
+                     "Si hubiera habido pagos incorrectos, el importe se abonara aunque no figure en este monto.";
+        int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelacion", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
             int idActividad = (int) service.obtenerIdActividadPorMatricula(idMatricula);
 
             service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
-            JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " €.");
+            JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " euros.");
             cargarMatriculasAlumno();
         }
     }
@@ -109,8 +117,8 @@ public class VentanaCancelarInscripcion extends JFrame {
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
-            setBackground(new Color(220, 53, 69));
-            setForeground(Color.WHITE);
+            setBackground(Color.WHITE);
+            setForeground(Color.BLACK);
             setFont(new Font("Arial", Font.BOLD, 12));
         }
 
@@ -135,14 +143,10 @@ public class VentanaCancelarInscripcion extends JFrame {
             this.parent = parent;
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(220, 53, 69));
-            button.setForeground(Color.WHITE);
+            setBackground(Color.WHITE);
+            setForeground(Color.BLACK);
             button.setFont(new Font("Arial", Font.BOLD, 12));
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    fireEditingStopped();
-                }
-            });
+            button.addActionListener(e -> fireEditingStopped());
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value,
@@ -168,11 +172,11 @@ public class VentanaCancelarInscripcion extends JFrame {
         }
 
         protected void fireEditingStopped() {
-        	try {
-            super.fireEditingStopped();
-        	}catch( Exception e) {
-        		
-        	}
+            try {
+                super.fireEditingStopped();
+            } catch (Exception e) {
+                // Silenciar excepción
+            }
         }
     }
 }

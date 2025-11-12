@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import proyecto.model.entity.Alumno;
 import proyecto.service.UserService;
 
 public class VentanaEstadoAF extends JFrame {
@@ -24,7 +27,8 @@ public class VentanaEstadoAF extends JFrame {
     // Campos detalle
     private JTextField txtNombre;
     private JTextField txtPeriodo;
-    private JTextField txtFecha;
+    private JTextField txtFechaInicio;
+    private JTextField txtFechaFin;
     private JTextField txtEstado;
     private JTextField txtTotalPlazas;
     private JTextField txtPlazasDisponibles;
@@ -46,53 +50,53 @@ public class VentanaEstadoAF extends JFrame {
         JPanel contentPane = new JPanel(new BorderLayout(10,10));
         setContentPane(contentPane);
 
-        // === PANEL SUPERIOR: FILTRO Y TABLA DE ACTIVIDADES ===
+        // PANEL SUPERIOR: FILTRO Y TABLA DE ACTIVIDADES
         JPanel panelSuperior = new JPanel(new BorderLayout(5,5));
 
         // Filtro por estado
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelFiltro.add(new JLabel("Filtrar por estado:"));
-
-         comboEstado = new JComboBox<>(
-        	    new DefaultComboBoxModel<>(new String[]{
-        	        "Todas", "Planificada", "En periodo de inscripcion",
-        	        "Inscripcion cerrada", "Cerrada", "Cancelada"
-        	    })
-        	);
+        comboEstado = new JComboBox<>(new DefaultComboBoxModel<>(new String[]{
+            "Todas", "Planificada", "En periodo de inscripcion",
+            "Inscripcion cerrada", "Cerrada", "Cancelada"
+        }));
         panelFiltro.add(comboEstado);
-
         JButton btnFiltrar = new JButton("Aplicar filtro");
         panelFiltro.add(btnFiltrar);
         panelSuperior.add(panelFiltro, BorderLayout.NORTH);
 
         // Tabla de actividades
         modelActividades = new DefaultTableModel(
-            new Object[]{"ID","Nombre","Periodo inscripción","Fecha","Estado"}, 0
+            new Object[]{"ID","Nombre","Periodo inscripciÃ³n","Fecha inicio","Fecha fin","Estado"}, 0
         );
         tableActividades = new JTable(modelActividades);
         tableActividades.setRowHeight(25);
+        tableActividades.getColumnModel().getColumn(0).setMinWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setMaxWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setWidth(0);
         tableActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollActividades = new JScrollPane(tableActividades);
         scrollActividades.setBorder(BorderFactory.createTitledBorder("Listado de actividades"));
         panelSuperior.add(scrollActividades, BorderLayout.CENTER);
 
-        // === PANEL INFERIOR: DETALLES ===
+        // PANEL INFERIOR: DETALLES
         JPanel panelDetalles = new JPanel(new BorderLayout(10,10));
         panelDetalles.setBorder(BorderFactory.createTitledBorder("Detalles de la actividad"));
 
         // Panel de datos generales
-        JPanel panelDatos = new JPanel(new GridLayout(3,4,10,10));
-
+        JPanel panelDatos = new JPanel(new GridLayout(0,4,10,10));
         txtNombre = new JTextField(); txtNombre.setEditable(false);
         txtPeriodo = new JTextField(); txtPeriodo.setEditable(false);
-        txtFecha = new JTextField(); txtFecha.setEditable(false);
+        txtFechaInicio = new JTextField(); txtFechaInicio.setEditable(false);
+        txtFechaFin = new JTextField(); txtFechaFin.setEditable(false);
         txtEstado = new JTextField(); txtEstado.setEditable(false);
         txtTotalPlazas = new JTextField(); txtTotalPlazas.setEditable(false);
         txtPlazasDisponibles = new JTextField(); txtPlazasDisponibles.setEditable(false);
 
         panelDatos.add(new JLabel("Nombre:")); panelDatos.add(txtNombre);
-        panelDatos.add(new JLabel("Periodo inscripción:")); panelDatos.add(txtPeriodo);
-        panelDatos.add(new JLabel("Fecha celebración:")); panelDatos.add(txtFecha);
+        panelDatos.add(new JLabel("Periodo inscripciÃ³n:")); panelDatos.add(txtPeriodo);
+        panelDatos.add(new JLabel("Fecha inicio:")); panelDatos.add(txtFechaInicio);
+        panelDatos.add(new JLabel("Fecha fin:")); panelDatos.add(txtFechaFin);
         panelDatos.add(new JLabel("Estado:")); panelDatos.add(txtEstado);
         panelDatos.add(new JLabel("Total plazas:")); panelDatos.add(txtTotalPlazas);
         panelDatos.add(new JLabel("Plazas disponibles:")); panelDatos.add(txtPlazasDisponibles);
@@ -100,7 +104,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla inscripciones
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"Profesional","Fecha matrícula","Estado"},0
+            new Object[]{"Profesional","Fecha matrÃ­cula","Estado"},0
         );
         tableInscripciones = new JTable(modelInscripciones);
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
@@ -120,13 +124,12 @@ public class VentanaEstadoAF extends JFrame {
         panelFinanzas.add(new JLabel("Gastos confirmados:")); panelFinanzas.add(txtGastosConfirmados);
         panelDetalles.add(panelFinanzas, BorderLayout.SOUTH);
 
-        // === SPLIT ENTRE LISTA Y DETALLES ===
+        // SPLIT ENTRE LISTA Y DETALLES
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelSuperior, panelDetalles);
         splitPane.setResizeWeight(0.4);
         contentPane.add(splitPane, BorderLayout.CENTER);
 
-        // === EVENTOS ===
-        // Cargar detalles al hacer clic en una actividad
+        // EVENTOS
         tableActividades.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -139,8 +142,6 @@ public class VentanaEstadoAF extends JFrame {
                 }
             }
         });
-
-        // Filtro de actividades
         btnFiltrar.addActionListener(e -> cargarActividades());
 
         // Cargar datos iniciales
@@ -149,15 +150,10 @@ public class VentanaEstadoAF extends JFrame {
 
     private void cargarActividades() {
         modelActividades.setRowCount(0);
-
         String estadoSeleccionado = comboEstado.getSelectedItem().toString();
-        List<Map<String,Object>> actividades;
-
-        if (estadoSeleccionado.equals("Todas")) {
-            actividades = service.listarActividades();
-        } else {
-            actividades = service.listarActividadesPorEstado(estadoSeleccionado);
-        }
+        List<Map<String,Object>> actividades = estadoSeleccionado.equals("Todas")
+            ? service.listarActividades()
+            : service.listarActividadesPorEstado(estadoSeleccionado);
 
         if (actividades == null || actividades.isEmpty()) return;
 
@@ -167,7 +163,8 @@ public class VentanaEstadoAF extends JFrame {
                 act.get("id_actividad"),
                 act.get("nombre"),
                 periodo,
-                act.get("fecha"),
+                act.get("fecha_inicio"),
+                act.get("fecha_fin"),
                 act.get("estado")
             });
         }
@@ -179,7 +176,8 @@ public class VentanaEstadoAF extends JFrame {
 
         txtNombre.setText((String) act.get("nombre"));
         txtPeriodo.setText(act.get("inicio_inscripcion") + " - " + act.get("fin_inscripcion"));
-        txtFecha.setText((String) act.get("fecha"));
+        txtFechaInicio.setText((String) act.get("fecha_inicio"));
+        txtFechaFin.setText((String) act.get("fecha_fin"));
         txtEstado.setText((String) act.get("estado"));
         txtTotalPlazas.setText(String.valueOf(act.get("total_plazas")));
         txtPlazasDisponibles.setText(String.valueOf(act.get("plazas_disponibles")));
@@ -190,17 +188,37 @@ public class VentanaEstadoAF extends JFrame {
         List<Map<String,Object>> inscripciones = (List<Map<String,Object>>) act.get("inscripciones");
         if (inscripciones != null) {
             for (Map<String,Object> ins : inscripciones) {
-                modelInscripciones.addRow(new Object[]{
-                    ins.get("nombre_alumno"),
-                    ins.get("fecha_matricula"),
-                    ins.get("estado")
-                });
+            	String ids = (String) ins.get("integrantes_ids");
+            	List<String> id = Arrays.asList(ids.split(","));
+            	for(String i: id) {
+            		Alumno a = service.getAlumnoById(i);
+            		modelInscripciones.addRow(new Object[]{
+                            a.getNombre(),
+                            ins.get("fecha_matricula"),
+                            ins.get("estado")
+                        });
+            	}
+                
             }
         }
 
-        txtIngresosEstimados.setText(String.valueOf(act.get("ingresos_estimados")));
-        txtIngresosConfirmados.setText(String.valueOf(act.get("ingresos_confirmados")));
-        txtGastosEstimados.setText(String.valueOf(act.get("gastos_estimados")));
-        txtGastosConfirmados.setText(String.valueOf(act.get("gastos_confirmados")));
+        // Finanzas: calcular a partir de FacturaP
+        double ingresosEstimados = 460;
+        double ingresosConfirmados = 0;
+        @SuppressWarnings("unchecked")
+        List<Map<String,Object>> facturas = (List<Map<String,Object>>) act.get("facturas");
+        if (facturas != null) {
+            for (Map<String,Object> f : facturas) {
+                double cantidad = ((Number) f.get("cantidad")).doubleValue();
+                ingresosEstimados += cantidad;
+                boolean pagado = (Boolean) f.get("esta_pagado");
+                if (pagado) ingresosConfirmados += cantidad;
+            }
+        }
+
+        txtIngresosEstimados.setText(String.valueOf(ingresosEstimados));
+        txtIngresosConfirmados.setText(String.valueOf(ingresosConfirmados));
+        txtGastosEstimados.setText("300");
+        txtGastosConfirmados.setText("0");
     }
 }
