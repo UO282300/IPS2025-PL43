@@ -54,6 +54,9 @@ public class UserService {
         cargarDataBase();
     }
 	
+	public Database getDb() {
+		return db;
+	}
     public void eliminarTodosLosDatos() {
         try {
             db.executeUpdate("DELETE FROM Matricula");
@@ -129,6 +132,16 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
+        	
+        	Object cancelada = act.get("isCancelada");
+            if (cancelada instanceof Number && ((Number) cancelada).intValue() == 1) {
+                return "Cancelada";
+            }
+            if (cancelada instanceof Boolean && (Boolean) cancelada) {
+                return "Cancelada";
+            }
+            
+            
             Object closed = act.get("isClosed");
             if (closed instanceof Number && ((Number) closed).intValue() == 1) {
                 return "Cerrada";
@@ -136,6 +149,8 @@ public class UserService {
             if (closed instanceof Boolean && (Boolean) closed) {
                 return "Cerrada";
             }
+            
+            
 
             LocalDate hoy = fechaHoy;
             LocalDate inicioIns = parseFecha((String) act.get("inicio_inscripcion"));
@@ -807,7 +822,7 @@ public class UserService {
         String sql = """
             SELECT *
             FROM Actividad
-            ORDER BY fecha
+            ORDER BY fecha_inicio
         """;
 
         // Obtenemos todas las actividades
@@ -831,20 +846,44 @@ public class UserService {
     }
 
     public List<Map<String, Object>> listarMatriculasPorAlumno(int idAlumno) {
+        LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
+
         String sql = """
             SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha_inicio AS fecha, 
-                   m.monto_pagado, m.isCancelada
+                   m.monto_pagado, m.isCancelada, a.fecha_inicio
             FROM Matricula m 
             JOIN Actividad a ON m.id_actividad = a.id_actividad
             WHERE m.id_alumno = ? AND m.isCancelada = 0
             ORDER BY a.fecha_inicio
             """;
-        return db.executeQueryMap(sql, idAlumno);
+
+        List<Map<String, Object>> matriculas = db.executeQueryMap(sql, idAlumno);
+
+        // Filtrar según fecha_inicio > fechaHoy
+        List<Map<String, Object>> filtradas = new ArrayList<>();
+        for (Map<String, Object> m : matriculas) {
+            String fechaInicioStr = (String) m.get("fecha_inicio");
+            LocalDate fechaInicio = fechaInicioStr != null ? LocalDate.parse(fechaInicioStr.split("T")[0]) : null;
+            if (fechaInicio != null && hoy.isBefore(fechaInicio)) {
+                filtradas.add(m);
+            }
+        }
+
+        return filtradas;
     }
+
+
 
     public double calcularMontoDevolucion(LocalDate fechaActividad, double montoPagado, int idMatricula) {
     	int id_cuota = db.queryInt( "SELECT id_cuota_actividad FROM Matricula WHERE id_matricula = ?", idMatricula);
     	double cuota = db.queryDouble("SELECT valor FROM CuotaActividad WHERE id_cuota_actividad = ?", id_cuota);
+    	int id_actividad = db.queryInt( "SELECT id_actividad FROM Matricula WHERE id_matricula = ?", idMatricula);	
+    	int cancelada = db.queryInt("SELECT isCancelada FROM Actividad WHERE id_actividad = ?", id_actividad);
+    	int retrasada = db.queryInt("SELECT isRetrasada FROM Matricula WHERE id_matricula = ?", idMatricula);
+    	
+    	if(cancelada == 1 || retrasada == 1) {
+    		return cuota;
+    	}
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
         montoPagado=Math.min(montoPagado,cuota);
         if (diasFaltan >= 7) return montoPagado;

@@ -38,7 +38,7 @@ INSERT INTO Cuota(categoria) VALUES
 
 -- Actividades
 INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, es_gratuita, total_plazas, empresa, isClosed) VALUES
-('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis básica y funciones', 'L-31', '2025-10-10', '2025-11-09', '2025-11-05', '2025-11-10', 0, 2, 'TechGroup', 0),
+('Principiantes Python', 'Introducir a los alumnos a Python', 'Sintaxis básica y funciones', 'L-31', '2025-10-10', '2025-11-09', '2025-11-05', '2025-11-10', 0, 3, 'TechGroup', 0),
 ('Java Avanzado', 'Profundizar en Java', 'Colecciones, excepciones y patrones', 'A-S-02', '2025-11-10', '2025-11-30', '2025-12-01', '2025-12-10', 0, 12, 'CodeCorp', 0),
 ('Fundamentos de SQL', 'Aprender SQL desde cero', 'Select, Insert, Update, Delete', 'B-10', '2025-10-01', '2025-10-31', '2025-11-20', '2025-11-25', 0, 15, 'DataSchool', 0),
 ('Diseño Web Básico', 'HTML, CSS y JS', 'Construcción de páginas web', 'C-05', '2025-10-01', '2025-10-31', '2025-11-25', '2025-11-30', 0, 20, 'DesignHub', 0),
