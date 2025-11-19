@@ -34,9 +34,11 @@ public class VentanaRetrasarAF extends JFrame {
 
         // --- Tabla ---
         modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Inicio", "Fin", "Estado", "Acción"}, 0
+                new Object[]{"ID", "Nombre", "Inicio", "Fin", "Estado", "Accion"}, 0
         ) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isCellEditable(int row, int column) {
                 return column == 5; // solo columna de acción editable
             }
@@ -47,8 +49,8 @@ public class VentanaRetrasarAF extends JFrame {
         tabla.getColumnModel().getColumn(0).setMinWidth(0);
         tabla.getColumnModel().getColumn(0).setMaxWidth(0); // ocultar ID
 
-        tabla.getColumn("Acción").setCellRenderer(new ButtonRenderer());
-        tabla.getColumn("Acción").setCellEditor(new ButtonEditor(new JCheckBox(), this));
+        tabla.getColumn("Accion").setCellRenderer(new ButtonRenderer());
+        tabla.getColumn("Accion").setCellEditor(new ButtonEditor(new JCheckBox(), this));
         getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
 
         JScrollPane scrollPane = new JScrollPane(tabla);
@@ -57,7 +59,7 @@ public class VentanaRetrasarAF extends JFrame {
         // --- Panel de formulario ---
         JPanel panelFormulario = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Nuevas fechas"));
-        panelFormulario.add(new JLabel("Fin Inscripción (yyyy-MM-dd):"));
+        panelFormulario.add(new JLabel("Fin Inscripcion (yyyy-MM-dd):"));
         panelFormulario.add(tfFinInscripcion);
         panelFormulario.add(new JLabel("Fecha Inicio (yyyy-MM-dd):"));
         panelFormulario.add(tfFechaInicio);
@@ -119,7 +121,7 @@ public class VentanaRetrasarAF extends JFrame {
 
         controller.retrasarActividad(idActividad, finInscripcion, fechaInicio, fechaFin);
 
-        JOptionPane.showMessageDialog(this, "Actividad retrasada correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Actividad retrasada correctamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
         cargarActividades();
     }
 

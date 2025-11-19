@@ -242,9 +242,9 @@ public class PagosController {
                     JOptionPane.showMessageDialog(
                         null,
                         "No quedaban plazas disponibles.\n\n" +
-                        "La matrÃ­cula ha sido cancelada automÃ¡ticamente.\n" +
-                        "El pago realizado queda registrado y podrÃ¡ gestionarse manualmente desde la ventana de devoluciones.",
-                        "MatrÃ­cula cancelada",
+                        "La matricula ha sido cancelada automaticamente.\n" +
+                        "El pago realizado queda registrado y podra gestionarse manualmente desde la ventana de devoluciones.",
+                        "Matricula cancelada",
                         JOptionPane.WARNING_MESSAGE
                     );
 
@@ -414,7 +414,7 @@ public class PagosController {
 
             for (Map<String, Object> m : matriculas) {
                 int idMatricula = ((Number) m.get("id_matricula")).intValue();
-                System.out.println("\n📘 Matrícula #" + idMatricula);
+                System.out.println("\n�� Matricula #" + idMatricula);
                 System.out.println("  Alumno: " + m.get("nombre_alumno") + " " + m.get("apellido_alumno"));
                 System.out.println("  Actividad: " + m.get("nombre_actividad"));
                 System.out.println("  Fecha matrícula: " + m.get("fecha_matricula"));

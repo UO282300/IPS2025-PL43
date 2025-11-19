@@ -36,7 +36,9 @@ public class VentanaCancelarInscripcion extends JFrame {
         modelMatriculas = new DefaultTableModel(
                 new Object[]{"Actividad", "Fecha", "Pagado (euros)", "Acción"}, 0
         ) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isCellEditable(int row, int column) {
                 return column == 3; // solo el botón
             }
