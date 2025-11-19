@@ -36,7 +36,9 @@ public class VentanaCancelarAF extends JFrame {
         modeloTabla = new DefaultTableModel(
                 new Object[]{"ID", "Nombre", "Inicio", "Fin", "Estado", "Acción"}, 0
         ) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isCellEditable(int row, int column) {
                 return column == 5; // solo la columna de acción es editable
             }
@@ -81,7 +83,7 @@ public class VentanaCancelarAF extends JFrame {
         JOptionPane.showMessageDialog(
                 this,
                 "Actividad cancelada correctamente.",
-                "Éxito",
+                "Exito",
                 JOptionPane.INFORMATION_MESSAGE
         );
 
@@ -107,7 +109,7 @@ public class VentanaCancelarAF extends JFrame {
         }
     }
 
-    // === Editor del botón (maneja clics) ===
+    // === Editor del boton (maneja clics) ===
     private static class ButtonEditor extends DefaultCellEditor {
         private final JButton button;
         private final VentanaCancelarAF parent;
@@ -140,8 +142,8 @@ public class VentanaCancelarAF extends JFrame {
             if (clicked) {
                 int confirm = JOptionPane.showConfirmDialog(
                         parent,
-                        "¿Seguro que deseas cancelar esta actividad?",
-                        "Confirmar cancelación",
+                        "Seguro que deseas cancelar esta actividad?",
+                        "Confirmar cancelacion",
                         JOptionPane.YES_NO_OPTION
                 );
                 if (confirm == JOptionPane.YES_OPTION) {

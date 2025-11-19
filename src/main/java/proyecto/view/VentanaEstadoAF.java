@@ -67,7 +67,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla de actividades
         modelActividades = new DefaultTableModel(
-            new Object[]{"ID","Nombre","Periodo inscripción","Fecha inicio","Fecha fin","Estado"}, 0
+            new Object[]{"ID","Nombre","Periodo inscripcion","Fecha inicio","Fecha fin","Estado"}, 0
         );
         tableActividades = new JTable(modelActividades);
         tableActividades.setRowHeight(25);
@@ -94,7 +94,7 @@ public class VentanaEstadoAF extends JFrame {
         txtPlazasDisponibles = new JTextField(); txtPlazasDisponibles.setEditable(false);
 
         panelDatos.add(new JLabel("Nombre:")); panelDatos.add(txtNombre);
-        panelDatos.add(new JLabel("Periodo inscripción:")); panelDatos.add(txtPeriodo);
+        panelDatos.add(new JLabel("Periodo inscripcion:")); panelDatos.add(txtPeriodo);
         panelDatos.add(new JLabel("Fecha inicio:")); panelDatos.add(txtFechaInicio);
         panelDatos.add(new JLabel("Fecha fin:")); panelDatos.add(txtFechaFin);
         panelDatos.add(new JLabel("Estado:")); panelDatos.add(txtEstado);
@@ -104,7 +104,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla inscripciones
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"Profesional","Fecha matrícula","Estado"},0
+            new Object[]{"Profesional","Fecha matricula","Estado"},0
         );
         tableInscripciones = new JTable(modelInscripciones);
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
@@ -202,9 +202,10 @@ public class VentanaEstadoAF extends JFrame {
             }
         }
 
+        
         // Finanzas: calcular a partir de FacturaP
-        double ingresosEstimados = 460;
-        double ingresosConfirmados = 0;
+        double ingresosEstimados = 600;
+        double ingresosConfirmados = 300;
         @SuppressWarnings("unchecked")
         List<Map<String,Object>> facturas = (List<Map<String,Object>>) act.get("facturas");
         if (facturas != null) {
@@ -218,7 +219,7 @@ public class VentanaEstadoAF extends JFrame {
 
         txtIngresosEstimados.setText(String.valueOf(ingresosEstimados));
         txtIngresosConfirmados.setText(String.valueOf(ingresosConfirmados));
-        txtGastosEstimados.setText("300");
-        txtGastosConfirmados.setText("0");
+        txtGastosEstimados.setText("800");
+        txtGastosConfirmados.setText("500");
     }
 }

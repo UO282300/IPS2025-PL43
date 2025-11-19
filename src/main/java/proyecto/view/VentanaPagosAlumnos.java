@@ -88,7 +88,7 @@ public class VentanaPagosAlumnos extends JFrame {
         panelCentral.add(scrollActividades);
 
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"ID Matrícula", "Nombre", "Apellido", "Teléfono", "Fecha inscripción", "Último día pago", "Estado"}, 0
+            new Object[]{"ID Matricula", "Nombre", "Apellido", "Telefono", "Fecha inscripcion", "Ultimo dia pago", "Estado"}, 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -107,7 +107,7 @@ public class VentanaPagosAlumnos extends JFrame {
         JPanel panelTipoOperacion = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
         rbPago = new JRadioButton("Pago del alumno", true);
         rbPago.setFont(new Font("Tahoma", Font.BOLD, 14));
-        rbDevolucion = new JRadioButton("Devolución al alumno");
+        rbDevolucion = new JRadioButton("Devolucion al alumno");
         rbDevolucion.setFont(new Font("Tahoma", Font.BOLD, 14));
         ButtonGroup grupoTipo = new ButtonGroup();
         grupoTipo.add(rbPago);
@@ -153,7 +153,7 @@ public class VentanaPagosAlumnos extends JFrame {
         panelForm.add(panelPendiente);
 
         JPanel panelCantidad = new JPanel(new BorderLayout(5, 5));
-        panelCantidad.add(new JLabel("Cantidad del movimiento (€):"), BorderLayout.NORTH);
+        panelCantidad.add(new JLabel("Cantidad del movimiento (eur):"), BorderLayout.NORTH);
         tfCantidad = new JTextField();
         panelCantidad.add(tfCantidad, BorderLayout.CENTER);
         panelForm.add(panelCantidad);
@@ -310,7 +310,7 @@ public class VentanaPagosAlumnos extends JFrame {
 
         Map<String, Double> estado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
         if (estado == null) {
-            mostrarError("No se pudo obtener la información de pago del alumno.");
+            mostrarError("No se pudo obtener la informacion de pago del alumno.");
             return;
         }
         if (rbPago.isSelected()) {
@@ -340,7 +340,7 @@ public class VentanaPagosAlumnos extends JFrame {
             if (cantidad <= 0) throw new NumberFormatException();
             return cantidad;
         } catch (NumberFormatException e) {
-            mostrarError("Ingrese una cantidad válida y mayor que 0.");
+            mostrarError("Ingrese una cantidad valida y mayor que 0.");
             return null;
         }
     }
@@ -349,7 +349,7 @@ public class VentanaPagosAlumnos extends JFrame {
         try {
             fechaMovimiento = LocalDate.parse(tfFecha.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } catch (Exception e) {
-            mostrarError("Formato de fecha inválido. Use el formato yyyy-MM-dd (por ejemplo, 2025-11-09).");
+            mostrarError("Formato de fecha invalido. Use el formato yyyy-MM-dd (por ejemplo, 2025-11-09).");
             return null;
         }
 
@@ -368,7 +368,7 @@ public class VentanaPagosAlumnos extends JFrame {
 
         if (fechaMovimiento.isBefore(fechaMatricula)) {
             mostrarError(String.format(
-                "La fecha del movimiento no puede ser anterior a la fecha de matrícula.\n\n" +
+                "La fecha del movimiento no puede ser anterior a la fecha de matricula.\n\n" +
                 "Fecha matrícula: %s\n" +
                 "Fecha introducida: %s",
                 fechaMatricula, fechaMovimiento
@@ -385,7 +385,7 @@ public class VentanaPagosAlumnos extends JFrame {
 			double limiteEfectivo = us.getLimiteEfectivo(); 
 	        if (porEfectivo && cantidad > limiteEfectivo) {
 	            mostrarError(String.format(
-	                "No se puede pagar más de %.2f € en efectivo por este movimiento.",
+	                "No se puede pagar mas de %.2f euros en efectivo por este movimiento.",
 	                limiteEfectivo
 	            ));
 	            return; 
@@ -413,18 +413,18 @@ public class VentanaPagosAlumnos extends JFrame {
 	                "Confirmar pago\n"+
 	                avisoPlazo +
 	                "Cantidad a pagar: %.2f €\n" +
-	                "Cantidad pendiente antes del pago: %.2f €\n" +
-	                "Cantidad que quedará pendiente después del pago: %.2f €\n\n" +
-	                "¿Desea continuar?",
+	                "Cantidad pendiente antes del pago: %.2f euros" +
+	                "Cantidad que quedara pendiente después del pago: %.2f euros\n\n" +
+	                "�Desea continuar?",
 	                cantidad, pendienteAntes, restanteDespues
 	            );
 	        } else if (cantidad < pendienteAntes) {
 	            mensaje = String.format(
 	            	avisoPlazo +
 	                "El pago ingresado es menor que la cantidad pendiente.\n\n" +
-	                "Cantidad a pagar: %.2f €\n" +
-	                "Cantidad pendiente antes del pago: %.2f €\n" +
-	                "Cantidad que quedará pendiente después del pago: %.2f €\n\n" +
+	                "Cantidad a pagar: %.2f euros" +
+	                "Cantidad pendiente antes del pago: %.2f euros\n" +
+	                "Cantidad que quedara pendiente despues del pago: %.2f euros\n\n" +
 	                "¿Desea continuar y registrar este pago parcial?",
 	                cantidad, pendienteAntes, restanteDespues
 	            );
@@ -432,10 +432,10 @@ public class VentanaPagosAlumnos extends JFrame {
 	            mensaje = String.format(
 	            		avisoPlazo +
 	                "El pago ingresado es mayor que la cantidad pendiente.\n\n" +
-	                "Cantidad a pagar: %.2f €\n" +
-	                "Cantidad pendiente antes del pago: %.2f €\n" +
-	                "Exceso que quedará registrado: %.2f €\n\n" +
-	                "¿Desea continuar y registrar este pago?",
+	                "Cantidad a pagar: %.2f euros\n" +
+	                "Cantidad pendiente antes del pago: %.2f euros\n" +
+	                "Exceso que quedara registrado: %.2f euros\n\n" +
+	                "�Desea continuar y registrar este pago?",
 	                cantidad, pendienteAntes, excesoAntes
 	            );
 	        }
@@ -445,7 +445,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	        );
 	
 	        if (opcion != JOptionPane.YES_OPTION) {
-	            mostrarAviso("Operación cancelada. El pago no se ha registrado.");
+	            mostrarAviso("Operacion cancelada. El pago no se ha registrado.");
 	            return;
 	        }
 	
@@ -454,7 +454,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	            mostrarError("Error al registrar el pago. No se guardaron los cambios.");
 	            return;
 	        }
-	        mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f €.", cantidad));
+	        mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f euros.", cantidad));
 
 	
 	        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
@@ -483,61 +483,61 @@ public class VentanaPagosAlumnos extends JFrame {
 
 	        if (isCancelada) {
 	            mensajeConfirmacion = String.format(
-	                "La matrícula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
-	                "Cantidad registrada: %.2f €\n" +
-	                "Cantidad que estaba pendiente: %.2f €\n" +
-	                "¿Desea continuar con la devolución?",
+	                "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
+	                "Cantidad registrada: %.2f euros" +
+	                "Cantidad que estaba pendiente: %.2f euros" +
+	                "¿Desea continuar con la devolucion?",
 	                cantidad, disponibleParaDevolver
 	            );
 	        } else if (Math.abs(diferencia) < 0.01) {
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolución\n\n" +
-	                "Cantidad a devolver: %.2f €\n" +
-	                "Saldo disponible para devolver: %.2f €\n" +
-	                "¿Desea continuar?",
+	                "Confirmar devolucion\n\n" +
+	                "Cantidad a devolver: %.2f euros\n" +
+	                "Saldo disponible para devolver: %.2f euros\n" +
+	                "Desea continuar?",
 	                cantidad, disponibleParaDevolver, disponibleParaDevolver-cantidad
 	            );
 	        } else if (cantidad < disponibleParaDevolver) {
 	            double restante = disponibleParaDevolver - cantidad;
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolución parcial\n\n" +
-	                "Cantidad a devolver: %.2f €\n" +
-	                "Cantidad pendiente a devolver: %.2f €\n" +
-	                "Cantidad pendiente que se genera: %.2f €\n\n" +
-	                "¿Desea continuar con la devolución parcial?",
+	                "Confirmar devolucion parcial\n\n" +
+	                "Cantidad a devolver: %.2f euros\n" +
+	                "Cantidad pendiente a devolver: %.2f euros\n" +
+	                "Cantidad pendiente que se genera: %.2f euros\n\n" +
+	                "Desea continuar con la devolucion parcial?",
 	                cantidad, disponibleParaDevolver, restante
 	            );
 	        } else {
 	            double exceso = cantidad - disponibleParaDevolver;
 	            mensajeConfirmacion = String.format(
-	                "Atención: la cantidad a devolver supera la disponible.\n\n" +
-	                "Cantidad a devolver: %.2f €\n" +
-	                "Cantidad pendiente por devolucion: %.2f €\n" +
-	                "Exceso : %.2f €\n\n" +
+	                "Atencion: la cantidad a devolver supera la disponible.\n\n" +
+	                "Cantidad a devolver: %.2f euros\n" +
+	                "Cantidad pendiente por devolucion: %.2f euros\n" +
+	                "Exceso : %.2f euros\n\n" +
 	                "¿Desea continuar igualmente?",
 	                cantidad, disponibleParaDevolver, exceso
 	            );
 	        }
 
 	        int opcion = JOptionPane.showConfirmDialog(
-	            this, mensajeConfirmacion, "Confirmar devolución", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+	            this, mensajeConfirmacion, "Confirmar devolucion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
 	        );
 
 	        if (opcion != JOptionPane.YES_OPTION) {
-	            mostrarAviso("Operación cancelada. La devolución no se ha registrado.");
+	            mostrarAviso("Operacion cancelada. La devolucion no se ha registrado.");
 	            return;
 	        }
 
 	        boolean ok = us.registrarDevolucion(idMatriculaSeleccionada, cantidad, fechaMovimiento);
 	        if (!ok) {
-	            mostrarError("Error al registrar la devolución. No se guardaron los cambios.");
+	            mostrarError("Error al registrar la devolucion. No se guardaron los cambios.");
 	            return;
 	        }
 
 	        actualizarCamposVisuales(false);
 	        cargarActividadesActivas();
 
-	        mostrarInfo(String.format("Devolución registrada correctamente.\n\nSe devolvieron %.2f €.", cantidad));
+	        mostrarInfo(String.format("Devolucion registrada correctamente.\n\nSe devolvieron %.2f euros.", cantidad));
 	    }
 
 
@@ -553,12 +553,12 @@ public class VentanaPagosAlumnos extends JFrame {
         double aDevolver = estadoPago.getOrDefault("a_devolver", 0.0);
 
         if (esPago) {
-            lblPendiente.setText("Cantidad pendiente (€):");
+            lblPendiente.setText("Cantidad pendiente (euros):");
             tfTotalPagado.setText(String.format("%.2f", totalPagado));
             double pendiente = estadoPago.getOrDefault("pendiente", 0.0);
             tfPendiente.setText(String.format("%.2f", pendiente));
         } else {
-            lblPendiente.setText("A devolver (€):");
+            lblPendiente.setText("A devolver (euros):");
             tfTotalPagado.setText(String.format("%.2f", totalDevuelto));
             tfPendiente.setText(String.format("%.2f", aDevolver)); 
         }
@@ -568,15 +568,15 @@ public class VentanaPagosAlumnos extends JFrame {
     public String verificarPlazoPago(LocalDate fechaMovimiento, int idMatricula) {
         LocalDate fechaMatricula = us.getFechaMatricula(idMatricula);
         if (fechaMatricula == null) {
-            return "No se ha podido obtener la fecha de matrícula del alumno.";
+            return "No se ha podido obtener la fecha de matricula del alumno.";
         }
 
         LocalDate fechaLimite = fechaMatricula.plusDays(2);
 
         if (fechaMovimiento.isBefore(fechaMatricula) || fechaMovimiento.isAfter(fechaLimite)) {
             return String.format(
-                "La fecha introducida (%s) está fuera del plazo permitido.\n\n" +
-                "El plazo válido de pago es desde %s hasta %s (ambos inclusive).",
+                "La fecha introducida (%s) esta fuera del plazo permitido.\n\n" +
+                "El plazo valido de pago es desde %s hasta %s (ambos inclusive).",
                 fechaMovimiento.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 fechaMatricula.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                 fechaLimite.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
@@ -602,7 +602,7 @@ public class VentanaPagosAlumnos extends JFrame {
     }
 
     private void mostrarInfo(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, msg, "Informacion", JOptionPane.INFORMATION_MESSAGE);
     }
 
 }

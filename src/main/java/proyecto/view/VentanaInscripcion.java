@@ -94,11 +94,6 @@ public class VentanaInscripcion extends JFrame {
 	
 	private List<Alumno> integrantesTemporales = new ArrayList<>();
 
-	/**
-	 * Create the frame.
-	 * 
-	 * @param service2
-	 */
 	public VentanaInscripcion(UserService service2) {
 	    setTitle("Inscripcion Alumnos");
 	    setBackground(new Color(255, 128, 128));
@@ -137,11 +132,6 @@ public class VentanaInscripcion extends JFrame {
 			getTxApellido().setText(a.getApellido());
 			getTxCorreo().setText(a.getCorreo());
 			getTxTf().setText(a.getTelefono());
-//			if (a.pertenece()) {
-//				getRdbtEscuela().setSelected(true);
-//			} else {
-//				getRdbtNo().setSelected(true);
-//			}
 			desactivarFormulario();
 		} else {
 			limpiarCampos();
@@ -177,7 +167,6 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanelFormulario() {
 		if (panelFormulario == null) {
 			panelFormulario = new JPanel();
-			//panelFormulario.setBackground(new Color(128, 0, 0));
 			panelFormulario.setLayout(new GridLayout(0, 6, 0, 0));
 			panelFormulario.add(getPnNombre());
 			panelFormulario.add(getLbApellidos());
@@ -308,7 +297,7 @@ public class VentanaInscripcion extends JFrame {
 	private JTable getTablaActividades() {
 	    if (tablaActividades == null) {
 	        modeloActividades = new DefaultTableModel(
-	            new Object[]{"Nombre","Descripcion","Periodo inscripciï¿½n","Fechas","Precio"}, 0
+	            new Object[]{"Nombre","Descripcion","Periodo inscripcion","Fechas","Precio"}, 0
 	        ) {
 	            private static final long serialVersionUID = 1L;
 
@@ -417,7 +406,7 @@ public class VentanaInscripcion extends JFrame {
 	    }
 	    Integer id = getCuotaSeleccionada();
 	    if (id == null || id == -1) {
-	        JOptionPane.showMessageDialog(this, "Seleccione una cuota válida", "Error", JOptionPane.ERROR_MESSAGE);
+	        JOptionPane.showMessageDialog(this, "Seleccione una cuota valida", "Error", JOptionPane.ERROR_MESSAGE);
 	        return;
 	    }
 	    guardarData(String.valueOf(id));
@@ -699,7 +688,7 @@ public class VentanaInscripcion extends JFrame {
 
 	private JLabel getLbNumeroPersonas() {
 	    if (lbNumeroPersonas == null) {
-	        lbNumeroPersonas = new JLabel("Nº Personas:");
+	        lbNumeroPersonas = new JLabel("Num Personas:");
 	    }
 	    return lbNumeroPersonas;
 	}
@@ -707,7 +696,7 @@ public class VentanaInscripcion extends JFrame {
 	private boolean validarActividadSeleccionada() {
 	    if (service.getAct() == null) {
 	        JOptionPane.showMessageDialog(null, 
-	            "Actividad sin escoger. Pulse el botón seleccionar.", 
+	            "Actividad sin escoger. Pulse el boton seleccionar.", 
 	            "Error", JOptionPane.ERROR_MESSAGE);
 	        return false;
 	    }
@@ -740,7 +729,7 @@ public class VentanaInscripcion extends JFrame {
 	        return false;
 	    } 
 	    if (!compruebaTexto(getTxTf().getText())) {
-	        mostrarErrorCampo("teléfono");
+	        mostrarErrorCampo("telefono");
 	        return false;
 	    }
 	    return true;
@@ -755,25 +744,25 @@ public class VentanaInscripcion extends JFrame {
 	private boolean validarDatosAlumno() {
 	    if (!service.checkearNombre()) {
 	        JOptionPane.showMessageDialog(null,
-	            "Nombre no es correcto. No se ha realizado la inscripción.", "Error",
+	            "Nombre no es correcto. No se ha realizado la inscripcion.", "Error",
 	            JOptionPane.ERROR_MESSAGE);
 	        return false;
 	    }
 	    if (!service.checkearApellido()) {
 	        JOptionPane.showMessageDialog(null,
-	            "Apellidos no son correctos. No se ha realizado la inscripción.", "Error",
+	            "Apellidos no son correctos. No se ha realizado la inscripcion.", "Error",
 	            JOptionPane.ERROR_MESSAGE);
 	        return false;
 	    }
 	    if (!service.checkearTf()) {
 	        JOptionPane.showMessageDialog(null,
-	            "Número telefónico no es correcto. No se ha realizado la inscripción.", "Error",
+	            "Número telefonico no es correcto. No se ha realizado la inscripcion.", "Error",
 	            JOptionPane.ERROR_MESSAGE);
 	        return false;
 	    }
 	    if (!service.checkearEmail()) {
 	        JOptionPane.showMessageDialog(null,
-	            "Email no es correcto. No se ha realizado la inscripción.", "Error",
+	            "Email no es correcto. No se ha realizado la inscripcion.", "Error",
 	            JOptionPane.ERROR_MESSAGE);
 	        return false;
 	    }
@@ -783,7 +772,7 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanelGestionGrupo() {
 	    if (pnGestionGrupo == null) {
 	        pnGestionGrupo = new JPanel(new BorderLayout(10, 10));
-	        pnGestionGrupo.setBorder(BorderFactory.createTitledBorder("Gestión del Grupo - Lista de Integrantes"));
+	        pnGestionGrupo.setBorder(BorderFactory.createTitledBorder("Gestion del Grupo - Lista de Integrantes"));
 	        pnGestionGrupo.setPreferredSize(new Dimension(800, 400));
 
 	        // 🔹 1. Crear modelo y tabla
@@ -808,14 +797,12 @@ public class VentanaInscripcion extends JFrame {
 
 	        JScrollPane scrollTabla = new JScrollPane(tablaIntegrantes);
 
-	        // 🔹 2. Panel superior (botones de gestión)
 	        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	        panelSuperior.add(getBtnAnadirPersona());
 	        panelSuperior.add(getBtnQuitarPersona());
 
 	        panelSuperior.add(getLbContadorGrupo());
 
-	        // 🔹 3. Panel inferior combinado (instrucciones + botón inscribir)
 	        JPanel panelInferior = new JPanel(new BorderLayout());	        
 
 	        JPanel panelBoton = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -824,12 +811,10 @@ public class VentanaInscripcion extends JFrame {
 	        
 	        panelInferior.add(panelBoton, BorderLayout.SOUTH);
 
-	        // 🔹 4. Añadir todo al panel principal
 	        pnGestionGrupo.add(panelSuperior, BorderLayout.NORTH);
 	        pnGestionGrupo.add(scrollTabla, BorderLayout.CENTER);
 	        pnGestionGrupo.add(panelInferior, BorderLayout.EAST);
 
-	        // 🔹 5. Inicialmente oculto (solo visible cuando se elige inscripción grupal)
 	        pnGestionGrupo.setVisible(false);
 	    }
 	    return pnGestionGrupo;
@@ -837,7 +822,7 @@ public class VentanaInscripcion extends JFrame {
 	
 	private JButton getBtnAnadirPersona() {
 	    if (btnAnadirPersona == null) {
-	        btnAnadirPersona = new JButton("Añadir Persona");
+	        btnAnadirPersona = new JButton("Incluir Persona");
 	        btnAnadirPersona.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	agregarAlumno();
@@ -866,7 +851,7 @@ public class VentanaInscripcion extends JFrame {
 	            public void actionPerformed(ActionEvent e) {
 	            	 int filaSeleccionada = tablaIntegrantes.getSelectedRow();
 	            	    if (filaSeleccionada != -1) {
-	            	        eliminarAlumno(filaSeleccionada);  // Elimina de la lista y refresca la tabla
+	            	        eliminarAlumno(filaSeleccionada);
 	            	    } else {
 	            	        JOptionPane.showMessageDialog(VentanaInscripcion.this, "Integrante no seleccionado","Informacion",
 	            	        		JOptionPane.INFORMATION_MESSAGE);
@@ -940,7 +925,7 @@ public class VentanaInscripcion extends JFrame {
 	    
 	    if (!alumno.validarNombre()) {
 	        if (mostrarMensajes) {
-	            JOptionPane.showMessageDialog(this, "El nombre no es válido", "Error", JOptionPane.ERROR_MESSAGE);
+	            JOptionPane.showMessageDialog(this, "El nombre no es valido", "Error", JOptionPane.ERROR_MESSAGE);
 	        }
 	        return false;
 	    }
@@ -955,7 +940,7 @@ public class VentanaInscripcion extends JFrame {
 	    
 	    if (!alumno.validarApellido()) {
 	        if (mostrarMensajes) {
-	            JOptionPane.showMessageDialog(this, "Los apellidos no son válidos", "Error", JOptionPane.ERROR_MESSAGE);
+	            JOptionPane.showMessageDialog(this, "Los apellidos no son validos", "Error", JOptionPane.ERROR_MESSAGE);
 	        }
 	        return false;
 	    }
@@ -970,7 +955,7 @@ public class VentanaInscripcion extends JFrame {
 	    
 	    if (!alumno.validarEmail()) {
 	        if (mostrarMensajes) {
-	            JOptionPane.showMessageDialog(this, "El email no es válido", "Error", JOptionPane.ERROR_MESSAGE);
+	            JOptionPane.showMessageDialog(this, "El email no es valido", "Error", JOptionPane.ERROR_MESSAGE);
 	        }
 	        return false;
 	    }
@@ -1040,7 +1025,7 @@ public class VentanaInscripcion extends JFrame {
 	    
 	    
 	    StringBuilder resumen = new StringBuilder();
-	    resumen.append("¿Está seguro de inscribir a ").append(totalPersonas).append(" personas?\n\n");
+	    resumen.append("�Esta seguro de inscribir a ").append(totalPersonas).append(" personas?\n\n");
 	    resumen.append("RESPONSABLE: ").append(integrantesTemporales.get(0).getNombre())
 	           .append(" ").append(integrantesTemporales.get(0).getApellido())
 	           .append(" (").append(integrantesTemporales.get(0).getCorreo()).append(")\n\n");
@@ -1056,7 +1041,7 @@ public class VentanaInscripcion extends JFrame {
 	    
 	    int confirmacion = JOptionPane.showConfirmDialog(this,
 	        resumen.toString(),
-	        "Confirmar Inscripción Grupal",
+	        "Confirmar Inscripcion Grupal",
 	        JOptionPane.YES_NO_OPTION);
 	    
 	    if (confirmacion != JOptionPane.YES_OPTION) {
@@ -1072,8 +1057,8 @@ public class VentanaInscripcion extends JFrame {
 	        
 	        if (service.introduceGrupo(msj)) {
 	            JOptionPane.showMessageDialog(this,
-	                "Inscripción grupal realizada para " + totalPersonas + " personas.\nSe debe pagar en 48 horas.",
-	                "Inscripción Exitosa", JOptionPane.INFORMATION_MESSAGE);
+	                "Inscripcion grupal realizada para " + totalPersonas + " personas.\nSe debe pagar en 48 horas.",
+	                "Inscripcion Exitosa", JOptionPane.INFORMATION_MESSAGE);
 	            
 	            // Limpiar y volver a individual
 	            integrantesTemporales.clear();
@@ -1104,7 +1089,7 @@ public class VentanaInscripcion extends JFrame {
 	 private void agregarAlumno() {
 		 if(!service.checkearEmail(getTxCorreo().getText())) {
 			 JOptionPane.showMessageDialog(this, 
-	    	            "Error con el formato del correo electrónico.", 
+	    	            "Error con el formato del correo electronico.", 
 	    	            "Por favor, rellenelo correctamente", JOptionPane.ERROR_MESSAGE);
 			 return;
 		 }
@@ -1122,7 +1107,7 @@ public class VentanaInscripcion extends JFrame {
 		    	        .anyMatch(a -> a.getCorreo().equalsIgnoreCase(alumno.getCorreo()));
 		    	    if (yaExiste) {
 		    	        JOptionPane.showMessageDialog(this, 
-		    	            "Ya existe un integrante con este correo electrónico.", 
+		    	            "Ya existe un integrante con este correo electr0nico.", 
 		    	            "Duplicado", JOptionPane.WARNING_MESSAGE);
 		    	        return;
 		    	    }

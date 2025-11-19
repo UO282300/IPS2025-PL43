@@ -50,8 +50,8 @@ public class UserService {
 
 	public UserService() {
         this.db = new Database();
-        crearDataBase();
-        cargarDataBase();
+        //crearDataBase();
+        //cargarDataBase();
     }
 	
 	public Database getDb() {
@@ -799,7 +799,7 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
-	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND esta_pagado = 0";
+	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (esta_pagado = 0 OR isCancelada = 1)";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
 	    return pendientes > 0;
@@ -809,7 +809,12 @@ public class UserService {
 	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pagos = ((Number) result.get(0).get("total")).intValue();
-	    return pagos > 0;
+	    
+	    String sql2 = "SELECT COUNT(*) AS total FROM FacturaP WHERE id_actividad = ?";
+	    List<Map<String, Object>> result2 = db.executeQueryMap(sql2, idActividad);
+	    int nProfesores = ((Number) result2.get(0).get("total")).intValue();
+	    
+	    return pagos == nProfesores;
 	}
 	
 	public boolean cerrarActividad(int idActividad) {

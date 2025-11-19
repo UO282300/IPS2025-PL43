@@ -55,10 +55,10 @@ public class VentanaPagoProfesores extends JFrame {
         JPanel panelFactura = new JPanel(new GridLayout(3, 4, 10, 10));
         panelFactura.setBorder(BorderFactory.createTitledBorder("Datos de la Factura"));
         tfIdFactura = crearCampo(panelFactura, "ID Factura:");
-        tfNumeroFactura = crearCampo(panelFactura, "Número Factura:");
+        tfNumeroFactura = crearCampo(panelFactura, "Numero Factura:");
         tfNifEmisor = crearCampo(panelFactura, "NIF Emisor:");
-        tfDireccionEmisor = crearCampo(panelFactura, "Dirección Emisor:");
-        tfCantidadFactura = crearCampo(panelFactura, "Cantidad Factura (€):");
+        tfDireccionEmisor = crearCampo(panelFactura, "Direccion Emisor:");
+        tfCantidadFactura = crearCampo(panelFactura, "Cantidad Factura (euros):");
         tfFechaFactura = crearCampo(panelFactura, "Fecha Factura:");
 
         JPanel centroExtendido = new JPanel(new BorderLayout(10, 10));
@@ -99,7 +99,7 @@ public class VentanaPagoProfesores extends JFrame {
 
     @SuppressWarnings("serial")
 	private void initTablaProfesores(JPanel panel) {
-        modelProfesores = new DefaultTableModel(new Object[]{"ID Profesor", "Nombre", "Apellidos", "Teléfono"}, 0) {
+        modelProfesores = new DefaultTableModel(new Object[]{"ID Profesor", "Nombre", "Apellidos", "Telefono"}, 0) {
             @Override public boolean isCellEditable(int row, int col) { return false; }
         };
         tableProfesores = new JTable(modelProfesores);
@@ -125,7 +125,7 @@ public class VentanaPagoProfesores extends JFrame {
         JPanel panelTipo = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 10));
         rbPago = new JRadioButton("Pago al profesor", true);
         rbPago.setFont(new Font("Tahoma", Font.BOLD, 14));
-        rbDevolucion = new JRadioButton("Devolución del profesor");
+        rbDevolucion = new JRadioButton("Devolucion del profesor");
         rbDevolucion.setFont(new Font("Tahoma", Font.BOLD, 14));
         ButtonGroup grupoTipo = new ButtonGroup();
         grupoTipo.add(rbPago);
@@ -135,9 +135,9 @@ public class VentanaPagoProfesores extends JFrame {
         panelInferior.add(panelTipo, BorderLayout.NORTH);
 
         JPanel panelForm = new JPanel(new GridLayout(2, 2, 20, 10));
-        tfTotalPagado = crearCampoConEtiqueta(panelForm, "Total pagado (€):", false);
-        tfCantidadPendiente = crearCampoConEtiqueta(panelForm, "Cantidad pendiente (€):", false);
-        tfCantidad = crearCampoConEtiqueta(panelForm, "Cantidad del movimiento (€):", true);
+        tfTotalPagado = crearCampoConEtiqueta(panelForm, "Total pagado (euros):", false);
+        tfCantidadPendiente = crearCampoConEtiqueta(panelForm, "Cantidad pendiente (euros):", false);
+        tfCantidad = crearCampoConEtiqueta(panelForm, "Cantidad del movimiento (euros):", true);
         tfFecha = crearCampoConEtiqueta(panelForm, "Fecha (yyyy-MM-dd):", true);
         tfFecha.setText(us.getFechaHoy().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         panelInferior.add(panelForm, BorderLayout.CENTER);

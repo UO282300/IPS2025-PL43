@@ -36,7 +36,9 @@ public class VentanaCancelarInscripcion extends JFrame {
         modelMatriculas = new DefaultTableModel(
                 new Object[]{"Actividad", "Fecha", "Pagado (euros)", "Acción"}, 0
         ) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isCellEditable(int row, int column) {
                 return column == 3; // solo el botón
             }
@@ -117,8 +119,8 @@ public class VentanaCancelarInscripcion extends JFrame {
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
-            setBackground(new Color(220, 53, 69));
-            setForeground(Color.WHITE);
+            setBackground(Color.WHITE);
+            setForeground(Color.BLACK);
             setFont(new Font("Arial", Font.BOLD, 12));
         }
 
@@ -143,8 +145,8 @@ public class VentanaCancelarInscripcion extends JFrame {
             this.parent = parent;
             button = new JButton();
             button.setOpaque(true);
-            button.setBackground(new Color(220, 53, 69));
-            button.setForeground(Color.WHITE);
+            setBackground(Color.WHITE);
+            setForeground(Color.BLACK);
             button.setFont(new Font("Arial", Font.BOLD, 12));
             button.addActionListener(e -> fireEditingStopped());
         }
