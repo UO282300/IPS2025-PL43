@@ -22,6 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
+import proyecto.service.CancelarController;
 import proyecto.service.UserService;
 
 public class VentanaPrincipal {
@@ -282,6 +283,26 @@ public class VentanaPrincipal {
         
         pnCentro.add(btnCerrarAF);
         
+        JButton btnCancelarAF = new JButton("Responsable - Cancelar Actividad");
+        btnCancelarAF.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnCancelarAF.setEnabled(false);
+        btnCancelarAF.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaCancelarAF();
+            }
+        });
+        pnCentro.add(btnCancelarAF);
+        
+        JButton btnRetrasarAF = new JButton("Responsable - Retrasar Actividad");
+        btnRetrasarAF.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnRetrasarAF.setEnabled(false);
+        btnRetrasarAF.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaRetrasarAF();
+            }
+        });
+        pnCentro.add(btnRetrasarAF);
+
         
         JLabel label = new JLabel("");
         pnCentro.add(label);
@@ -358,6 +379,21 @@ public class VentanaPrincipal {
 	    vEA.setVisible(true);             
 	}
 	
+	private void mostrarVentanaCancelarAF() {
+	    
+	    VentanaCancelarAF vCAF = new VentanaCancelarAF(service);
+	    vCAF.setLocationRelativeTo(null);
+	    vCAF.setVisible(true);
+	}
+	
+private void mostrarVentanaRetrasarAF() {
+	    
+	    VentanaRetrasarAF vRAF = new VentanaRetrasarAF(service);
+	    vRAF.setLocationRelativeTo(null);
+	    vRAF.setVisible(true);
+	}
+
+
 	private void seleccionaAlumnoCancelar(PopupMenuEvent e) {
 		int index = comboAlumnosCancelar.getSelectedIndex();
 

@@ -17,6 +17,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.ArrayListHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
 
 /**
  * Metodos de utilidad para simplificar las queries realizadas en las clases 
@@ -198,4 +199,50 @@ public abstract class DbUtil {
 		}
 	}
 
+	
+	/**
+	 * Ejecuta una consulta SQL que devuelve un único valor numérico (double).
+	 * Acepta valores DECIMAL, DOUBLE, FLOAT o incluso enteros.
+	 * Si no hay resultado, devuelve 0.0.
+	 */
+	public double queryDouble(String sql, Object... params) {
+	    Connection conn = null;
+	    try {
+	        conn = this.getConnection();
+	        QueryRunner runner = new QueryRunner();
+	        Object result = runner.query(conn, sql, new ScalarHandler<>(), params);
+
+	        if (result == null) {
+	            return 0.0;
+	        } else if (result instanceof Number) {
+	            return ((Number) result).doubleValue(); // Convierte BigDecimal, Integer, Double, etc.
+	        } else {
+	            return Double.parseDouble(result.toString());
+	        }
+	    } catch (SQLException e) {
+	        throw new UnexpectedException(e);
+	    } finally {
+	        DbUtils.closeQuietly(conn);
+	    }
+	}
+	
+	/**
+	 * Ejecuta una consulta SQL que devuelve un único valor entero (int).
+	 * Si el resultado es nulo o la consulta no devuelve filas, retorna 0.
+	 */
+	public int queryInt(String sql, Object... params) {
+	    Connection conn = null;
+	    try {
+	        conn = this.getConnection();
+	        QueryRunner runner = new QueryRunner();
+	        Integer result = runner.query(conn, sql, new ScalarHandler<Integer>(), params);
+	        return result != null ? result : 0;
+	    } catch (SQLException e) {
+	        throw new UnexpectedException(e);
+	    } finally {
+	        DbUtils.closeQuietly(conn);
+	    }
+	}
+
+	
 }

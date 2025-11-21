@@ -137,7 +137,7 @@ public class Factura {
 	}
 
 	public void calcularIngresosEstimados(double cuota) {
-	    this.ing_estimados = cuota * plazas_ocupadas;
+	    this.ing_estimados = cuota*plazas_ocupadas;
 	}
 
 	public void calcularEstimado(double cuota) {

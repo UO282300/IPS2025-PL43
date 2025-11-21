@@ -34,6 +34,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import javax.swing.border.TitledBorder;
 
 public class VentanaVerBalance extends JFrame {
 
@@ -322,6 +323,7 @@ public class VentanaVerBalance extends JFrame {
 	private Component getScrollSin() {
 		if (scrollPane2 == null) {
 			scrollPane2 = new JScrollPane();
+			scrollPane2.setBorder(new TitledBorder(null, "Sin Acabar", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 			scrollPane2.setViewportView(getTablaSinAcabar());
 			
 			JLabel lbAcabadas = new JLabel("Sin Finalizar");
@@ -334,6 +336,7 @@ public class VentanaVerBalance extends JFrame {
 	private JScrollPane getScrollPane() {
 		if (scrollPane == null) {
 			scrollPane = new JScrollPane();
+			scrollPane.setBorder(new TitledBorder(null, "Acabadas", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 			scrollPane.setViewportView(getTablaAcabadas());
 			
 			JLabel lbAcabadas = new JLabel("Finalizadas");

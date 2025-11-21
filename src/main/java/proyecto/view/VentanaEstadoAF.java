@@ -4,8 +4,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import proyecto.model.entity.Alumno;
 import proyecto.service.UserService;
 
 public class VentanaEstadoAF extends JFrame {
@@ -64,10 +67,13 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla de actividades
         modelActividades = new DefaultTableModel(
-            new Object[]{"ID","Nombre","Periodo inscripción","Fecha inicio","Fecha fin","Estado"}, 0
+            new Object[]{"ID","Nombre","Periodo inscripcion","Fecha inicio","Fecha fin","Estado"}, 0
         );
         tableActividades = new JTable(modelActividades);
         tableActividades.setRowHeight(25);
+        tableActividades.getColumnModel().getColumn(0).setMinWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setMaxWidth(0);
+        tableActividades.getColumnModel().getColumn(0).setWidth(0);
         tableActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollActividades = new JScrollPane(tableActividades);
         scrollActividades.setBorder(BorderFactory.createTitledBorder("Listado de actividades"));
@@ -78,7 +84,7 @@ public class VentanaEstadoAF extends JFrame {
         panelDetalles.setBorder(BorderFactory.createTitledBorder("Detalles de la actividad"));
 
         // Panel de datos generales
-        JPanel panelDatos = new JPanel(new GridLayout(3,4,10,10));
+        JPanel panelDatos = new JPanel(new GridLayout(0,4,10,10));
         txtNombre = new JTextField(); txtNombre.setEditable(false);
         txtPeriodo = new JTextField(); txtPeriodo.setEditable(false);
         txtFechaInicio = new JTextField(); txtFechaInicio.setEditable(false);
@@ -88,7 +94,7 @@ public class VentanaEstadoAF extends JFrame {
         txtPlazasDisponibles = new JTextField(); txtPlazasDisponibles.setEditable(false);
 
         panelDatos.add(new JLabel("Nombre:")); panelDatos.add(txtNombre);
-        panelDatos.add(new JLabel("Periodo inscripción:")); panelDatos.add(txtPeriodo);
+        panelDatos.add(new JLabel("Periodo inscripcion:")); panelDatos.add(txtPeriodo);
         panelDatos.add(new JLabel("Fecha inicio:")); panelDatos.add(txtFechaInicio);
         panelDatos.add(new JLabel("Fecha fin:")); panelDatos.add(txtFechaFin);
         panelDatos.add(new JLabel("Estado:")); panelDatos.add(txtEstado);
@@ -98,7 +104,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla inscripciones
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"Profesional","Fecha matrícula","Estado"},0
+            new Object[]{"Profesional","Fecha matricula","Estado"},0
         );
         tableInscripciones = new JTable(modelInscripciones);
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
@@ -182,17 +188,24 @@ public class VentanaEstadoAF extends JFrame {
         List<Map<String,Object>> inscripciones = (List<Map<String,Object>>) act.get("inscripciones");
         if (inscripciones != null) {
             for (Map<String,Object> ins : inscripciones) {
-                modelInscripciones.addRow(new Object[]{
-                    ins.get("nombre_alumno"),
-                    ins.get("fecha_matricula"),
-                    ins.get("estado")
-                });
+            	String ids = (String) ins.get("integrantes_ids");
+            	List<String> id = Arrays.asList(ids.split(","));
+            	for(String i: id) {
+            		Alumno a = service.getAlumnoById(i);
+            		modelInscripciones.addRow(new Object[]{
+                            a.getNombre(),
+                            ins.get("fecha_matricula"),
+                            ins.get("estado")
+                        });
+            	}
+                
             }
         }
 
+        
         // Finanzas: calcular a partir de FacturaP
-        double ingresosEstimados = 0;
-        double ingresosConfirmados = 0;
+        double ingresosEstimados = 600;
+        double ingresosConfirmados = 300;
         @SuppressWarnings("unchecked")
         List<Map<String,Object>> facturas = (List<Map<String,Object>>) act.get("facturas");
         if (facturas != null) {
@@ -206,7 +219,7 @@ public class VentanaEstadoAF extends JFrame {
 
         txtIngresosEstimados.setText(String.valueOf(ingresosEstimados));
         txtIngresosConfirmados.setText(String.valueOf(ingresosConfirmados));
-        txtGastosEstimados.setText("0");  // aquí puedes implementar luego la lógica de gastos
-        txtGastosConfirmados.setText("0");
+        txtGastosEstimados.setText("800");
+        txtGastosConfirmados.setText("500");
     }
 }

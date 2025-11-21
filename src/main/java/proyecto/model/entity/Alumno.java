@@ -8,16 +8,26 @@ public class Alumno {
 	private String numeroTf;
 	private boolean pertenece;
 	private int id;
+	private int id_cuota;
 	
 	public Alumno() {
 		this.nombre=null;
 		this.apellidos=null;
 		this.correo=null;
 		this.numeroTf=null;
+		this.id_cuota=0;
 	}
 	
 	
-
+	
+	public void setId_Cuota(int id) {
+		this.id_cuota=id;
+	}
+	
+	public int getId_cuota() {
+		return id_cuota;
+	}
+	
 	public boolean validarTf() {
 		for(char c: numeroTf.toCharArray()) {
 			if(!Character.isDigit(c)) return false;

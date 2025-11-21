@@ -25,7 +25,8 @@ CREATE TABLE Profesor (
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    telefono VARCHAR(20)
+    telefono VARCHAR(20),
+    isEmpresa BOOLEAN DEFAULT 0
 );
 
 CREATE TABLE Alumno (
@@ -50,7 +51,8 @@ CREATE TABLE Actividad (
     es_gratuita BOOLEAN DEFAULT 0,
     total_plazas INTEGER,
     empresa VARCHAR(100),
-    isClosed BOOLEAN DEFAULT 0
+    isClosed BOOLEAN DEFAULT 0,
+    isCancelada BOOLEAN DEFAULT 0
 );
 
 
@@ -63,7 +65,11 @@ CREATE TABLE Matricula (
     monto_pagado DECIMAL(10,2) DEFAULT 0,
     esta_pagado BOOLEAN NOT NULL DEFAULT 0,
     isCancelada BOOLEAN DEFAULT 0,
+    numero_matriculados INTEGER NOT NULL,
+    integrantes_ids TEXT,
+    isRetrasada BOOLEAN DEFAULT 0,
     FOREIGN KEY (id_cuota_actividad) REFERENCES CuotaActividad(id_cuota_actividad),
+    
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)
 );
