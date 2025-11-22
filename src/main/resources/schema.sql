@@ -26,6 +26,8 @@ CREATE TABLE Profesor (
     apellido VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     telefono VARCHAR(20),
+    nif VARCHAR(20) NOT NULL,
+    direccion VARCHAR(255) NOT NULL,
     isEmpresa BOOLEAN DEFAULT 0
 );
 
@@ -54,6 +56,8 @@ CREATE TABLE Actividad (
     isClosed BOOLEAN DEFAULT 0,
     isCancelada BOOLEAN DEFAULT 0
 );
+
+
 
 
 CREATE TABLE Matricula (

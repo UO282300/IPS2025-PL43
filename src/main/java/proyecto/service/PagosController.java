@@ -1,6 +1,8 @@
 package proyecto.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,6 @@ public class PagosController {
     public Map<String, Object> getActividadDetalles(int idActividad) {
         Map<String,Object> resultado = new HashMap<>();
 
-        // Datos básicos de la actividad
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT * FROM Actividad WHERE id_actividad = ?", idActividad
         );
@@ -72,7 +73,6 @@ public class PagosController {
         resultado.putAll(act);
         resultado.put("estado", obtenerEstadoActividad(act));
 
-        // Plazas ocupadas, totales y disponibles
         int plazasOcupadas = ((Number) db.executeQueryMap(
             "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ?", idActividad
         ).get(0).get("total")).intValue();
@@ -81,12 +81,11 @@ public class PagosController {
         int plazasDisponibles = totalPlazas - plazasOcupadas;
         resultado.put("plazas_disponibles", plazasDisponibles);
 
-        // Inscripciones
         List<Map<String, Object>> inscripciones = db.executeQueryMap(
             "SELECT m.id_matricula, " +
             "al.nombre || ' ' || al.apellido AS nombre_alumno, al.telefono,  " +
             "m.fecha_matricula, m.esta_pagado,m.isCancelada," +
-            "m.monto_pagado, " + // asegurarse de tener este campo
+            "m.monto_pagado, " + 
             "CASE WHEN m.esta_pagado = 1 THEN 'Cobrada' ELSE 'Pendiente' END AS estado " +
             "FROM Matricula m " +
             "JOIN Alumno al ON m.id_alumno = al.id_alumno " +
@@ -96,7 +95,6 @@ public class PagosController {
         );
         resultado.put("inscripciones", inscripciones);
 
-        // Finanzas
         double ingresosConfirmados = inscripciones.stream()
                 .filter(i -> "Cobrada".equals(i.get("estado")))
                 .mapToDouble(i -> {
@@ -104,7 +102,6 @@ public class PagosController {
                     catch(Exception e) { return 0; }
                 }).sum();
 
-        // Obtener cuotas asociadas a la actividad
         List<Map<String,Object>> cuotas = db.executeQueryMap(
             "SELECT valor FROM CuotaActividad WHERE id_actividad = ?", idActividad
         );
@@ -120,7 +117,6 @@ public class PagosController {
 
         double ingresosEstimados = inscripciones.size() * cuotaMedia;
 
-        // Gastos
         List<Map<String,Object>> facturas = db.executeQueryMap(
             "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
         );
@@ -128,9 +124,6 @@ public class PagosController {
                 .mapToDouble(f -> Double.parseDouble(String.valueOf(f.get("cantidad"))))
                 .sum();
         double gastosEstimados = gastosConfirmados;
-
-        
-        
 
 
         resultado.put("ingresos_estimados", ingresosEstimados);
@@ -191,7 +184,7 @@ public class PagosController {
                 idMatricula, fechaPago.toString(), montoPagado, metodoPago
             );
 
-            // Obtener la matrícula y la cuota asociada
+
             Map<String, Object> info = db.executeQueryMap(
                 "SELECT m.id_actividad, m.id_cuota_actividad, IFNULL(SUM(p.cantidad),0) AS total_pagado " +
                 "FROM Matricula m " +
@@ -205,7 +198,7 @@ public class PagosController {
             int idCuotaActividad = ((Number) info.get("id_cuota_actividad")).intValue();
             double totalPagado = ((Number) info.get("total_pagado")).doubleValue();
 
-            // Obtener el valor de la cuota elegida
+
             double cuota = 0.0;
             if(idCuotaActividad > 0) {
                 cuota = ((Number) db.executeQueryMap(
@@ -221,7 +214,7 @@ public class PagosController {
                 totalPagado, estaPagado ? 1 : 0, idMatricula
             );
 
-            // Control de plazas
+
             if (estaPagado) {
                 List<Map<String, Object>> res = db.executeQueryMap(
                     "SELECT (a.total_plazas - COUNT(CASE WHEN m.esta_pagado = 1 AND (m.isCancelada IS NULL OR m.isCancelada = 0) THEN 1 END)) AS plazas_libres " +
@@ -269,7 +262,6 @@ public class PagosController {
     
     public void imprimirMatriculasYPagosPorConsola() {
         try {
-            // Traemos todas las matrículas junto con su información de alumno y actividad
             List<Map<String, Object>> matriculas = db.executeQueryMap(
                 "SELECT m.id_matricula, " +
                 "a.nombre AS nombre_alumno, a.apellido AS apellido_alumno, " +
@@ -290,7 +282,7 @@ public class PagosController {
                 System.out.println("  Pagado: " + (((Number) m.get("esta_pagado")).intValue() == 1));
                 System.out.println("  Cancelada: " + (((Number) m.get("isCancelada")).intValue() == 1));
 
-                // Traemos los pagos asociados a esta matrícula
+
                 List<Map<String, Object>> pagos = db.executeQueryMap(
                     "SELECT id_pago, fecha_pago, cantidad, metodo_pago " +
                     "FROM PagoAlumno WHERE id_matricula = ?",
@@ -329,11 +321,11 @@ public class PagosController {
 	    return fechaHoy;
 	}
     
-    //Pagos alumnos devoluciones
+
     
     public Map<String, Double> getEstadoPagoAlumno(int idMatricula) {
         Map<String, Double> datos = new HashMap<>();
-        //SELECT a.cuota*m.numero_matriculados as cuota, m.monto_pagado, m.isCancelada, a.id_actividad, m.id_alumno
+
         try {
             List<Map<String, Object>> result = db.executeQueryMap("""
                 SELECT ca.valor*m.numero_matriculados AS cuota, m.monto_pagado, m.isCancelada, m.id_actividad, m.id_alumno
@@ -349,7 +341,7 @@ public class PagosController {
             boolean isCancelada = result.get(0).get("isCancelada") != null &&
                                   ((Number) result.get(0).get("isCancelada")).intValue() == 1;
 
-            // Sumamos devoluciones si existen
+
             List<Map<String, Object>> devoluciones = db.executeQueryMap("""
                 SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
                 FROM Devoluciones
@@ -457,7 +449,7 @@ public class PagosController {
     public void imprimirMatriculasYPagos() {
         try {
         	
-            // Traemos todas las matrículas junto con su información de alumno y actividad
+
             List<Map<String, Object>> matriculas = db.executeQueryMap(
                 "SELECT m.id_matricula, " +
                 "a.nombre AS nombre_alumno, a.apellido AS apellido_alumno, " +
@@ -478,7 +470,7 @@ public class PagosController {
                 System.out.println("  Pagado: " + (((Number) m.get("esta_pagado")).intValue() == 1));
                 System.out.println("  Cancelada: " + (((Number) m.get("isCancelada")).intValue() == 1));
 
-                // Traemos los pagos asociados a esta matrícula
+
                 List<Map<String, Object>> pagos = db.executeQueryMap(
                     "SELECT id_pago, fecha_pago, cantidad, metodo_pago " +
                     "FROM PagoAlumno WHERE id_matricula = ?",
@@ -611,6 +603,67 @@ public class PagosController {
         if (facturas.isEmpty()) return null;
         return facturas.get(0);
     }
+    
+    public Map<String, Object> cargarDatosProfesor(int idProfesor) {
+        List<Map<String, Object>> result = db.executeQueryMap(
+            """
+            SELECT direccion, nif
+            FROM Profesor
+            WHERE id_profesor = ?
+            """,
+            idProfesor
+        );
+
+        if (result.isEmpty()) return null;
+        return result.get(0);
+    }
+    
+    public void registrarFactura(
+            int idProfesor,
+            int idActividad,
+            String numeroFactura,
+            LocalDate fechaFactura,
+            double cantidad,
+            String nifEmisor,
+            String direccionEmisor) throws Exception {
+
+
+        List<Map<String, Object>> facturas = db.executeQueryMap(
+                "SELECT id_factura FROM FacturaP WHERE id_profesor = ? AND id_actividad = ?",
+                idProfesor, idActividad
+        );
+
+        if (facturas.isEmpty()) {
+            throw new Exception("No existe factura para este profesor y actividad.");
+        }
+
+        int idFactura = ((Number) facturas.get(0).get("id_factura")).intValue();
+
+
+        String sql = """
+                UPDATE FacturaP
+                SET numero_factura = ?,
+                    fecha_factura = ?,
+                    cantidad = ?,
+                    emisor_nif = ?,
+                    emisor_direccion = ?
+                WHERE id_factura = ?
+                """;
+
+        db.executeUpdate(
+                sql,
+                numeroFactura,
+                fechaFactura.toString(),
+                cantidad,
+                nifEmisor,
+                direccionEmisor,
+                idFactura
+        );
+    }
+
+    
+    
+
 
     public Map<String, Object> obtenerTotalesFacturaProfesor(int idFactura) {
         List<Map<String, Object>> res = db.executeQueryMap(
@@ -649,12 +702,22 @@ public class PagosController {
     public List<Map<String, Object>> listarTodosLosCursosConProfesores() {
         return db.executeQueryMap(
             """
-            SELECT a.id_actividad, a.nombre
+            SELECT 
+                a.id_actividad,
+                a.nombre,
+                a.inicio_inscripcion,
+                a.fin_inscripcion,
+                a.fecha_inicio,
+                a.fecha_fin,
+                a.total_plazas,
+                a.isClosed,
+                a.isCancelada
             FROM Actividad a
             ORDER BY a.fecha_inicio
             """
         );
     }
+
     
     public List<Map<String, Object>> obtenerProfesoresPorActividad(int idActividad) {
         return db.executeQueryMap(
@@ -724,6 +787,29 @@ public class PagosController {
 	        return 0.0;
 	    }
 	}
+	
+	public List<Map<String, Object>> listarMovimientosPorFactura(int idFactura, int idProfesor) {
+	    List<Map<String, Object>> movimientos = new ArrayList<>();
+
+	    String sqlPagos = """
+	        SELECT fecha_pago AS fecha, cantidad, 'Pago' AS tipo
+	        FROM PagoProfesor
+	        WHERE id_factura = ? AND id_profesor = ?
+	        ORDER BY fecha_pago ASC
+	    """;
+	    movimientos.addAll(db.executeQueryMap(sqlPagos, idFactura, idProfesor));
+
+	    String sqlDevoluciones = """
+	        SELECT fecha_devolucion AS fecha, cantidad, 'Devolución' AS tipo
+	        FROM DevolucionProfesor
+	        WHERE id_factura = ? AND id_profesor = ?
+	        ORDER BY fecha_devolucion ASC
+	    """;
+	    movimientos.addAll(db.executeQueryMap(sqlDevoluciones, idFactura, idProfesor));
+
+	    return movimientos;
+	}
+
 
     
   

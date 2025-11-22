@@ -13,9 +13,9 @@ INSERT INTO Administrador(nombre, email, password) VALUES
 ('Rosa', 'admin@escuela.com', 'admin123');
 
 -- Profesores
-INSERT INTO Profesor(nombre, apellido, email, telefono,isEmpresa) VALUES
-('Claudio', 'Perez', 'c.perez@escuela.com', '684321123',0),
-('Raquel', 'Perez', 'r.perez@escuela.com', '694321123',0);
+INSERT INTO Profesor(nombre, apellido, email, telefono,nif,direccion,isEmpresa) VALUES
+('Claudio', 'Perez', 'c.perez@escuela.com','1','avenida', '684321123',0),
+('Raquel', 'Perez', 'r.perez@escuela.com','1','avenida', '694321123',0);
 
 -- Alumnos
 INSERT INTO Alumno(nombre, apellido, email, telefono, es_interno) VALUES
@@ -45,7 +45,7 @@ INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricu
 -- Facturas profesores
 INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) VALUES
 (1, 1, 'F001', '2025-09-04', 400.00, 'Claudio Perez', '12345678A', 'Calle Falsa 123', 1),
-(2, 1, 'F002', '2025-09-04', 400.00, 'Raquel Perez', '87654321B', 'Avenida Siempre Viva 45', 0);
+(2, 1, '-1', '', 0, '', '', '', 0);
 
 INSERT INTO PagoAlumno (id_matricula,fecha_pago,cantidad,metodo_pago) VALUES
 (1,'2025-07-16',300.00,'Transferencia');
