@@ -28,6 +28,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
@@ -39,25 +40,22 @@ public class VentanaPagosAlumnos extends JFrame {
 
     private JTable tableActividades;
     private JTable tableInscripciones;
+    private JTable tableMovimientos;
     private DefaultTableModel modelActividades;
     private DefaultTableModel modelInscripciones;
+    private DefaultTableModel modelMovimientos;
     private JTextField tfCantidad;
     private JTextField tfFecha;
     private JRadioButton rbPago;
     private JRadioButton rbDevolucion;
     private JRadioButton rbTransferencia;
     private JRadioButton rbEfectivo;
-    private JLabel lblPendiente;
-    private JTextField tfPendiente;
-    private JTextField tfTotalPagado;
     private Map<Integer, Map<String, Object>> actividadData = new HashMap<>();
     private Map<Integer, Map<String, Object>> inscripcionData = new HashMap<>();
-    private double cuotaSeleccionada = 0;
     private int idActividadSeleccionada = -1;
     private int idMatriculaSeleccionada = -1;
 
-    @SuppressWarnings({ "serial" })
-	public VentanaPagosAlumnos(UserService service) {
+    public VentanaPagosAlumnos(UserService service) {
         this.us = new PagosController(service);
         setTitle("Registro de Pagos de Inscripciones");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -67,44 +65,118 @@ public class VentanaPagosAlumnos extends JFrame {
         JPanel contentPane = new JPanel(new BorderLayout(10, 10));
         setContentPane(contentPane);
 
-        JLabel lblTitulo = new JLabel("Registrar Pagos de Alumnos", SwingConstants.CENTER);
+        contentPane.add(crearTitulo(), BorderLayout.NORTH);
+        contentPane.add(crearPanelCentral(), BorderLayout.CENTER);
+        contentPane.add(crearPanelInferior(), BorderLayout.SOUTH);
+
+        agregarListeners();
+
+        cargarActividadesCompletas();
+
+    }
+
+    private JLabel crearTitulo() {
+        JLabel lblTitulo = new JLabel("Registrar Pagos y Devoluciones de Alumnos", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 20));
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        contentPane.add(lblTitulo, BorderLayout.NORTH);
+        return lblTitulo;
+    }
 
-        JPanel panelCentral = new JPanel(new GridLayout(2, 1, 10, 10));
+    private JPanel crearPanelCentral() {
+        JPanel panelCentral = new JPanel(new GridLayout(3, 1, 10, 10));
 
-        modelActividades = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Plazas disp."}, 0
-        ) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+        panelCentral.add(crearTablaActividades());
+        panelCentral.add(crearTablaInscripciones());
+        panelCentral.add(crearTablaMovimientos());
+
+        return panelCentral;
+    }
+
+    @SuppressWarnings("serial")
+	private JScrollPane crearTablaActividades() {
+    	modelActividades = new DefaultTableModel(
+    		    new Object[]{
+    		        "ID", "Nombre", "Inicio Inscripción", "Fin Inscripción",
+    		        "Inicio Curso", "Fin Curso", "Total Plazas","Plazas disp.", "Estado"
+    		    }, 0
+    		) {
+    		    @Override public boolean isCellEditable(int r, int c) { return false; }
+    		};
+
+
         tableActividades = new JTable(modelActividades);
         tableActividades.setRowHeight(25);
         tableActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JScrollPane scrollActividades = new JScrollPane(tableActividades);
-        scrollActividades.setBorder(BorderFactory.createTitledBorder("Cursos"));
-        panelCentral.add(scrollActividades);
+        TableColumn idCol = tableActividades.getColumnModel().getColumn(0);
+        idCol.setMinWidth(0);
+        idCol.setMaxWidth(0);
+        idCol.setWidth(0);
+        idCol.setPreferredWidth(0);
 
-        modelInscripciones = new DefaultTableModel(
-            new Object[]{"ID Matricula", "Nombre", "Apellido", "Telefono", "Fecha inscripcion", "Ultimo dia pago", "Estado"}, 0
-        ) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
+        JScrollPane scroll = new JScrollPane(tableActividades);
+        scroll.setBorder(BorderFactory.createTitledBorder("Cursos"));
+        return scroll;
+    }
+
+
+    @SuppressWarnings("serial")
+	private JScrollPane crearTablaInscripciones() {
+    	modelInscripciones = new DefaultTableModel(
+    		    new Object[]{
+    		        "ID Matricula", "Nombre", "Apellido", "Telefono", 
+    		        "Fecha inscripcion", "Ultimo dia pago", "Estado",
+    		        "Total pagado (€)", "Pendiente (€)"
+    		    }, 0
+    		) {
+    		    @Override public boolean isCellEditable(int r, int c) { return false; }
+    		};
+
         tableInscripciones = new JTable(modelInscripciones);
         tableInscripciones.setRowHeight(25);
         tableInscripciones.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
-        scrollInscripciones.setBorder(BorderFactory.createTitledBorder("Alumnos"));
-        panelCentral.add(scrollInscripciones);
-        contentPane.add(panelCentral, BorderLayout.CENTER);
+        TableColumn idCol = tableInscripciones.getColumnModel().getColumn(0);
+        idCol.setMinWidth(0);
+        idCol.setMaxWidth(0);
+        idCol.setWidth(0);
+        idCol.setPreferredWidth(0);
 
+        JScrollPane scroll = new JScrollPane(tableInscripciones);
+        scroll.setBorder(BorderFactory.createTitledBorder("Alumnos"));
+        return scroll;
+    }
+
+    @SuppressWarnings("serial")
+	private JScrollPane crearTablaMovimientos() {
+        modelMovimientos = new DefaultTableModel(
+            new Object[]{"Fecha", "Tipo", "Metodo", "Cantidad (€)"}, 0
+        ) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tableMovimientos = new JTable(modelMovimientos);
+        tableMovimientos.setRowHeight(25);
+        tableMovimientos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scroll = new JScrollPane(tableMovimientos);
+        scroll.setBorder(BorderFactory.createTitledBorder("Pagos y Devoluciones"));
+        return scroll;
+    }
+
+    private JPanel crearPanelInferior() {
         JPanel panelInferior = new JPanel(new BorderLayout(10, 10));
         panelInferior.setBorder(BorderFactory.createTitledBorder("Registrar movimiento"));
 
+        panelInferior.add(crearPanelTipoOperacion(), BorderLayout.NORTH);
+        panelInferior.add(crearPanelForm(), BorderLayout.CENTER);
+        panelInferior.add(crearPanelBotones(), BorderLayout.SOUTH);
+
+        return panelInferior;
+    }
+
+    private JPanel crearPanelTipoOperacion() {
         JPanel panelTipoOperacion = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 10));
+
         rbPago = new JRadioButton("Pago del alumno", true);
         rbPago.setFont(new Font("Tahoma", Font.BOLD, 14));
         rbDevolucion = new JRadioButton("Devolucion al alumno");
@@ -114,8 +186,7 @@ public class VentanaPagosAlumnos extends JFrame {
         grupoTipo.add(rbDevolucion);
         panelTipoOperacion.add(rbPago);
         panelTipoOperacion.add(rbDevolucion);
-        panelInferior.add(panelTipoOperacion, BorderLayout.NORTH);
-        
+
         rbTransferencia = new JRadioButton("Transferencia", true);
         rbTransferencia.setFont(new Font("Tahoma", Font.BOLD, 14));
         rbEfectivo = new JRadioButton("Efectivo");
@@ -125,7 +196,53 @@ public class VentanaPagosAlumnos extends JFrame {
         grupoMetodo.add(rbEfectivo);
         panelTipoOperacion.add(rbTransferencia);
         panelTipoOperacion.add(rbEfectivo);
-        
+
+        return panelTipoOperacion;
+    }
+
+    private JPanel crearPanelForm() {
+        JPanel panelForm = new JPanel(new GridLayout(2, 2, 30, 15));
+
+        panelForm.add(crearPanelCantidad());
+        panelForm.add(crearPanelFecha());
+
+        return panelForm;
+    }
+
+    private JPanel crearPanelCantidad() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.add(new JLabel("Cantidad del movimiento (eur):"), BorderLayout.NORTH);
+        tfCantidad = new JTextField();
+        panel.add(tfCantidad, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel crearPanelFecha() {
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        panel.add(new JLabel("Fecha del movimiento (yyyy-MM-dd):"), BorderLayout.NORTH);
+        tfFecha = new JTextField();
+        LocalDate fechaHoy = us.getFechaHoy();
+        tfFecha.setText(fechaHoy.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        panel.add(tfFecha, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel crearPanelBotones() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
+        JButton btnRegistrar = new JButton("Registrar movimiento");
+        btnRegistrar.setBackground(Color.WHITE);
+        JButton btnVolver = new JButton("Volver");
+        btnVolver.setBackground(Color.WHITE);
+        panel.add(btnVolver);
+        panel.add(btnRegistrar);
+
+        btnRegistrar.addActionListener(e -> registrarPago());
+        btnVolver.addActionListener(e -> dispose());
+
+        return panel;
+    }
+
+    private void agregarListeners() {
         ActionListener actualizarVistaPago = e -> {
             if (idMatriculaSeleccionada > 0) {
                 actualizarCamposVisuales(rbPago.isSelected());
@@ -134,50 +251,6 @@ public class VentanaPagosAlumnos extends JFrame {
 
         rbPago.addActionListener(actualizarVistaPago);
         rbDevolucion.addActionListener(actualizarVistaPago);
-
-        JPanel panelForm = new JPanel(new GridLayout(2, 2, 30, 15)); 
-
-        JPanel panelTotalPagado = new JPanel(new BorderLayout(5, 5));
-        panelTotalPagado.add(new JLabel("Total pagado hasta la fecha (€):"), BorderLayout.NORTH);
-        tfTotalPagado = new JTextField();
-        tfTotalPagado.setEditable(false);
-        panelTotalPagado.add(tfTotalPagado, BorderLayout.CENTER);
-        panelForm.add(panelTotalPagado);
-
-        JPanel panelPendiente = new JPanel(new BorderLayout());
-        lblPendiente = new JLabel("Cantidad pendiente (€):");
-        panelPendiente.add(lblPendiente, BorderLayout.NORTH);
-        tfPendiente = new JTextField();
-        tfPendiente.setEditable(false);
-        panelPendiente.add(tfPendiente, BorderLayout.CENTER);
-        panelForm.add(panelPendiente);
-
-        JPanel panelCantidad = new JPanel(new BorderLayout(5, 5));
-        panelCantidad.add(new JLabel("Cantidad del movimiento (eur):"), BorderLayout.NORTH);
-        tfCantidad = new JTextField();
-        panelCantidad.add(tfCantidad, BorderLayout.CENTER);
-        panelForm.add(panelCantidad);
-
-        JPanel panelFecha = new JPanel(new BorderLayout(5, 5));
-        panelFecha.add(new JLabel("Fecha del movimiento (yyyy-MM-dd):"), BorderLayout.NORTH);
-        tfFecha = new JTextField();
-        LocalDate fechaHoy = us.getFechaHoy();
-        tfFecha.setText(fechaHoy.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        panelFecha.add(tfFecha, BorderLayout.CENTER);
-        panelForm.add(panelFecha);
-
-        panelInferior.add(panelForm, BorderLayout.CENTER);
-
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        JButton btnRegistrar = new JButton("Registrar movimiento");
-        btnRegistrar.setBackground(Color.WHITE);
-        JButton btnVolver = new JButton("Volver");
-        btnVolver.setBackground(Color.WHITE);
-        panelBotones.add(btnVolver);
-        panelBotones.add(btnRegistrar);
-        panelInferior.add(panelBotones, BorderLayout.SOUTH);
-   
-        contentPane.add(panelInferior, BorderLayout.SOUTH);
 
         tableActividades.addMouseListener(new MouseAdapter() {
             @Override
@@ -197,55 +270,10 @@ public class VentanaPagosAlumnos extends JFrame {
                 if (row >= 0) {
                     idMatriculaSeleccionada = (int) modelInscripciones.getValueAt(row, 0);
                     actualizarVistaPago.actionPerformed(null);
+                    cargarMovimientos(idMatriculaSeleccionada);
                 }
             }
         });
-
-        btnRegistrar.addActionListener(e -> registrarPago());
-        btnVolver.addActionListener(e -> dispose());
-
-        cargarActividadesActivas();
-
-    }
-
-    private void cargarActividadesActivas() {
-        modelActividades.setRowCount(0);
-        actividadData.clear();
-
-        List<Map<String, Object>> actividades = us.listarActividades();
-        if (actividades == null || actividades.isEmpty()) {
-            modelActividades.addRow(new Object[]{"-", "No hay actividades registradas", "-", "-"});
-            tableActividades.setEnabled(false);
-            return;
-        }
-
-        for (Map<String, Object> act : actividades) {
-            Object idObj = act.get("id_actividad");
-            Object nombreObj = act.get("nombre");
-            if (idObj == null || nombreObj == null) continue;
-
-            int id = ((Number) idObj).intValue();
-            String nombre = String.valueOf(nombreObj);
-
-            Map<String, Object> detalles = us.getActividadDetalles(id);
-            if (detalles == null) continue;
-
-            int plazas = 0;
-            if (detalles.get("plazas_disponibles") != null) {
-                plazas = ((Number) detalles.get("plazas_disponibles")).intValue();
-                if (plazas < 0) plazas = 0;
-            }
-            
-            modelActividades.addRow(new Object[]{id, nombre, plazas});
-            actividadData.put(id, act);
-        }
-        if (modelActividades.getRowCount() == 0) {
-            modelActividades.addRow(new Object[]{"-", "No hay actividades con pagos pendientes", "-", "-"});
-            tableActividades.setEnabled(false);
-            return;
-        }
-
-        tableActividades.setEnabled(modelActividades.getRowCount() > 0);
     }
 
     private void cargarInscripcionesPendientes() {
@@ -289,11 +317,40 @@ public class VentanaPagosAlumnos extends JFrame {
             if (isCancelada) estado = "Cancelada";
             else if (estaPagado) estado = "Cobrada";
             else estado = "Pendiente";
+            
+            double totalPagado = us.getEstadoPagoAlumno(idMatricula).getOrDefault("total_pagado", 0.0);
+            double pendiente = us.getEstadoPagoAlumno(idMatricula).getOrDefault("pendiente", 0.0);
 
-            modelInscripciones.addRow(new Object[]{idMatricula, nombre, apellido, telefono, fechaMatricula, fechaLimite, estado});
+            modelInscripciones.addRow(new Object[]{
+                idMatricula, nombre, apellido, telefono, fechaMatricula, fechaLimite, estado,
+                String.format("%.2f", totalPagado), String.format("%.2f", pendiente)
+            });
+
+
             inscripcionData.put(idMatricula, ins);
 
-            cuotaSeleccionada = us.getCuotaMatricula(idMatricula);
+        }
+    }
+
+    private void cargarMovimientos(int idMatricula) {
+        modelMovimientos.setRowCount(0);
+        List<Map<String, Object>> movimientos = us.listarMovimientosAlumno(idMatricula);
+        if (movimientos == null) return;
+
+        for (Map<String, Object> mov : movimientos) {
+            String fecha = mov.get("fecha") != null ? mov.get("fecha").toString() : "-";
+            String tipo = mov.get("tipo") != null ? mov.get("tipo").toString() : "-";
+
+            String metodo;
+            if ("Devolución".equals(tipo)) {
+                metodo = "Transferencia";
+            } else {
+                metodo = mov.get("metodo") != null ? mov.get("metodo").toString() : "-";
+            }
+
+            double cantidad = mov.get("cantidad") != null ? ((Number)mov.get("cantidad")).doubleValue() : 0.0;
+
+            modelMovimientos.addRow(new Object[]{fecha, tipo, metodo, cantidad});
         }
     }
 
@@ -321,6 +378,8 @@ public class VentanaPagosAlumnos extends JFrame {
 
         limpiarCampos();
         actualizarCamposVisuales(rbPago.isSelected());
+        cargarMovimientos(idMatriculaSeleccionada);
+
 
     }
     private boolean validarSeleccion() {
@@ -378,6 +437,90 @@ public class VentanaPagosAlumnos extends JFrame {
 
         return fechaMovimiento;
     }
+    
+    private void cargarActividadesCompletas() {
+        modelActividades.setRowCount(0);
+        actividadData.clear();
+
+        List<Map<String, Object>> actividades = us.listarTodosLosCursos(); 
+        if (actividades == null || actividades.isEmpty()) {
+            modelActividades.addRow(new Object[]{"-", "No hay actividades disponibles", "-", "-", "-", "-", "-", "-", "-" });
+            tableActividades.setEnabled(false);
+            return;
+        }
+
+        LocalDate hoy = us.getFechaHoy();
+
+        for (Map<String, Object> act : actividades) {
+            int id = ((Number) act.get("id_actividad")).intValue();
+            String nombre = (String) act.get("nombre");
+
+            LocalDate inicioInscripcion = act.get("inicio_inscripcion") != null
+                    ? LocalDate.parse(act.get("inicio_inscripcion").toString())
+                    : null;
+            LocalDate finInscripcion = act.get("fin_inscripcion") != null
+                    ? LocalDate.parse(act.get("fin_inscripcion").toString())
+                    : null;
+            LocalDate fechaInicio = act.get("fecha_inicio") != null
+                    ? LocalDate.parse(act.get("fecha_inicio").toString())
+                    : null;
+            LocalDate fechaFin = act.get("fecha_fin") != null
+                    ? LocalDate.parse(act.get("fecha_fin").toString())
+                    : null;
+
+            int totalPlazas = act.get("total_plazas") != null ? ((Number) act.get("total_plazas")).intValue() : 0;
+
+            Map<String, Object> detalles = us.getActividadDetalles(id);
+            int plazasDisponibles = totalPlazas;
+            if (detalles != null && detalles.get("inscripciones") != null) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> inscripciones = (List<Map<String, Object>>) detalles.get("inscripciones");
+                plazasDisponibles = totalPlazas - inscripciones.size();
+                if (plazasDisponibles < 0) plazasDisponibles = 0;
+            }
+
+            boolean isClosed = act.get("isClosed") != null && ((Number) act.get("isClosed")).intValue() == 1;
+            boolean isCancelada = act.get("isCancelada") != null && ((Number) act.get("isCancelada")).intValue() == 1;
+
+            String estado;
+            if (isClosed) {
+                estado = "Cerrada";
+            } else if (isCancelada) {
+                estado = "Cancelada";
+            } else if (inicioInscripcion != null && finInscripcion != null &&
+                       !hoy.isBefore(inicioInscripcion) && !hoy.isAfter(finInscripcion)) {
+                estado = "Periodo de inscripción";
+            } else if (fechaInicio != null && fechaFin != null &&
+                       !hoy.isBefore(fechaInicio) && !hoy.isAfter(fechaFin)) {
+                estado = "En curso";
+            } else if (finInscripcion != null && fechaInicio != null &&
+                       hoy.isAfter(finInscripcion) && hoy.isBefore(fechaInicio)) {
+                estado = "Por empezar";
+            } else if (fechaFin != null && hoy.isAfter(fechaFin)) {
+                estado = "Cursada";
+            } else {
+                estado = "Sin actividad";
+            }
+
+            modelActividades.addRow(new Object[]{
+                id,
+                nombre,
+                inicioInscripcion != null ? inicioInscripcion.toString() : "-",
+                finInscripcion != null ? finInscripcion.toString() : "-",
+                fechaInicio != null ? fechaInicio.toString() : "-",
+                fechaFin != null ? fechaFin.toString() : "-",
+                totalPlazas,
+                plazasDisponibles,
+                estado
+            });
+
+            actividadData.put(id, act);
+        }
+
+        tableActividades.setEnabled(modelActividades.getRowCount() > 0);
+    }
+
+
 
 	    private void procesarPago(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 	    	
@@ -395,9 +538,6 @@ public class VentanaPagosAlumnos extends JFrame {
 
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
-
-	        double cuota = us.getCuotaMatricula(idMatriculaSeleccionada);
-	
 	        
 	        double montoTotalMatricula = us.getMontoTotalMatricula(idMatriculaSeleccionada);
 	        
@@ -413,16 +553,16 @@ public class VentanaPagosAlumnos extends JFrame {
 	                "Confirmar pago\n"+
 	                avisoPlazo +
 	                "Cantidad a pagar: %.2f €\n" +
-	                "Cantidad pendiente antes del pago: %.2f euros" +
+	                "Cantidad pendiente antes del pago: %.2f euros\n " +
 	                "Cantidad que quedara pendiente después del pago: %.2f euros\n\n" +
-	                "�Desea continuar?",
+	                "Desea continuar?",
 	                cantidad, pendienteAntes, restanteDespues
 	            );
 	        } else if (cantidad < pendienteAntes) {
 	            mensaje = String.format(
 	            	avisoPlazo +
 	                "El pago ingresado es menor que la cantidad pendiente.\n\n" +
-	                "Cantidad a pagar: %.2f euros" +
+	                "Cantidad a pagar: %.2f euros\n" +
 	                "Cantidad pendiente antes del pago: %.2f euros\n" +
 	                "Cantidad que quedara pendiente despues del pago: %.2f euros\n\n" +
 	                "¿Desea continuar y registrar este pago parcial?",
@@ -462,12 +602,10 @@ public class VentanaPagosAlumnos extends JFrame {
 
 	        actualizarCamposVisuales(true);
 	        cargarInscripcionesPendientes();
-	        cargarActividadesActivas();
+	        cargarActividadesCompletas();
 
 	    }
 
-	    
-	    
 	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
@@ -484,8 +622,8 @@ public class VentanaPagosAlumnos extends JFrame {
 	        if (isCancelada) {
 	            mensajeConfirmacion = String.format(
 	                "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
-	                "Cantidad registrada: %.2f euros" +
-	                "Cantidad que estaba pendiente: %.2f euros" +
+	                "Cantidad registrada: %.2f euros\n" +
+	                "Cantidad que estaba pendiente: %.2f euros\n" +
 	                "¿Desea continuar con la devolucion?",
 	                cantidad, disponibleParaDevolver
 	            );
@@ -493,7 +631,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	            mensajeConfirmacion = String.format(
 	                "Confirmar devolucion\n\n" +
 	                "Cantidad a devolver: %.2f euros\n" +
-	                "Saldo disponible para devolver: %.2f euros\n" +
+	                "Cantidad pendiente de devolver: %.2f euros\n" +
 	                "Desea continuar?",
 	                cantidad, disponibleParaDevolver, disponibleParaDevolver-cantidad
 	            );
@@ -535,36 +673,41 @@ public class VentanaPagosAlumnos extends JFrame {
 	        }
 
 	        actualizarCamposVisuales(false);
-	        cargarActividadesActivas();
+	        cargarActividadesCompletas();
 
 	        mostrarInfo(String.format("Devolucion registrada correctamente.\n\nSe devolvieron %.2f euros.", cantidad));
 	    }
 
 
-    private void actualizarCamposVisuales(boolean esPago) {
-        if (idMatriculaSeleccionada <= 0) return;
-        tfFecha.setText(us.getFechaHoy().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+	    private void actualizarCamposVisuales(boolean esPago) {
+	        if (idMatriculaSeleccionada <= 0) return;
 
-        Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
-        if (estadoPago == null) return;
+	        Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
+	        if (estadoPago == null) return;
 
-        double totalPagado = estadoPago.getOrDefault("total_pagado", 0.0);
-        double totalDevuelto = estadoPago.getOrDefault("total_devuelto", 0.0);
-        double aDevolver = estadoPago.getOrDefault("a_devolver", 0.0);
+	        double totalPagado = estadoPago.getOrDefault("total_pagado", 0.0);
+	        double totalDevuelto = estadoPago.getOrDefault("total_devuelto", 0.0);
+	        double pendiente = estadoPago.getOrDefault("pendiente", 0.0);
+	        double aDevolver = estadoPago.getOrDefault("a_devolver", 0.0);
 
-        if (esPago) {
-            lblPendiente.setText("Cantidad pendiente (euros):");
-            tfTotalPagado.setText(String.format("%.2f", totalPagado));
-            double pendiente = estadoPago.getOrDefault("pendiente", 0.0);
-            tfPendiente.setText(String.format("%.2f", pendiente));
-        } else {
-            lblPendiente.setText("A devolver (euros):");
-            tfTotalPagado.setText(String.format("%.2f", totalDevuelto));
-            tfPendiente.setText(String.format("%.2f", aDevolver)); 
-        }
-        us.imprimirMatriculasYPagos();
+	        for (int i = 0; i < modelInscripciones.getRowCount(); i++) {
+	            int idFila = ((Number) modelInscripciones.getValueAt(i, 0)).intValue();
+	            if (idFila == idMatriculaSeleccionada) {
+	                if (esPago) {
+	                    modelInscripciones.setValueAt(String.format("%.2f", totalPagado), i, 7); 
+	                    modelInscripciones.setValueAt(String.format("%.2f", pendiente), i, 8);   
+	                } else {
+	                    modelInscripciones.setValueAt(String.format("%.2f", totalDevuelto), i, 7); 
+	                    modelInscripciones.setValueAt(String.format("%.2f", aDevolver), i, 8);     
+	                }
+	                break;
+	            }
+	        }
+	        
+	        tfFecha.setText(us.getFechaHoy().toString());
+	        
+	    }
 
-    }
        
     
     public String verificarPlazoPago(LocalDate fechaMovimiento, int idMatricula) {

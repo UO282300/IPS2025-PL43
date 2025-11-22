@@ -57,9 +57,6 @@ CREATE TABLE Actividad (
     isCancelada BOOLEAN DEFAULT 0
 );
 
-
-
-
 CREATE TABLE Matricula (
     id_matricula INTEGER PRIMARY KEY AUTOINCREMENT,
     id_cuota_actividad INTEGER NOT NULL,

@@ -500,6 +500,31 @@ public class PagosController {
             );
         }
     }
+    
+    
+    public List<Map<String, Object>> listarMovimientosAlumno(int idMatricula) {
+        List<Map<String, Object>> movimientos = new ArrayList<>();
+
+        // Pagos del alumno
+        String sqlPagos = """
+            SELECT fecha_pago AS fecha, cantidad, metodo_pago AS metodo, 'Pago' AS tipo
+            FROM PagoAlumno
+            WHERE id_matricula = ?
+            ORDER BY fecha_pago ASC
+        """;
+        movimientos.addAll(db.executeQueryMap(sqlPagos, idMatricula));
+
+        // Devoluciones del alumno
+        String sqlDevoluciones = """
+            SELECT fecha_enviada AS fecha, monto_devuelto AS cantidad, '' AS metodo, 'Devolución' AS tipo
+            FROM Devoluciones
+            WHERE id_matricula = ?
+            ORDER BY fecha_enviada ASC
+        """;
+        movimientos.addAll(db.executeQueryMap(sqlDevoluciones, idMatricula));
+
+        return movimientos;
+    }
 
     
 //Ventana Registrar pagos profesores
@@ -699,7 +724,7 @@ public class PagosController {
 
 
     
-    public List<Map<String, Object>> listarTodosLosCursosConProfesores() {
+    public List<Map<String, Object>> listarTodosLosCursos() {
         return db.executeQueryMap(
             """
             SELECT 

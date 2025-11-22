@@ -232,13 +232,6 @@ public class VentanaPagoProfesores extends JFrame {
         rbDevolucion.addActionListener(e -> cargarTotalesProfesor());
     }
 
-    private JTextField crearCampo(JPanel panel, String label) {
-        panel.add(new JLabel(label));
-        JTextField tf = new JTextField();
-        tf.setEditable(true);
-        panel.add(tf);
-        return tf;
-    }
 
     private JTextField crearCampoConEtiqueta(JPanel panel, String label, boolean editable) {
         JPanel p = new JPanel(new BorderLayout());
@@ -260,7 +253,7 @@ public class VentanaPagoProfesores extends JFrame {
 
     private void cargarCursos() {
         modelCursos.setRowCount(0);
-        List<Map<String, Object>> cursos = us.listarTodosLosCursosConProfesores();
+        List<Map<String, Object>> cursos = us.listarTodosLosCursos();
         if (cursos == null || cursos.isEmpty()) {
             modelCursos.addRow(new Object[]{"-", "No hay cursos disponibles", "-", "-", "-", "-", "-", "-"});
             tableCursos.setEnabled(false);
