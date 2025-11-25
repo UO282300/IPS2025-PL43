@@ -121,6 +121,7 @@ CREATE TABLE Devoluciones (
     fecha_solicitada DATE NOT NULL,
     fecha_enviada DATE NOT NULL,
     monto_devuelto DECIMAL(10,2) DEFAULT 0,
+    metodo_pago VARCHAR(50) DEFAULT 'Transferencia',
     FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula),
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad)

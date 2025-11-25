@@ -2,7 +2,6 @@ package proyecto.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +20,6 @@ public class PagosController {
 		this.fechaHoy = us.getFechaHoy();
 		this.db = new Database();
 
-        //crearDataBase();
-        //cargarDataBase();
 	}
 	public double getLimiteEfectivo() {
 	    return LIMITE_EFECTIVO;
@@ -390,61 +387,54 @@ public class PagosController {
 
 
 
-    public boolean registrarDevolucion(int idMatricula, double montoDevuelto, LocalDate fechaDevolucion) {
+    public boolean registrarDevolucion(int idMatricula, double montoDevuelto, LocalDate fechaDevolucion, boolean porEfectivo) {
         try {
-            List<Map<String, Object>> datos = db.executeQueryMap("""
-                SELECT 
-                    m.id_alumno, 
-                    m.id_actividad,
-                    m.monto_pagado
-                FROM Matricula m
-                JOIN Actividad a ON m.id_actividad = a.id_actividad
-                WHERE m.id_matricula = ?
-            """, idMatricula);
+            String metodoPago = porEfectivo ? "Efectivo" : "Transferencia";
 
-            if (datos.isEmpty()) {
-                JOptionPane.showMessageDialog(null,
-                        "No se encontrÃ³ la matrÃ­cula especificada.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+            Map<String, Object> info = db.executeQueryMap(
+                "SELECT id_alumno, id_actividad, monto_pagado FROM Matricula WHERE id_matricula = ?",
+                idMatricula
+            ).get(0);
 
-            Map<String, Object> info = datos.get(0);
             int idAlumno = ((Number) info.get("id_alumno")).intValue();
             int idActividad = ((Number) info.get("id_actividad")).intValue();
-            double pagado = ((Number) info.get("monto_pagado")).doubleValue();
-
-            if (montoDevuelto <= 0) {
-                JOptionPane.showMessageDialog(null,
-                        "El monto devuelto debe ser mayor que 0.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+            double pagadoActual = ((Number) info.get("monto_pagado")).doubleValue();
 
             db.executeUpdate("""
-                INSERT INTO Devoluciones (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, idMatricula, idAlumno, idActividad, fechaDevolucion.toString(), fechaHoy.toString(), montoDevuelto);
+                INSERT INTO Devoluciones 
+                (id_matricula, id_alumno, id_actividad, fecha_solicitada, fecha_enviada, monto_devuelto, metodo_pago)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, 
+                idMatricula,
+                idAlumno,
+                idActividad,
+                fechaDevolucion.toString(),
+                fechaDevolucion.toString(),
+                montoDevuelto,
+                metodoPago
+            );
 
-            double totalPagado = pagado - montoDevuelto; 
-            boolean estaPagado = totalPagado >= 0; 
+            double nuevoMonto = pagadoActual - montoDevuelto;
+            boolean estaPagado = nuevoMonto >= 0;
 
             db.executeUpdate("""
-                UPDATE Matricula
-                SET esta_pagado = ?
+                UPDATE Matricula 
+                SET monto_pagado = ?, esta_pagado = ?
                 WHERE id_matricula = ?
-            """, estaPagado ? 1 : 0, idMatricula);
+            """, nuevoMonto, (estaPagado ? 1 : 0), idMatricula);
 
             return true;
 
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null,
-                    "Error al registrar la devoluciÃ³n en la base de datos.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                "Error al registrar la devolución en la base de datos:\n" + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
+
+
 
     public void imprimirMatriculasYPagos() {
         try {
@@ -505,7 +495,6 @@ public class PagosController {
     public List<Map<String, Object>> listarMovimientosAlumno(int idMatricula) {
         List<Map<String, Object>> movimientos = new ArrayList<>();
 
-        // Pagos del alumno
         String sqlPagos = """
             SELECT fecha_pago AS fecha, cantidad, metodo_pago AS metodo, 'Pago' AS tipo
             FROM PagoAlumno
@@ -514,9 +503,8 @@ public class PagosController {
         """;
         movimientos.addAll(db.executeQueryMap(sqlPagos, idMatricula));
 
-        // Devoluciones del alumno
         String sqlDevoluciones = """
-            SELECT fecha_enviada AS fecha, monto_devuelto AS cantidad, '' AS metodo, 'Devolución' AS tipo
+            SELECT fecha_enviada AS fecha, monto_devuelto AS cantidad, metodo_pago AS metodo, 'Devolución' AS tipo
             FROM Devoluciones
             WHERE id_matricula = ?
             ORDER BY fecha_enviada ASC

@@ -342,11 +342,9 @@ public class VentanaPagosAlumnos extends JFrame {
             String tipo = mov.get("tipo") != null ? mov.get("tipo").toString() : "-";
 
             String metodo;
-            if ("Devolución".equals(tipo)) {
-                metodo = "Transferencia";
-            } else {
+ 
                 metodo = mov.get("metodo") != null ? mov.get("metodo").toString() : "-";
-            }
+            
 
             double cantidad = mov.get("cantidad") != null ? ((Number)mov.get("cantidad")).doubleValue() : 0.0;
 
@@ -607,6 +605,16 @@ public class VentanaPagosAlumnos extends JFrame {
 	    }
 
 	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
+	        boolean porEfectivo = this.rbEfectivo.isSelected();
+	        double limiteEfectivo = us.getLimiteEfectivo();
+	        if (porEfectivo && cantidad > limiteEfectivo) {
+	            mostrarError(String.format(
+	                "No se puede devolver más de %.2f euros en efectivo por este movimiento.",
+	                limiteEfectivo
+	            ));
+	            return;
+	        }
+
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
 	        double cuota = estado.getOrDefault("cuota", 0.0);
@@ -624,12 +632,12 @@ public class VentanaPagosAlumnos extends JFrame {
 	                "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
 	                "Cantidad registrada: %.2f euros\n" +
 	                "Cantidad que estaba pendiente: %.2f euros\n" +
-	                "¿Desea continuar con la devolucion?",
+	                "¿Desea continuar con la devolución?",
 	                cantidad, disponibleParaDevolver
 	            );
 	        } else if (Math.abs(diferencia) < 0.01) {
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolucion\n\n" +
+	                "Confirmar devolución\n\n" +
 	                "Cantidad a devolver: %.2f euros\n" +
 	                "Cantidad pendiente de devolver: %.2f euros\n" +
 	                "Desea continuar?",
@@ -638,19 +646,19 @@ public class VentanaPagosAlumnos extends JFrame {
 	        } else if (cantidad < disponibleParaDevolver) {
 	            double restante = disponibleParaDevolver - cantidad;
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolucion parcial\n\n" +
+	                "Confirmar devolución parcial\n\n" +
 	                "Cantidad a devolver: %.2f euros\n" +
 	                "Cantidad pendiente a devolver: %.2f euros\n" +
 	                "Cantidad pendiente que se genera: %.2f euros\n\n" +
-	                "Desea continuar con la devolucion parcial?",
+	                "Desea continuar con la devolución parcial?",
 	                cantidad, disponibleParaDevolver, restante
 	            );
 	        } else {
 	            double exceso = cantidad - disponibleParaDevolver;
 	            mensajeConfirmacion = String.format(
-	                "Atencion: la cantidad a devolver supera la disponible.\n\n" +
+	                "Atención: la cantidad a devolver supera la disponible.\n\n" +
 	                "Cantidad a devolver: %.2f euros\n" +
-	                "Cantidad pendiente por devolucion: %.2f euros\n" +
+	                "Cantidad pendiente por devolución: %.2f euros\n" +
 	                "Exceso : %.2f euros\n\n" +
 	                "¿Desea continuar igualmente?",
 	                cantidad, disponibleParaDevolver, exceso
@@ -658,25 +666,27 @@ public class VentanaPagosAlumnos extends JFrame {
 	        }
 
 	        int opcion = JOptionPane.showConfirmDialog(
-	            this, mensajeConfirmacion, "Confirmar devolucion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+	            this, mensajeConfirmacion, "Confirmar devolución", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
 	        );
 
 	        if (opcion != JOptionPane.YES_OPTION) {
-	            mostrarAviso("Operacion cancelada. La devolucion no se ha registrado.");
+	            mostrarAviso("Operación cancelada. La devolución no se ha registrado.");
 	            return;
 	        }
 
-	        boolean ok = us.registrarDevolucion(idMatriculaSeleccionada, cantidad, fechaMovimiento);
+	        boolean ok = us.registrarDevolucion(idMatriculaSeleccionada, cantidad, fechaMovimiento, porEfectivo);
 	        if (!ok) {
-	            mostrarError("Error al registrar la devolucion. No se guardaron los cambios.");
+	            mostrarError("Error al registrar la devolución. No se guardaron los cambios.");
 	            return;
 	        }
 
 	        actualizarCamposVisuales(false);
 	        cargarActividadesCompletas();
 
-	        mostrarInfo(String.format("Devolucion registrada correctamente.\n\nSe devolvieron %.2f euros.", cantidad));
+	        String metodo = porEfectivo ? "efectivo" : "transferencia";
+	        mostrarInfo(String.format("Devolución registrada correctamente (%s).\n\nSe devolvieron %.2f euros.", metodo, cantidad));
 	    }
+
 
 
 	    private void actualizarCamposVisuales(boolean esPago) {
