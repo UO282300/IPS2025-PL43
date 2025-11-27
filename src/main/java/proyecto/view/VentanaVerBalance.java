@@ -217,7 +217,8 @@ public class VentanaVerBalance extends JFrame {
 	private JTextField getTxFecha() {
 	    if (txFecha == null) {
 	        txFecha = new JTextField(10);
-	        txFecha.setText(service.getFechaHoy().toString());
+	        LocalDate fechaIn = LocalDate.of(service.getFechaHoy().getYear(), 1, 1);
+	        txFecha.setText(fechaIn.toString());
 	    }
 	    return txFecha;
 	}
@@ -232,7 +233,8 @@ public class VentanaVerBalance extends JFrame {
 	private JTextField getTxFinal() {
 	    if (txFinal == null) {
 	    	txFinal = new JTextField(10);
-	    	txFinal.setText(service.getFechaHoy().plusYears(1).toString());
+	    	LocalDate fechaFin = LocalDate.of(service.getFechaHoy().getYear(), 12, 31);
+	    	txFinal.setText(fechaFin.toString());
 	    }
 	    return txFinal;
 	}
@@ -392,7 +394,7 @@ public class VentanaVerBalance extends JFrame {
 	}
 	
 	private DefaultTableModel crearModeloFacturas(List<Factura> lista) {
-	    String[] columnas = {"Fecha", "Nombre", "Estado", "Ingresos", "Total Gastos", "Balance", "Ingresos Estimados", "Balance Estimado"};
+	    String[] columnas = {"Fecha", "Nombre", "Estado", "Ingresos Confirmados", "Gastos Confirmados", "Balance Confirmado", "Ingresos Estimados","Gastos Estimados", "Balance Estimado"};
 	    DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
 
 	    for (Factura f : lista) {
@@ -404,6 +406,7 @@ public class VentanaVerBalance extends JFrame {
 	            f.getGastos(),
 	            f.getBalance(),
 	            f.getIngEstimados(),
+	            f.getGastosEstimados(),
 	            f.getEstimado()
 	        };
 	        modelo.addRow(fila);

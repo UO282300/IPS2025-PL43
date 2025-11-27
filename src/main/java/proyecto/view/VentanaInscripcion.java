@@ -88,6 +88,7 @@ public class VentanaInscripcion extends JFrame {
 	private DefaultListModel<String> modeloIntegrantes;
 	private JLabel lbContadorGrupo;
 	private JButton btnInscribirGrupo;
+	private int numPersonas;
 	
 	private JTable tablaIntegrantes;
 	private DefaultTableModel modeloTablaIntegrantes;
@@ -218,21 +219,13 @@ public class VentanaInscripcion extends JFrame {
 		return btSelect;
 	}
 	
-	private JLabel getLbPlazasDisponibles() {
-	    if (lbPlazasDisponibles == null) {
-	        lbPlazasDisponibles = new JLabel("Seleccione una actividad");
-	        lbPlazasDisponibles.setForeground(Color.BLUE);
-	        lbPlazasDisponibles.setFont(new Font("Arial", Font.BOLD, 12));
-	    }
-	    return lbPlazasDisponibles;
-	}
 
 	protected void seleccionActividad() {
 	    Actividad selec = getActividadSeleccionada();
 	    if (selec != null) {
 	        service.selectActividad(selec);
 
-	        cargarCuotasActividad(selec.getId_Actividad()); // NUEVO MÉTODO
+	        cargarCuotasActividad(selec.getId_Actividad());
 	    } else {
 	        JOptionPane.showMessageDialog(null, "No hay actividad seleccionada. Por favor selecciona actividad.",
 	                "Error", JOptionPane.ERROR_MESSAGE);
@@ -249,13 +242,13 @@ public class VentanaInscripcion extends JFrame {
 	    } else {
 	        cbCuotas.setEnabled(true);
 	        for (Map<String, Object> cuota : cuotas) {
-	            int id = ((Number) cuota.get("id_cuota_actividad")).intValue(); // 👈 asegúrate que el Map tenga esa clave
+	            int id = ((Number) cuota.get("id_cuota_actividad")).intValue();
 	            String categoria = (String) cuota.get("categoria");
 	            double valor = ((Number) cuota.get("valor")).doubleValue();
 
 	            String descripcion = categoria + " - " + valor + "€";
-	            cbCuotas.addItem(new CuotaItem(id, descripcion)); // 👈 añadimos el objeto completo
-	        }
+	            cbCuotas.addItem(new CuotaItem(id, descripcion));
+	            }
 
 	        actualizarInfoPlazas();
 	        actualizarEstadoBotonInscribir();
@@ -264,26 +257,8 @@ public class VentanaInscripcion extends JFrame {
 	
 	
 	private void actualizarInfoPlazas() {
-	    if (service.getAct() != null) {
-	        int plazasDisponibles = service.obtenerPlazasDisponibles(service.getAct().getId_Actividad());
-	        
-	        // Actualizar el label de plazas disponibles si existe
-	        if (getLbPlazasDisponibles() != null) {
-	            getLbPlazasDisponibles().setText("Plazas disponibles: " + plazasDisponibles);
-	        }
-	        
-	        // También actualizar el tooltip del botón de inscripción individual
-	        if (getBtInscrip() != null) {
-	            getBtInscrip().setToolTipText("Plazas disponibles: " + plazasDisponibles);
-	        }
-	        
-	        // Actualizar estado de los botones
+	    if (service.getAct() != null) {	    	 	       
 	        actualizarEstadoBotonInscribir();
-	    } else {
-	        if (getLbPlazasDisponibles() != null) {
-	            getLbPlazasDisponibles().setText("Seleccione una actividad");
-
-	        }
 	    }
 	}
 	
@@ -458,7 +433,6 @@ public class VentanaInscripcion extends JFrame {
 		service.guardarApellidos(getTxApellido().getText());
 		service.guardarTf(getTxTf().getText());
 		service.guardarCorreo(getTxCorreo().getText());
-		//service.guardarPertenece(!getRdbtNo().isSelected());
 		service.guardarIdCuotaA(id_c);
 	    
 	    boolean esIndividual = getRdbtIndividual().isSelected();
@@ -495,7 +469,6 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPnNombre() {
 		if (pnNombre == null) {
 			pnNombre = new JPanel();
-			//pnNombre.setBackground(new Color(255, 255, 255));
 			pnNombre.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			pnNombre.add(getLbNombre_1());
 			pnNombre.add(getTxNombre());
@@ -521,7 +494,6 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getLbApellidos() {
 		if (lbApellidos == null) {
 			lbApellidos = new JPanel();
-			//lbApellidos.setBackground(new Color(255, 128, 64));
 			lbApellidos.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			lbApellidos.add(getLbApellidos_1());
 			lbApellidos.add(getTxApellido());
@@ -547,7 +519,6 @@ public class VentanaInscripcion extends JFrame {
 	private JPanel getPanel() {
 		if (panel == null) {
 			panel = new JPanel();
-			//panel.setBackground(new Color(255, 128, 64));
 			panel.setLayout(new FlowLayout(FlowLayout.CENTER, 200, 30));
 			panel.add(getLbNumeroTf_1());
 			panel.add(getTxTf());
@@ -584,15 +555,9 @@ public class VentanaInscripcion extends JFrame {
 	    if (pnTipoInscripcion == null) {
 	        pnTipoInscripcion = new JPanel();
 	        pnTipoInscripcion.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
-	        
 	        pnTipoInscripcion.add(getRdbtIndividual());
 	        pnTipoInscripcion.add(getRdbtGrupo());
-	        pnTipoInscripcion.add(getLbNumeroPersonas());
-	        pnTipoInscripcion.add(getTxNumeroPersonas());
-	        pnTipoInscripcion.add(getLbPlazasDisponibles());
-	        
 	        getRdbtIndividual().setSelected(true);
-	        getTxNumeroPersonas().setEnabled(false);
 	    }
 	    return pnTipoInscripcion;
 	}
@@ -602,12 +567,8 @@ public class VentanaInscripcion extends JFrame {
 	        rdbtIndividual = new JRadioButton("Inscripción Individual");
 	        rdbtIndividual.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
-	                getTxNumeroPersonas().setEnabled(false);
-	                getTxNumeroPersonas().setText("1");
-	                getPanelGestionGrupo().setVisible(false);
-	                
-	                // MOSTRAR componentes individuales, OCULTAR grupales
-	                getBtInscrip().setVisible(true);
+	            	getPanelGestionGrupo().setVisible(false);
+	            	getBtInscrip().setVisible(true);
 	                getBtnInscribirGrupo().setVisible(false);
 	                getPanelFormulario().setVisible(true);
 	                
@@ -647,7 +608,7 @@ public class VentanaInscripcion extends JFrame {
 	    }
 	    
 	    try {
-	        int numPersonas = Integer.parseInt(numPersonasStr.trim());
+	        numPersonas = Integer.parseInt(numPersonasStr.trim());
 	        if (numPersonas < 2) {
 	            JOptionPane.showMessageDialog(this, 
 	                "Para inscripción grupal debe haber al menos 2 personas.", 
@@ -655,18 +616,10 @@ public class VentanaInscripcion extends JFrame {
 	            getRdbtIndividual().setSelected(true);
 	            return;
 	        }
-	        
-	        getTxNumeroPersonas().setText(String.valueOf(numPersonas));
-	        getTxNumeroPersonas().setEnabled(true);
 	        getPanelGestionGrupo().setVisible(true);
-	        
-	        // MOSTRAR/OCULTAR componentes
 	        getBtInscrip().setVisible(false);
 	        getBtnInscribirGrupo().setVisible(true);
-	        getPanelFormulario().setVisible(true); // Mantener visible para el responsable
-	        
-	        // Inicializar lista (sin el responsable)
-	        
+	        getPanelFormulario().setVisible(true); 
 	        actualizarEstadoBotonInscribir();
 	        
 	    } catch (NumberFormatException ex) {
@@ -677,21 +630,7 @@ public class VentanaInscripcion extends JFrame {
 	    }
 	}
 
-	private JTextField getTxNumeroPersonas() {
-	    if (txNumeroPersonas == null) {
-	        txNumeroPersonas = new JTextField();
-	        txNumeroPersonas.setColumns(5);
-	        txNumeroPersonas.setText("1");
-	    }
-	    return txNumeroPersonas;
-	}
 
-	private JLabel getLbNumeroPersonas() {
-	    if (lbNumeroPersonas == null) {
-	        lbNumeroPersonas = new JLabel("Num Personas:");
-	    }
-	    return lbNumeroPersonas;
-	}
 	
 	private boolean validarActividadSeleccionada() {
 	    if (service.getAct() == null) {
@@ -708,7 +647,7 @@ public class VentanaInscripcion extends JFrame {
 	        return 1;
 	    } else {
 	        try {
-	            return Integer.parseInt(getTxNumeroPersonas().getText());
+	            return numPersonas;
 	        } catch (NumberFormatException e) {
 	            return 0;
 	        }
@@ -775,7 +714,6 @@ public class VentanaInscripcion extends JFrame {
 	        pnGestionGrupo.setBorder(BorderFactory.createTitledBorder("Gestion del Grupo - Lista de Integrantes"));
 	        pnGestionGrupo.setPreferredSize(new Dimension(800, 400));
 
-	        // 🔹 1. Crear modelo y tabla
 	        modeloTablaIntegrantes = new DefaultTableModel(
 	            new Object[]{"#", "Tipo", "Nombre", "Apellidos", "Email", "Teléfono"}, 0
 	        ) {
@@ -826,9 +764,7 @@ public class VentanaInscripcion extends JFrame {
 	        btnAnadirPersona.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	agregarAlumno();
-	            	checkLimite();
-	            	
-	            	
+	            	checkLimite();	            	
 	            }
 	        });
 	    }
@@ -837,8 +773,7 @@ public class VentanaInscripcion extends JFrame {
 
 	protected void checkLimite() {
 		System.out.println("Personas lista: " + integrantesTemporales.size());
-		System.out.println("Numero metido: " + getTxNumeroPersonas().getText());
-		if(integrantesTemporales.size()==Integer.parseInt(getTxNumeroPersonas().getText())){
+		if(integrantesTemporales.size()==numPersonas){
 			getBtnAnadirPersona().setEnabled(false);
 		}
 		
@@ -888,11 +823,11 @@ public class VentanaInscripcion extends JFrame {
 
 	private void actualizarEstadoBotonInscribir() {
 	    if (getRdbtIndividual().isSelected()) {
-	        // Para individual: activo si hay actividad seleccionada
+	        
 	        boolean actividadSeleccionada = (service.getAct() != null);
 	        getBtInscrip().setEnabled(actividadSeleccionada);
 	    } else {
-	        // Para grupal: activo si hay actividad, integrantes y plazas suficientes
+	        
 	        if (service.getAct() != null) {
 	            int plazasDisponibles = service.obtenerPlazasDisponibles(service.getAct().getId_Actividad());
 	            boolean puedeInscribir = !integrantesTemporales.isEmpty() && 
@@ -900,7 +835,6 @@ public class VentanaInscripcion extends JFrame {
 	            
 	            getBtnInscribirGrupo().setEnabled(puedeInscribir);
 	            
-	            // Actualizar mensaje de plazas
 	            if (integrantesTemporales.size() > plazasDisponibles) {
 	                getLbContadorGrupo().setText("Integrantes: " + integrantesTemporales.size() + " (Plazas insuficientes!)");
 	                getLbContadorGrupo().setForeground(Color.RED);
@@ -915,7 +849,6 @@ public class VentanaInscripcion extends JFrame {
 	}
 	
 	private boolean validarAlumno(Alumno alumno, boolean mostrarMensajes) {
-	    // Validar nombre
 	    if (alumno.getNombre() == null || alumno.getNombre().trim().isEmpty()) {
 	        if (mostrarMensajes) {
 	            JOptionPane.showMessageDialog(this, "El nombre es obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
@@ -930,7 +863,7 @@ public class VentanaInscripcion extends JFrame {
 	        return false;
 	    }
 	    
-	    // Validar apellidos - CORREGIR: usar getApellidos() en lugar de getApellido()
+	    
 	    if (alumno.getApellido() == null || alumno.getApellido().trim().isEmpty()) {
 	        if (mostrarMensajes) {
 	            JOptionPane.showMessageDialog(this, "Los apellidos son obligatorios", "Error", JOptionPane.ERROR_MESSAGE);
@@ -945,7 +878,7 @@ public class VentanaInscripcion extends JFrame {
 	        return false;
 	    }
 	    
-	    // Validar email
+	    
 	    if (alumno.getCorreo() == null || alumno.getCorreo().trim().isEmpty()) {
 	        if (mostrarMensajes) {
 	            JOptionPane.showMessageDialog(this, "El email es obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
@@ -963,8 +896,6 @@ public class VentanaInscripcion extends JFrame {
 	    return true;
 	}
 	
-	
-	
 	private void quitarPersonaDelGrupo() {
 	    int filaSeleccionada = tablaIntegrantes.getSelectedRow();
 	    if (filaSeleccionada == -1) {
@@ -974,11 +905,10 @@ public class VentanaInscripcion extends JFrame {
 	        return;
 	    }
 
-	    // Quitar de la lista y del modelo
 	    integrantesTemporales.remove(filaSeleccionada);
 	    modeloTablaIntegrantes.removeRow(filaSeleccionada);
 
-	    // Reajustar numeración y tipo (por si se borró el responsable)
+	    
 	    for (int i = 0; i < integrantesTemporales.size(); i++) {
 	        String tipo = (i == 0) ? "RESPONSABLE" : "INTEGRANTE";
 	        modeloTablaIntegrantes.setValueAt(i + 1, i, 0);
@@ -1060,7 +990,7 @@ public class VentanaInscripcion extends JFrame {
 	                "Inscripcion grupal realizada para " + totalPersonas + " personas.\nSe debe pagar en 48 horas.",
 	                "Inscripcion Exitosa", JOptionPane.INFORMATION_MESSAGE);
 	            
-	            // Limpiar y volver a individual
+	            
 	            integrantesTemporales.clear();
 	            modeloIntegrantes.clear();
 	            actualizarContadorGrupo();
@@ -1160,7 +1090,7 @@ public class VentanaInscripcion extends JFrame {
 
 	        @Override
 	        public String toString() {
-	            return descripcion; // lo que se muestra en el JComboBox
+	            return descripcion;
 	        }
 	    }  
 }
