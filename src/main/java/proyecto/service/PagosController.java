@@ -71,8 +71,12 @@ public class PagosController {
         resultado.put("estado", obtenerEstadoActividad(act));
 
         int plazasOcupadas = ((Number) db.executeQueryMap(
-            "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ?", idActividad
-        ).get(0).get("total")).intValue();
+        	    "SELECT COUNT(*) AS total " +
+        	    "FROM Matricula " +
+        	    "WHERE id_actividad = ?  AND (isCancelada IS NULL OR isCancelada = 0)",
+        	    idActividad
+        	).get(0).get("total")).intValue();
+
 
         int totalPlazas = ((Number) act.get("total_plazas")).intValue();
         int plazasDisponibles = totalPlazas - plazasOcupadas;
@@ -191,7 +195,6 @@ public class PagosController {
                 idMatricula
             ).get(0);
 
-            int idActividad = ((Number) info.get("id_actividad")).intValue();
             int idCuotaActividad = ((Number) info.get("id_cuota_actividad")).intValue();
             double totalPagado = ((Number) info.get("total_pagado")).doubleValue();
 
@@ -210,38 +213,6 @@ public class PagosController {
                 "UPDATE Matricula SET monto_pagado = ?, esta_pagado = ? WHERE id_matricula = ?",
                 totalPagado, estaPagado ? 1 : 0, idMatricula
             );
-
-
-            if (estaPagado) {
-                List<Map<String, Object>> res = db.executeQueryMap(
-                    "SELECT (a.total_plazas - COUNT(CASE WHEN m.esta_pagado = 1 AND (m.isCancelada IS NULL OR m.isCancelada = 0) THEN 1 END)) AS plazas_libres " +
-                    "FROM Actividad a " +
-                    "LEFT JOIN Matricula m ON a.id_actividad = m.id_actividad " +
-                    "WHERE a.id_actividad = ? " +
-                    "GROUP BY a.id_actividad",
-                    idActividad
-                );
-
-                int plazasLibres = ((Number) res.get(0).get("plazas_libres")).intValue();
-
-                if (plazasLibres < 0) {
-                    db.executeUpdate(
-                        "UPDATE Matricula SET isCancelada = 1 WHERE id_matricula = ?",
-                        idMatricula
-                    );
-
-                    JOptionPane.showMessageDialog(
-                        null,
-                        "No quedaban plazas disponibles.\n\n" +
-                        "La matricula ha sido cancelada automaticamente.\n" +
-                        "El pago realizado queda registrado y podra gestionarse manualmente desde la ventana de devoluciones.",
-                        "Matricula cancelada",
-                        JOptionPane.WARNING_MESSAGE
-                    );
-
-                    return true;
-                }
-            }
 
             return true;
 
@@ -271,7 +242,7 @@ public class PagosController {
 
             for (Map<String, Object> m : matriculas) {
                 int idMatricula = ((Number) m.get("id_matricula")).intValue();
-                System.out.println("\n📘 Matrícula #" + idMatricula);
+                System.out.println("\n Matrícula #" + idMatricula);
                 System.out.println("  Alumno: " + m.get("nombre_alumno") + " " + m.get("apellido_alumno"));
                 System.out.println("  Actividad: " + m.get("nombre_actividad"));
                 System.out.println("  Fecha matrícula: " + m.get("fecha_matricula"));
@@ -363,10 +334,7 @@ public class PagosController {
             }
 
             aDevolver = Math.max(0, neto - cuota);
-            
-            
-            
-            
+   
             aDevolver = Math.round(aDevolver * 100.0) / 100.0;
 
             datos.put("cuota", cuota);
@@ -392,13 +360,12 @@ public class PagosController {
             String metodoPago = porEfectivo ? "Efectivo" : "Transferencia";
 
             Map<String, Object> info = db.executeQueryMap(
-                "SELECT id_alumno, id_actividad, monto_pagado FROM Matricula WHERE id_matricula = ?",
+                "SELECT id_alumno, id_actividad FROM Matricula WHERE id_matricula = ?",
                 idMatricula
             ).get(0);
 
             int idAlumno = ((Number) info.get("id_alumno")).intValue();
             int idActividad = ((Number) info.get("id_actividad")).intValue();
-            double pagadoActual = ((Number) info.get("monto_pagado")).doubleValue();
 
             db.executeUpdate("""
                 INSERT INTO Devoluciones 
@@ -414,15 +381,6 @@ public class PagosController {
                 metodoPago
             );
 
-            double nuevoMonto = pagadoActual - montoDevuelto;
-            boolean estaPagado = nuevoMonto >= 0;
-
-            db.executeUpdate("""
-                UPDATE Matricula 
-                SET monto_pagado = ?, esta_pagado = ?
-                WHERE id_matricula = ?
-            """, nuevoMonto, (estaPagado ? 1 : 0), idMatricula);
-
             return true;
 
         } catch (Exception e) {
@@ -435,62 +393,6 @@ public class PagosController {
     }
 
 
-
-    public void imprimirMatriculasYPagos() {
-        try {
-        	
-
-            List<Map<String, Object>> matriculas = db.executeQueryMap(
-                "SELECT m.id_matricula, " +
-                "a.nombre AS nombre_alumno, a.apellido AS apellido_alumno, " +
-                "act.nombre AS nombre_actividad, m.fecha_matricula, m.monto_pagado, m.esta_pagado, m.isCancelada " +
-                "FROM Matricula m " +
-                "JOIN Alumno a ON m.id_alumno = a.id_alumno " +
-                "JOIN Actividad act ON m.id_actividad = act.id_actividad " +
-                "ORDER BY m.id_matricula"
-            );
-
-            for (Map<String, Object> m : matriculas) {
-                int idMatricula = ((Number) m.get("id_matricula")).intValue();
-                System.out.println("\n�� Matricula #" + idMatricula);
-                System.out.println("  Alumno: " + m.get("nombre_alumno") + " " + m.get("apellido_alumno"));
-                System.out.println("  Actividad: " + m.get("nombre_actividad"));
-                System.out.println("  Fecha matrícula: " + m.get("fecha_matricula"));
-                System.out.println("  Monto pagado: " + m.get("monto_pagado"));
-                System.out.println("  Pagado: " + (((Number) m.get("esta_pagado")).intValue() == 1));
-                System.out.println("  Cancelada: " + (((Number) m.get("isCancelada")).intValue() == 1));
-
-
-                List<Map<String, Object>> pagos = db.executeQueryMap(
-                    "SELECT id_pago, fecha_pago, cantidad, metodo_pago " +
-                    "FROM PagoAlumno WHERE id_matricula = ?",
-                    idMatricula
-                );
-
-                if (pagos.isEmpty()) {
-                    System.out.println("  💸 Pagos: (sin pagos registrados)");
-                } else {
-                    System.out.println("  💸 Pagos:");
-                    for (Map<String, Object> p : pagos) {
-                        System.out.println("    Pago #" + p.get("id_pago") +
-                                           " | Fecha: " + p.get("fecha_pago") +
-                                           " | Cantidad: " + p.get("cantidad") +
-                                           " | Método: " + p.get("metodo_pago"));
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(
-                null,
-                "Error al imprimir matrículas y pagos:\n" + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-            );
-        }
-    }
-    
     
     public List<Map<String, Object>> listarMovimientosAlumno(int idMatricula) {
         List<Map<String, Object>> movimientos = new ArrayList<>();
@@ -513,6 +415,51 @@ public class PagosController {
 
         return movimientos;
     }
+    
+    public String getNombreAlumno(int idMatricula) {
+        return (String) db.executeQueryMap("""
+            SELECT a.nombre
+            FROM Alumno a
+            JOIN Matricula m ON a.id_alumno = m.id_alumno
+            WHERE m.id_matricula = ?
+        """, idMatricula).get(0).get("nombre");
+    }
+
+    public String getNombreActividad(int idMatricula) {
+        return (String) db.executeQueryMap("""
+            SELECT ac.nombre
+            FROM Actividad ac
+            JOIN Matricula m ON ac.id_actividad = m.id_actividad
+            WHERE m.id_matricula = ?
+        """, idMatricula).get(0).get("nombre");
+    }
+
+    public LocalDate getFechaLimitePago(int idMatricula) {
+        Map<String, Object> row = db.executeQueryMap("""
+    	    SELECT A.fin_inscripcion
+    	    FROM Matricula M
+    	    JOIN Actividad A ON M.id_actividad = A.id_actividad
+    	    WHERE M.id_matricula = ?
+    	    """, idMatricula).get(0);
+
+        String f = (String) row.get("fin_inscripcion");
+
+        if (f == null) return null; // evita el NullPointerException
+
+        return LocalDate.parse(f);
+    }
+
+    public LocalDate getFechaInicioActividad(int idMatricula) {
+        String f = (String) db.executeQueryMap("""
+            SELECT A.fecha_inicio
+            FROM Matricula M
+            JOIN Actividad A ON M.id_actividad = A.id_actividad
+            WHERE M.id_matricula = ?
+        """, idMatricula).get(0).get("fecha_inicio");
+        
+        return LocalDate.parse(f);
+    }
+
 
     
 //Ventana Registrar pagos profesores
@@ -674,10 +621,6 @@ public class PagosController {
         );
     }
 
-    
-    
-
-
     public Map<String, Object> obtenerTotalesFacturaProfesor(int idFactura) {
         List<Map<String, Object>> res = db.executeQueryMap(
             """
@@ -709,9 +652,6 @@ public class PagosController {
         );
     }
 
-
-
-    
     public List<Map<String, Object>> listarTodosLosCursos() {
         return db.executeQueryMap(
             """

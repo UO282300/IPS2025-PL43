@@ -30,6 +30,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import proyecto.service.EmailInscritosController;
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
 
@@ -54,9 +55,14 @@ public class VentanaPagosAlumnos extends JFrame {
     private Map<Integer, Map<String, Object>> inscripcionData = new HashMap<>();
     private int idActividadSeleccionada = -1;
     private int idMatriculaSeleccionada = -1;
+    
+    private EmailInscritosController ec;
 
     public VentanaPagosAlumnos(UserService service) {
         this.us = new PagosController(service);
+        
+        this.ec = new EmailInscritosController();
+        
         setTitle("Registro de Pagos de Inscripciones");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1500, 800);
@@ -343,7 +349,7 @@ public class VentanaPagosAlumnos extends JFrame {
 
             String metodo;
  
-                metodo = mov.get("metodo") != null ? mov.get("metodo").toString() : "-";
+            metodo = mov.get("metodo") != null ? mov.get("metodo").toString() : "-";
             
 
             double cantidad = mov.get("cantidad") != null ? ((Number)mov.get("cantidad")).doubleValue() : 0.0;
@@ -469,13 +475,16 @@ public class VentanaPagosAlumnos extends JFrame {
             int totalPlazas = act.get("total_plazas") != null ? ((Number) act.get("total_plazas")).intValue() : 0;
 
             Map<String, Object> detalles = us.getActividadDetalles(id);
-            int plazasDisponibles = totalPlazas;
-            if (detalles != null && detalles.get("inscripciones") != null) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> inscripciones = (List<Map<String, Object>>) detalles.get("inscripciones");
-                plazasDisponibles = totalPlazas - inscripciones.size();
-                if (plazasDisponibles < 0) plazasDisponibles = 0;
+            
+            int plazasDisponibles = 0;
+
+            if (detalles != null && detalles.get("plazas_disponibles") != null) {
+                plazasDisponibles = ((Number) detalles.get("plazas_disponibles")).intValue();
+            } else {
+                plazasDisponibles = totalPlazas;
             }
+
+
 
             boolean isClosed = act.get("isClosed") != null && ((Number) act.get("isClosed")).intValue() == 1;
             boolean isCancelada = act.get("isCancelada") != null && ((Number) act.get("isCancelada")).intValue() == 1;
@@ -520,97 +529,121 @@ public class VentanaPagosAlumnos extends JFrame {
 
 
 
-	    private void procesarPago(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
-	    	
-	    	boolean porEfectivo = this.rbEfectivo.isSelected();
-			double limiteEfectivo = us.getLimiteEfectivo(); 
-	        if (porEfectivo && cantidad > limiteEfectivo) {
-	            mostrarError(String.format(
-	                "No se puede pagar mas de %.2f euros en efectivo por este movimiento.",
-	                limiteEfectivo
-	            ));
-	            return; 
-	        }
-	        
-	        String avisoPlazo = verificarPlazoPago(fechaMovimiento, idMatriculaSeleccionada) + "\n";
+    private void procesarPago(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 
-	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
-	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
-	        
-	        double montoTotalMatricula = us.getMontoTotalMatricula(idMatriculaSeleccionada);
-	        
+        boolean porEfectivo = this.rbEfectivo.isSelected();
+        double limiteEfectivo = us.getLimiteEfectivo(); 
+        if (porEfectivo && cantidad > limiteEfectivo) {
+            mostrarError(String.format(
+                "No se puede pagar mas de %.2f euros en efectivo por este movimiento.",
+                limiteEfectivo
+            ));
+            return; 
+        }
+        
+        String avisoPlazo = verificarPlazoPago(fechaMovimiento, idMatriculaSeleccionada) + "\n";
 
-	        double netoActual = totalPagado - totalDevuelto;
-	        double pendienteAntes = Math.max(0, montoTotalMatricula - netoActual);
-	        double excesoAntes = Math.max(0, (netoActual + cantidad) - montoTotalMatricula);
-	        double restanteDespues = Math.max(0, pendienteAntes - cantidad);
-	
-	        String mensaje;
-	        if (Math.abs(cantidad - pendienteAntes) <= 0.01) {
-	            mensaje = String.format(
-	                "Confirmar pago\n"+
-	                avisoPlazo +
-	                "Cantidad a pagar: %.2f €\n" +
-	                "Cantidad pendiente antes del pago: %.2f euros\n " +
-	                "Cantidad que quedara pendiente después del pago: %.2f euros\n\n" +
-	                "Desea continuar?",
-	                cantidad, pendienteAntes, restanteDespues
-	            );
-	        } else if (cantidad < pendienteAntes) {
-	            mensaje = String.format(
-	            	avisoPlazo +
-	                "El pago ingresado es menor que la cantidad pendiente.\n\n" +
-	                "Cantidad a pagar: %.2f euros\n" +
-	                "Cantidad pendiente antes del pago: %.2f euros\n" +
-	                "Cantidad que quedara pendiente despues del pago: %.2f euros\n\n" +
-	                "¿Desea continuar y registrar este pago parcial?",
-	                cantidad, pendienteAntes, restanteDespues
-	            );
-	        } else { 
-	            mensaje = String.format(
-	            		avisoPlazo +
-	                "El pago ingresado es mayor que la cantidad pendiente.\n\n" +
-	                "Cantidad a pagar: %.2f euros\n" +
-	                "Cantidad pendiente antes del pago: %.2f euros\n" +
-	                "Exceso que quedara registrado: %.2f euros\n\n" +
-	                "�Desea continuar y registrar este pago?",
-	                cantidad, pendienteAntes, excesoAntes
-	            );
-	        }
-	
-	        int opcion = JOptionPane.showConfirmDialog(
-	            this, mensaje, "Confirmar pago", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
-	        );
-	
-	        if (opcion != JOptionPane.YES_OPTION) {
-	            mostrarAviso("Operacion cancelada. El pago no se ha registrado.");
-	            return;
-	        }
-	
-	        boolean ok = us.registrarPago(idMatriculaSeleccionada, cantidad, fechaMovimiento,this.rbEfectivo.isSelected());
-	        if (!ok) {
-	            mostrarError("Error al registrar el pago. No se guardaron los cambios.");
-	            return;
-	        }
-	        mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f euros.", cantidad));
+        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
+        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
+        double montoTotalMatricula = us.getMontoTotalMatricula(idMatriculaSeleccionada);
 
-	
-	        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
-	        if (nuevoEstado == null) return;
+        double netoActual = totalPagado - totalDevuelto;
+        double pendienteAntes = Math.max(0, montoTotalMatricula - netoActual);
+        double excesoAntes = Math.max(0, (netoActual + cantidad) - montoTotalMatricula);
+        double restanteDespues = Math.max(0, pendienteAntes - cantidad);
 
-	        actualizarCamposVisuales(true);
-	        cargarInscripcionesPendientes();
-	        cargarActividadesCompletas();
+        String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
+        String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
+        LocalDate fechaLimite = us.getFechaLimitePago(idMatriculaSeleccionada);
+        LocalDate fechaInicio = us.getFechaInicioActividad(idMatriculaSeleccionada);
 
-	    }
+        String mensaje;
+        boolean esPagoCompleto = false;
+        boolean esPagoParcial = false;
+
+        if (Math.abs(cantidad - pendienteAntes) <= 0.01) {
+            mensaje = String.format(
+                "Confirmar pago\n" +
+                avisoPlazo +
+                "Cantidad a pagar: %.2f €\n" +
+                "Cantidad pendiente antes del pago: %.2f euros\n" +
+                "Con este pago, la matricula quedará pagada\n\n" +
+                "Desea continuar?\n",
+                cantidad, pendienteAntes
+            );
+            esPagoCompleto = true;
+
+        } else if (cantidad < pendienteAntes) {
+            mensaje = String.format(
+                avisoPlazo +
+                "El pago ingresado es menor que la cantidad pendiente.\n\n" +
+                "Cantidad a pagar: %.2f euros\n" +
+                "Cantidad pendiente antes del pago: %.2f euros\n" +
+                "Cantidad que quedara pendiente despues del pago: %.2f euros\n\n" +
+                "¿Desea continuar y registrar este pago parcial?",
+                cantidad, pendienteAntes, restanteDespues
+            );
+            esPagoParcial = true;
+
+        } else {
+            mensaje = String.format(
+                avisoPlazo +
+                "El pago ingresado es mayor que la cantidad pendiente.\n\n" +
+                "Cantidad a pagar: %.2f euros\n" +
+                "Cantidad pendiente antes del pago: %.2f euros\n" +
+                "La matricula quedará pagada pero se generará\n" +
+                "un exceso que quedara registrado: %.2f euros\n\n" +
+                "Desea continuar y registrar este pago?",
+                cantidad, pendienteAntes, excesoAntes
+            );
+            esPagoCompleto = true;
+        }
+
+        int opcion = JOptionPane.showConfirmDialog(
+            this, mensaje, "Confirmar pago", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+        );
+
+        if (opcion != JOptionPane.YES_OPTION) {
+            mostrarAviso("Operacion cancelada. El pago no se ha registrado.");
+            return;
+        }
+
+        boolean ok = us.registrarPago(idMatriculaSeleccionada, cantidad, fechaMovimiento, porEfectivo);
+        if (!ok) {
+            mostrarError("Error al registrar el pago. No se guardaron los cambios.");
+            return;
+        }
+
+        mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f euros.", cantidad));
+
+        if (esPagoCompleto) {
+            ec.generarEmailMatriculaCompleta(
+                nombreAlumno, nombreActividad, cantidad, fechaMovimiento, fechaInicio,
+                porEfectivo, totalPagado, totalDevuelto, montoTotalMatricula
+            );
+        } else if (esPagoParcial) {
+            ec.generarEmailPagoPendiente(
+                nombreAlumno, nombreActividad, cantidad, fechaMovimiento, fechaLimite,
+                porEfectivo, totalPagado, totalDevuelto, montoTotalMatricula
+            );
+        }
+
+        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
+        if (nuevoEstado == null) return;
+
+        actualizarCamposVisuales(true);
+        cargarInscripcionesPendientes();
+        cargarActividadesCompletas();
+    }
+
 
 	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 	        boolean porEfectivo = this.rbEfectivo.isSelected();
 	        double limiteEfectivo = us.getLimiteEfectivo();
 	        if (porEfectivo && cantidad > limiteEfectivo) {
 	            mostrarError(String.format(
-	                "No se puede devolver más de %.2f euros en efectivo por este movimiento.",
-	                limiteEfectivo
+	                    "No se puede devolver más de %.2f euros en efectivo por este movimiento.",
+	                    limiteEfectivo
 	            ));
 	            return;
 	        }
@@ -618,55 +651,72 @@ public class VentanaPagosAlumnos extends JFrame {
 	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
 	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
 	        double cuota = estado.getOrDefault("cuota", 0.0);
-	        boolean isCancelada = estado.getOrDefault("is_cancelada", 0.0) == 1.0; 
+	        boolean isCancelada = estado.getOrDefault("is_cancelada", 0.0) == 1.0;
 
-	        double disponibleParaDevolver = isCancelada
+	        String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
+	        String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
+
+	        double pendienteParaDevolver = isCancelada
 	                ? Math.max(0.0, totalPagado - totalDevuelto)
 	                : Math.max(0.0, totalPagado - totalDevuelto - cuota);
 
-	        double diferencia = cantidad - disponibleParaDevolver;
+	        double diferencia = cantidad - pendienteParaDevolver;
 	        String mensajeConfirmacion;
+
+	        String tipoEmail = null;
 
 	        if (isCancelada) {
 	            mensajeConfirmacion = String.format(
-	                "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
-	                "Cantidad registrada: %.2f euros\n" +
-	                "Cantidad que estaba pendiente: %.2f euros\n" +
-	                "¿Desea continuar con la devolución?",
-	                cantidad, disponibleParaDevolver
+	                    "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
+	                    "Cantidad registrada: %.2f euros\n" +
+	                    "Cantidad que estaba pendiente: %.2f euros\n" +
+	                    "¿Desea continuar con la devolución?",
+	                    cantidad, pendienteParaDevolver
 	            );
+
+	            tipoEmail = "completa";
+
 	        } else if (Math.abs(diferencia) < 0.01) {
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolución\n\n" +
-	                "Cantidad a devolver: %.2f euros\n" +
-	                "Cantidad pendiente de devolver: %.2f euros\n" +
-	                "Desea continuar?",
-	                cantidad, disponibleParaDevolver, disponibleParaDevolver-cantidad
+	                    "Confirmar devolución\n\n" +
+	                    "Cantidad a devolver: %.2f euros\n" +
+	                    "Cantidad pendiente de devolver: %.2f euros\n" +
+	                    "Desea continuar?",
+	                    cantidad, pendienteParaDevolver
 	            );
-	        } else if (cantidad < disponibleParaDevolver) {
-	            double restante = disponibleParaDevolver - cantidad;
+
+	            tipoEmail = "completa";
+
+	        } else if (cantidad < pendienteParaDevolver) {
+	            double restante = pendienteParaDevolver - cantidad;
 	            mensajeConfirmacion = String.format(
-	                "Confirmar devolución parcial\n\n" +
-	                "Cantidad a devolver: %.2f euros\n" +
-	                "Cantidad pendiente a devolver: %.2f euros\n" +
-	                "Cantidad pendiente que se genera: %.2f euros\n\n" +
-	                "Desea continuar con la devolución parcial?",
-	                cantidad, disponibleParaDevolver, restante
+	                    "Confirmar devolución parcial\n\n" +
+	                    "Cantidad a devolver: %.2f euros\n" +
+	                    "Cantidad pendiente a devolver: %.2f euros\n" +
+	                    "Cantidad pendiente que se genera: %.2f euros\n\n" +
+	                    "Desea continuar con la devolución parcial?",
+	                    cantidad, pendienteParaDevolver, restante
 	            );
+
+	            tipoEmail = "pendiente";
+
 	        } else {
-	            double exceso = cantidad - disponibleParaDevolver;
+	            double exceso = cantidad - pendienteParaDevolver;
 	            mensajeConfirmacion = String.format(
-	                "Atención: la cantidad a devolver supera la disponible.\n\n" +
-	                "Cantidad a devolver: %.2f euros\n" +
-	                "Cantidad pendiente por devolución: %.2f euros\n" +
-	                "Exceso : %.2f euros\n\n" +
-	                "¿Desea continuar igualmente?",
-	                cantidad, disponibleParaDevolver, exceso
+	                    "Atención: la cantidad a devolver supera la cantidad pendiente.\n\n" +
+	                    "Cantidad a devolver: %.2f euros\n" +
+	                    "Cantidad pendiente por devolución: %.2f euros\n" +
+	                    "Exceso : %.2f euros\n\n" +
+	                    "¿Desea continuar igualmente?",
+	                    cantidad, pendienteParaDevolver, exceso
 	            );
+
+	            tipoEmail = "completa";
 	        }
 
 	        int opcion = JOptionPane.showConfirmDialog(
-	            this, mensajeConfirmacion, "Confirmar devolución", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+	                this, mensajeConfirmacion, "Confirmar devolución",
+	                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
 	        );
 
 	        if (opcion != JOptionPane.YES_OPTION) {
@@ -674,10 +724,21 @@ public class VentanaPagosAlumnos extends JFrame {
 	            return;
 	        }
 
-	        boolean ok = us.registrarDevolucion(idMatriculaSeleccionada, cantidad, fechaMovimiento, porEfectivo);
-	        if (!ok) {
-	            mostrarError("Error al registrar la devolución. No se guardaron los cambios.");
-	            return;
+	        boolean ok = registrarDevolucion(cantidad, fechaMovimiento, porEfectivo);
+	        if (!ok) return;
+
+	        if ("completa".equals(tipoEmail)) {
+	            ec.generarEmailDevolucionCompleta(
+	                    nombreAlumno, nombreActividad, cantidad,
+	                    fechaMovimiento, porEfectivo,
+	                    totalPagado, totalDevuelto, cuota
+	            );
+	        } else if ("pendiente".equals(tipoEmail)) {
+	            ec.generarEmailDevolucionPendiente(
+	                    nombreAlumno, nombreActividad, cantidad,
+	                    fechaMovimiento, porEfectivo,
+	                    totalPagado, totalDevuelto, cuota
+	            );
 	        }
 
 	        actualizarCamposVisuales(false);
@@ -688,6 +749,14 @@ public class VentanaPagosAlumnos extends JFrame {
 	    }
 
 
+	    private boolean registrarDevolucion(double cantidad, LocalDate fechaMovimiento, boolean porEfectivo) {
+	        boolean ok = us.registrarDevolucion(idMatriculaSeleccionada, cantidad, fechaMovimiento, porEfectivo);
+	        if (!ok) {
+	            mostrarError("Error al registrar la devolución. No se guardaron los cambios.");
+	            return false;
+	        }
+	        return true;
+	    }
 
 	    private void actualizarCamposVisuales(boolean esPago) {
 	        if (idMatriculaSeleccionada <= 0) return;

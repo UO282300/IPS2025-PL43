@@ -29,7 +29,7 @@ INSERT INTO Cuota(categoria) VALUES
 
 -- Actividades
 INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, es_gratuita, total_plazas, empresa, isClosed) VALUES
-('Nuevas técnicas de Prueba','Técnicas nuevas de prueba','Tecnicas modernas para hacer test','C-02','2025-07-01','2025-07-31','2025-09-01','2025-09-03',0,10,'CodeCorp', 0);
+('Nuevas técnicas de Prueba','Técnicas nuevas de prueba','Tecnicas modernas para hacer test','C-02','2025-07-01','2025-07-31','2025-09-01','2025-09-03',0,2,'CodeCorp', 0);
 
 -- Cuotas por Actividad
 INSERT INTO CuotaActividad(id_cuota, id_actividad, valor) VALUES
