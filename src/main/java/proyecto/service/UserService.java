@@ -50,8 +50,8 @@ public class UserService {
 
 	public UserService() {
         this.db = new Database();
-        //crearDataBase();
-        //cargarDataBase();
+        crearDataBase();
+        cargarDataBase();
     }
 	
 	public Database getDb() {
@@ -434,10 +434,20 @@ public class UserService {
 	}
 
 	private void insertaMatricula() {
+		String cuota ="SELECT valor from CuotaActividad where id_cuota_actividad = ?";
+		
+		List<Object[]> result = db.executeQueryArray(cuota, a.getId_cuota());
+		
+		if (result.isEmpty()) {
+	        throw new RuntimeException("No se encontró el valor de la cuota para id: " + a.getId_cuota());
+	    }
+		
+		double valor = Double.valueOf(result.get(0)[0].toString());
+		
 		db.executeUpdate(
 	            "INSERT INTO Matricula (id_alumno, id_actividad, esta_pagado, monto_pagado, fecha_matricula, numero_matriculados, integrantes_ids,"
-	            + " id_cuota_actividad) " +
-	            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+	            + " id_cuota_actividad, monto_total) " +
+	            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 	            a.getIdAlumno(),
 	            ac.getId_Actividad(),
 	            false,
@@ -445,7 +455,8 @@ public class UserService {
 	            fechaHoy,
 	            1,
 	            a.getIdAlumno(),
-	            a.getId_cuota()
+	            a.getId_cuota(),
+	            valor
 	        );
 				
 	}
@@ -505,33 +516,28 @@ public class UserService {
 
 	        Factura f = new Factura(totalPlazas);
 	        f.setId_actividad(idActividad);
-	        f.setNombre((String) fila.get("nombre"));
-
-	        // === Recuperar las cuotas asociadas a la actividad ===
-	        List<Map<String, Object>> cuotas = db.executeQueryMap(
-	            "SELECT c.categoria, ca.valor FROM CuotaActividad ca " +
-	            "JOIN Cuota c ON c.id_cuota = ca.id_cuota " +
-	            "WHERE ca.id_actividad = ?", idActividad
+	        f.setNombre((String) fila.get("nombre"));	       
+	        
+	        List<Map<String, Object>> facturasPagadas = db.executeQueryMap(
+	            "SELECT cantidad FROM PagoProfesor WHERE id_actividad = ?", idActividad
 	        );
-
-	        double cuotaMedia = 0.0;
-	        if (!cuotas.isEmpty()) {
-	            // Puedes hacer la media, o tomar una en concreto si la lÃ³gica lo requiere
-	            cuotaMedia = cuotas.stream()
-	                               .mapToDouble(x -> ((Number) x.get("valor")).doubleValue())
-	                               .average()
-	                               .orElse(0.0);
-	        }
-
-	        // === Recuperar gastos (de profesores, por ejemplo) ===
+	        List<Map<String, Object>> devolucionesProfesor = db.executeQueryMap(
+	        		"select cantidad from DevolucionProfesor where id_actividad = ?", idActividad);
+	        
+	        
+	        
 	        List<Map<String, Object>> facturas = db.executeQueryMap(
-	            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
-	        );
-	        double gastos = facturas.stream()
+		            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
+		        );
+	        
+	        double gastosEstimados = facturas.stream()
 	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
 	                                .sum();
+	        double gastos = facturasPagadas.stream()
+                    .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+                    .sum() - devolucionesProfesor.stream().mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad")))).sum();
+	        f.setGastosEstimados(gastosEstimados);
 	        f.setGastos(gastos);
-
 	        // === Plazas ===
 	        int pagadas = recuperarPlazasPagadas(idActividad);
 	        f.setPlazasOcupPagadas(pagadas);
@@ -539,10 +545,13 @@ public class UserService {
 	        f.setPlazasOcup(plazasOcup);
 
 	        // === Ingresos y balance ===
-	        f.calcularIngresosReales(cuotaMedia);
-	        f.calcularIngresosEstimados(cuotaMedia);
-	        f.calcularEstimado(cuotaMedia);
-	        f.setBalance();
+	        double ingresosReales = ingresosReales(idActividad);
+	        double ingresosEstimados = ingresosEstimados(idActividad);
+
+	        f.calcularIngresosReales(ingresosReales);
+	        f.calcularIngresosEstimados(ingresosEstimados);
+	        f.calcularEstimado();
+	        f.calcularBalance();
 
 	        // === Otros datos ===
 	        f.setFecha(LocalDate.parse((String) fila.get("fecha_inicio")));
@@ -553,7 +562,30 @@ public class UserService {
 
 	    return listaActividades;
 	}
+	
+	private double ingresosReales(int idActividad) {
+	    String sql = "SELECT SUM(monto_pagado) AS total FROM Matricula " +
+	                 "WHERE id_actividad = ?";
 
+	    List<Map<String, Object>> r = db.executeQueryMap(sql, idActividad);
+	    if (r.isEmpty()) return 0.0;
+
+	    Object val = r.get(0).get("total");
+
+	    return val == null ? 0.0 : ((Number) val).doubleValue();
+	}
+
+	private double ingresosEstimados(int idActividad) {
+	    String sql = "SELECT SUM(monto_total) AS total FROM Matricula " +
+	                 "WHERE id_actividad = ?";
+
+	    List<Map<String, Object>> r = db.executeQueryMap(sql, idActividad);
+	    if (r.isEmpty()) return 0.0;
+
+	    Object val = r.get(0).get("total");
+
+	    return val == null ? 0.0 : ((Number) val).doubleValue();
+	}
 
 	
 
@@ -563,7 +595,7 @@ public class UserService {
 		        SELECT COALESCE(SUM(numero_matriculados), 0) as total 
 		        FROM Matricula 
 		        WHERE id_actividad = ?
-		        AND (isCancelada IS NULL OR isCancelada = 0)
+		        
 		        """, idActividad);
 		    
 		    return ((Number) resultado.get(0).get("total")).intValue();
@@ -576,7 +608,7 @@ public class UserService {
 	        SELECT COALESCE(SUM(numero_matriculados), 0) as total 
 	        FROM Matricula 
 	        WHERE id_actividad = ? AND esta_pagado = 1
-	        AND (isCancelada IS NULL OR isCancelada = 0)
+	        
 	        """, idActividad);
 	    
 	    return ((Number) resultado.get(0).get("total")).intValue();
@@ -1171,10 +1203,21 @@ public class UserService {
 		String sql = """
 				INSERT INTO Matricula 
 				(id_alumno, id_actividad, fecha_matricula, monto_pagado, esta_pagado,
-				numero_matriculados, integrantes_ids, id_cuota_actividad) 
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+				numero_matriculados, integrantes_ids, id_cuota_actividad, monto_total) 
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""";
+		String cuota ="SELECT valor from CuotaActividad where id_cuota_actividad = ?";
+		
+		List<Object[]> result = db.executeQueryArray(cuota, id_cuotaA);
 
+		Double valor = null;
+		if (result.isEmpty()) {
+			msj.setMensaje("No se encontró el valor de la cuota");
+		    return false;
+		}
+		valor = Double.valueOf(result.get(0)[0].toString());
+		
+		
 		db.executeUpdate(sql, 
 				responsable.getIdAlumno(),
 				ac.getId_Actividad(),
@@ -1183,7 +1226,8 @@ public class UserService {
 				false,
 				totalPersonas,
 				integrantesIds,
-				id_cuotaA
+				id_cuotaA,
+				valor*totalPersonas
 				);
 		System.out.println(integrantesIds);
 		return true;
