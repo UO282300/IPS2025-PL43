@@ -30,7 +30,6 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-import proyecto.service.EmailInscritosController;
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
 
@@ -56,12 +55,9 @@ public class VentanaPagosAlumnos extends JFrame {
     private int idActividadSeleccionada = -1;
     private int idMatriculaSeleccionada = -1;
     
-    private EmailInscritosController ec;
-
     public VentanaPagosAlumnos(UserService service) {
         this.us = new PagosController(service);
         
-        this.ec = new EmailInscritosController();
         
         setTitle("Registro de Pagos de Inscripciones");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -616,17 +612,6 @@ public class VentanaPagosAlumnos extends JFrame {
 
         mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f euros.", cantidad));
 
-        if (esPagoCompleto) {
-            ec.generarEmailMatriculaCompleta(
-                nombreAlumno, nombreActividad, cantidad, fechaMovimiento, fechaInicio,
-                porEfectivo, totalPagado, totalDevuelto, montoTotalMatricula
-            );
-        } else if (esPagoParcial) {
-            ec.generarEmailPagoPendiente(
-                nombreAlumno, nombreActividad, cantidad, fechaMovimiento, fechaLimite,
-                porEfectivo, totalPagado, totalDevuelto, montoTotalMatricula
-            );
-        }
 
         Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
         if (nuevoEstado == null) return;
@@ -727,19 +712,6 @@ public class VentanaPagosAlumnos extends JFrame {
 	        boolean ok = registrarDevolucion(cantidad, fechaMovimiento, porEfectivo);
 	        if (!ok) return;
 
-	        if ("completa".equals(tipoEmail)) {
-	            ec.generarEmailDevolucionCompleta(
-	                    nombreAlumno, nombreActividad, cantidad,
-	                    fechaMovimiento, porEfectivo,
-	                    totalPagado, totalDevuelto, cuota
-	            );
-	        } else if ("pendiente".equals(tipoEmail)) {
-	            ec.generarEmailDevolucionPendiente(
-	                    nombreAlumno, nombreActividad, cantidad,
-	                    fechaMovimiento, porEfectivo,
-	                    totalPagado, totalDevuelto, cuota
-	            );
-	        }
 
 	        actualizarCamposVisuales(false);
 	        cargarActividadesCompletas();
