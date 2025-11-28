@@ -105,21 +105,18 @@ public class EmailInscritosController {
             double cantidadPagada,
             LocalDate fecha,
             boolean porEfectivo,
-            double totalPagadoAntes,
-            double totalDevueltoAntes,
-            double cuota) {
+            double exceso) {
 
     	String metodo = porEfectivo ? "el efectivo" : "la transferencia";
-        double pendienteDespues = totalPagadoAntes - (totalDevueltoAntes + cantidadPagada);
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(generarMensajeDevolucionPredeterminado(nombreAlumno,nombreActividad,fecha,cantidadPagada,metodo));
 
 		sb.append("\nCon este pago compenstaorio realizado, me congratula informarle que ya se le ha devuelto\n")
 		.append("todo el dinero que le debíamos a causa del exceso generado en sus pagos");
-		if (pendienteDespues < 0) {
+		if (exceso > 0) {
 			sb.append("Sin embargo, ha habido una equivoquacion en dichos pagos y se le ha devuelto\n")
-			.append(Math.abs(pendienteDespues))
+			.append(Math.abs(exceso))
 			.append("€ más de lo que correspondia\n")
 			.append("Debido a ello, desde COIIPA le pedimos por favor que nos efectué otro pago\n")
 			.append("para devolver el dinero de más que le hemos enviado");

@@ -30,6 +30,7 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import proyecto.service.EmailInscritosController;
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
 
@@ -54,10 +55,12 @@ public class VentanaPagosAlumnos extends JFrame {
     private Map<Integer, Map<String, Object>> inscripcionData = new HashMap<>();
     private int idActividadSeleccionada = -1;
     private int idMatriculaSeleccionada = -1;
+    private EmailInscritosController ec;
     
     public VentanaPagosAlumnos(UserService service) {
         this.us = new PagosController(service);
         
+        ec = new EmailInscritosController();
         
         setTitle("Registro de Pagos de Inscripciones");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -615,6 +618,26 @@ public class VentanaPagosAlumnos extends JFrame {
 
         Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
         if (nuevoEstado == null) return;
+        
+        if (esPagoCompleto) ec.generarEmailMatriculaCompleta(
+        		nombreAlumno, 
+        		nombreActividad, 
+        		cantidad, 
+        		fechaMovimiento, 
+        		fechaInicio, 
+        		porEfectivo, 
+        		totalPagado, 
+        		totalDevuelto, 
+        		montoTotalMatricula);
+        else if (esPagoParcial) ec.generarEmailPagoPendiente(nombreAlumno, 
+        		nombreActividad, 
+        		cantidad, 
+        		fechaMovimiento, 
+        		fechaLimite, 
+        		porEfectivo, 
+        		totalPagado, 
+        		totalDevuelto, 
+        		montoTotalMatricula);
 
         actualizarCamposVisuales(true);
         cargarInscripcionesPendientes();
@@ -622,103 +645,121 @@ public class VentanaPagosAlumnos extends JFrame {
     }
 
 
-	    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
-	        boolean porEfectivo = this.rbEfectivo.isSelected();
-	        double limiteEfectivo = us.getLimiteEfectivo();
-	        if (porEfectivo && cantidad > limiteEfectivo) {
-	            mostrarError(String.format(
-	                    "No se puede devolver más de %.2f euros en efectivo por este movimiento.",
-	                    limiteEfectivo
-	            ));
-	            return;
-	        }
+    private void procesarDevolucion(double cantidad, LocalDate fechaMovimiento, Map<String, Double> estado) {
 
-	        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
-	        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
-	        double cuota = estado.getOrDefault("cuota", 0.0);
-	        boolean isCancelada = estado.getOrDefault("is_cancelada", 0.0) == 1.0;
+        boolean porEfectivo = this.rbEfectivo.isSelected();
+        double limiteEfectivo = us.getLimiteEfectivo();
+        if (porEfectivo && cantidad > limiteEfectivo) {
+            mostrarError(String.format(
+                    "No se puede devolver más de %.2f euros en efectivo por este movimiento.",
+                    limiteEfectivo
+            ));
+            return;
+        }
 
-	        String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
-	        String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
+        double totalPagado = estado.getOrDefault("total_pagado", 0.0);
+        double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
+        double cuota = estado.getOrDefault("cuota", 0.0);
+        boolean isCancelada = estado.getOrDefault("is_cancelada", 0.0) == 1.0;
 
-	        double pendienteParaDevolver = isCancelada
-	                ? Math.max(0.0, totalPagado - totalDevuelto)
-	                : Math.max(0.0, totalPagado - totalDevuelto - cuota);
+        String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
+        String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
 
-	        double diferencia = cantidad - pendienteParaDevolver;
-	        String mensajeConfirmacion;
+        double pendienteAntes = isCancelada
+                ? Math.max(0.0, totalPagado - totalDevuelto)
+                : Math.max(0.0, totalPagado - totalDevuelto - cuota);
 
-	        String tipoEmail = null;
+        double pendienteDespues = pendienteAntes - cantidad;
 
-	        if (isCancelada) {
-	            mensajeConfirmacion = String.format(
-	                    "La matricula fue cancelada, por lo que puede devolverse el total pagado.\n\n" +
-	                    "Cantidad registrada: %.2f euros\n" +
-	                    "Cantidad que estaba pendiente: %.2f euros\n" +
-	                    "¿Desea continuar con la devolución?",
-	                    cantidad, pendienteParaDevolver
-	            );
+        boolean esPagoCompleto = false;
+        boolean esPagoParcial = false;
 
-	            tipoEmail = "completa";
+        String mensajeConfirmacion;
 
-	        } else if (Math.abs(diferencia) < 0.01) {
-	            mensajeConfirmacion = String.format(
-	                    "Confirmar devolución\n\n" +
-	                    "Cantidad a devolver: %.2f euros\n" +
-	                    "Cantidad pendiente de devolver: %.2f euros\n" +
-	                    "Desea continuar?",
-	                    cantidad, pendienteParaDevolver
-	            );
+        if (pendienteAntes <= 0.01) {
+            mostrarError("No hay importe pendiente por devolver.");
+            return;
+        }
 
-	            tipoEmail = "completa";
+        if (Math.abs(pendienteDespues) < 0.01) {
+            mensajeConfirmacion = String.format(
+                    "Confirmar devolución completa\n\n" +
+                    "Cantidad a devolver: %.2f €\n" +
+                    "Cantidad pendiente antes: %.2f €\n\n" +
+                    "¿Desea continuar?",
+                    cantidad, pendienteAntes
+            );
+            esPagoCompleto = true;
 
-	        } else if (cantidad < pendienteParaDevolver) {
-	            double restante = pendienteParaDevolver - cantidad;
-	            mensajeConfirmacion = String.format(
-	                    "Confirmar devolución parcial\n\n" +
-	                    "Cantidad a devolver: %.2f euros\n" +
-	                    "Cantidad pendiente a devolver: %.2f euros\n" +
-	                    "Cantidad pendiente que se genera: %.2f euros\n\n" +
-	                    "Desea continuar con la devolución parcial?",
-	                    cantidad, pendienteParaDevolver, restante
-	            );
+        } else if (pendienteDespues > 0.01) {
+            mensajeConfirmacion = String.format(
+                    "Confirmar devolución parcial\n\n" +
+                    "Cantidad a devolver: %.2f €\n" +
+                    "Pendiente: %.2f €\n" +
+                    "Cantidad que quedará pendiente: %.2f €\n\n" +
+                    "¿Desea continuar?",
+                    cantidad, pendienteAntes, pendienteDespues
+            );
+            esPagoParcial = true;
 
-	            tipoEmail = "pendiente";
+        } else { 
+            mensajeConfirmacion = String.format(
+                    "Confirmar devolución parcial\n\n" +
+                    "Cantidad a devolver: %.2f €\n" +
+                    "Pendiente antes: %.2f €\n" +
+                    "Pendiente después: %.2f €\n\n" +
+                    "¿Desea continuar?",
+                    cantidad, pendienteAntes, Math.abs(pendienteDespues)
+            );
+            esPagoCompleto = true;
+        }
+        int opcion = JOptionPane.showConfirmDialog(
+                this, mensajeConfirmacion, "Confirmar devolución",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+        );
 
-	        } else {
-	            double exceso = cantidad - pendienteParaDevolver;
-	            mensajeConfirmacion = String.format(
-	                    "Atención: la cantidad a devolver supera la cantidad pendiente.\n\n" +
-	                    "Cantidad a devolver: %.2f euros\n" +
-	                    "Cantidad pendiente por devolución: %.2f euros\n" +
-	                    "Exceso : %.2f euros\n\n" +
-	                    "¿Desea continuar igualmente?",
-	                    cantidad, pendienteParaDevolver, exceso
-	            );
+        if (opcion != JOptionPane.YES_OPTION) {
+            mostrarAviso("Operación cancelada. La devolución no se ha registrado.");
+            return;
+        }
 
-	            tipoEmail = "completa";
-	        }
+        boolean ok = registrarDevolucion(cantidad, fechaMovimiento, porEfectivo);
+        if (!ok) return;
 
-	        int opcion = JOptionPane.showConfirmDialog(
-	                this, mensajeConfirmacion, "Confirmar devolución",
-	                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
-	        );
+        actualizarCamposVisuales(false);
+        cargarActividadesCompletas();
 
-	        if (opcion != JOptionPane.YES_OPTION) {
-	            mostrarAviso("Operación cancelada. La devolución no se ha registrado.");
-	            return;
-	        }
+        if (esPagoCompleto) {
+            ec.generarEmailDevolucionCompleta(
+                    nombreAlumno,
+                    nombreActividad,
+                    cantidad,
+                    fechaMovimiento,
+                    porEfectivo,
+                    Math.abs(pendienteDespues)
+            );
+        } else if (esPagoParcial) {
+            ec.generarEmailDevolucionPendiente(
+                    nombreAlumno,
+                    nombreActividad,
+                    cantidad,
+                    fechaMovimiento,
+                    porEfectivo,
+                    totalPagado,
+                    totalDevuelto,
+                    cuota
+            );
+        }
 
-	        boolean ok = registrarDevolucion(cantidad, fechaMovimiento, porEfectivo);
-	        if (!ok) return;
+        String metodo = porEfectivo ? "efectivo" : "transferencia";
+
+        mostrarInfo(String.format(
+                "Devolución registrada correctamente (%s).\n\nSe devolvieron %.2f euros.",
+                metodo, cantidad
+        ));
+    }
 
 
-	        actualizarCamposVisuales(false);
-	        cargarActividadesCompletas();
-
-	        String metodo = porEfectivo ? "efectivo" : "transferencia";
-	        mostrarInfo(String.format("Devolución registrada correctamente (%s).\n\nSe devolvieron %.2f euros.", metodo, cantidad));
-	    }
 
 
 	    private boolean registrarDevolucion(double cantidad, LocalDate fechaMovimiento, boolean porEfectivo) {
