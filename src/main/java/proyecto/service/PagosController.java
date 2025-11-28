@@ -762,6 +762,45 @@ public class PagosController {
 
 	    return movimientos;
 	}
+	
+	public String getNombreProfesor(int idProfesor) {
+	    try {
+	        Map<String, Object> res = db.executeQueryMap(
+	            "SELECT nombre FROM Profesor WHERE id_profesor = ?",
+	            idProfesor
+	        ).stream().findFirst().orElse(null);
+
+	        if (res == null) return "Desconocido";
+
+	        return (String) res.get("nombre");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return "Error";
+	    }
+	}
+	
+	public String getNombreActividadFactura(int idFactura) {
+	    try {
+	        Map<String, Object> res = db.executeQueryMap(
+	            "SELECT a.nombre " +
+	            "FROM FacturaP f " +
+	            "JOIN Actividad a ON f.id_actividad = a.id_actividad " +
+	            "WHERE f.id_factura = ?",
+	            idFactura
+	        ).stream().findFirst().orElse(null);
+
+	        if (res == null) return "Actividad desconocida";
+
+	        return (String) res.get("nombre");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return "Error";
+	    }
+	}
+
+
 
 
     

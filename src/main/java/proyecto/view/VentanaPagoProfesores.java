@@ -1,16 +1,36 @@
 package proyecto.view;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import javax.swing.*;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
+import proyecto.service.EmailInscritosController;
+import proyecto.service.EmailProfesoresController;
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
-import java.util.List;
 
 public class VentanaPagoProfesores extends JFrame {
 
@@ -32,9 +52,13 @@ public class VentanaPagoProfesores extends JFrame {
     private int idActividadSeleccionada = -1;
     private int idProfesorSeleccionado = -1;
     private int idFactura = -1;
+    
+    private EmailProfesoresController ec;
 
     public VentanaPagoProfesores(UserService service) {
         this.us = new PagosController(service);
+        ec = new EmailProfesoresController();
+        
         setTitle("Registro de Pagos y Devoluciones a Profesores");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1500, 800);
@@ -354,8 +378,8 @@ public class VentanaPagoProfesores extends JFrame {
     private void calcularTotalesFila(int idProfesor, int actividad, int rowIndex) {
         Map<String, Object> factura = us.obtenerDatosFacturaPorProfesorYActividad(idProfesor, actividad);
         if (factura == null || factura.get("id_factura") == null) {
-            modelProfesores.setValueAt("0.00", rowIndex, 4);
-            modelProfesores.setValueAt("0.00", rowIndex, 5);
+            modelProfesores.setValueAt("-", rowIndex, 4);
+            modelProfesores.setValueAt("-", rowIndex, 5);
             return;
         }
 
@@ -464,8 +488,14 @@ public class VentanaPagoProfesores extends JFrame {
 
 
     private void cargarTotalesProfesor() {
-        if (idProfesorSeleccionado == -1 || idActividadSeleccionada == -1 || idFactura == -1)
-            return;
+        if (idProfesorSeleccionado == -1 || idActividadSeleccionada == -1 || idFactura == -1) {
+        		int row = tableProfesores.getSelectedRow();
+	        	if (row >= 0) {
+		            modelProfesores.setValueAt("-", row, 4);
+		            modelProfesores.setValueAt("-", row, 5);
+	        	}
+	        	return;
+        }
 
         Map<String, Object> totales = us.obtenerTotalesFacturaProfesor(idFactura);
         if (totales == null || totales.isEmpty()) return;
@@ -614,18 +644,20 @@ public class VentanaPagoProfesores extends JFrame {
         double excesoPrevisto = Math.max(0, nuevoNeto - importeFactura);
         double pendientePrevista = Math.max(0, importeFactura - nuevoNeto);
 
+        String nombreProfesor = us.getNombreProfesor(idFactura);
+        String nombreActividad = us.getNombreActividadFactura(idFactura);
+        
+        
         if (excesoPrevisto > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
                 String.format(
-                    "Pago adicional: %.2f €\n" +
-                    "Neto pagado antes: %.2f €\n" +
-                    "Importe de la factura: %.2f €\n" +
+                    "Cantidad del pago: %.2f €\n" +
+                    "Cantidad pendiente de cobro: %.2f €\n" +
                     "Exceso total tras este pago: %.2f €.\n\n" +
                     "¿Desea continuar?",
                     cantidad,
-                    netoAntes,
-                    importeFactura,
+                    cantidad - excesoPrevisto,
                     excesoPrevisto
                 ),
                 "Confirmar pago en exceso",
@@ -637,12 +669,15 @@ public class VentanaPagoProfesores extends JFrame {
                 JOptionPane.showMessageDialog(this, "Operación cancelada. No se registró el pago.", "Cancelado", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
+            
+     
+            
         } else if (pendientePrevista > 0.01) {
             int opcion = JOptionPane.showConfirmDialog(
                 this,
                 String.format(
                 		 "Se están pagando %.2f € en vez de %.2f €\n Quedarán pendiente de pago %.2f €.\n¿Desea continuar?",
-                         cantidad, importeFactura,pendientePrevista
+                         cantidad, cantidad + pendientePrevista,pendientePrevista
                 ),
                 "Confirmar pago parcial",
                 JOptionPane.YES_NO_OPTION,
@@ -670,15 +705,44 @@ public class VentanaPagoProfesores extends JFrame {
         }
 
         String mensaje;
+        boolean esPagoCompleto = false;
+        boolean esPagoParcial = false;
         if (exceso > 0.01) {
             mensaje = String.format("Pago registrado. Se ha pagado %.2f € de más.", exceso);
+            esPagoCompleto = true;
         } else if (pendiente > 0.01) {
             mensaje = String.format("Pago parcial registrado. Pendiente: %.2f €.", pendiente);
+            esPagoParcial = true;
         } else {
             mensaje = "Pago completo registrado correctamente.";
+            esPagoCompleto = true;
         }
 
         JOptionPane.showMessageDialog(this, mensaje, "Resultado del pago", JOptionPane.INFORMATION_MESSAGE);
+        
+        if (esPagoCompleto) {
+            ec.generarEmailPCobroCompleto(
+                nombreProfesor,
+                nombreActividad,
+                cantidad,
+                fecha,
+                totalPagadoAntes,
+                totalDevueltoAntes,
+                importeFactura
+            );
+        } 
+        else if (esPagoParcial) {
+            ec.generarEmailCobroPendiente(
+                nombreProfesor,
+                nombreActividad,
+                cantidad,
+                fecha,
+                totalPagadoAntes,
+                totalDevueltoAntes,
+                importeFactura
+            );
+        }
+        
         cargarTotalesProfesor();
     }
 
@@ -690,6 +754,9 @@ public class VentanaPagoProfesores extends JFrame {
         double importeFactura = ((Number) totales.getOrDefault("importe_factura", 0.0)).doubleValue();
 
         double netoActual = totalPagado - totalDevuelto;
+        
+        String nombreProfesor = us.getNombreProfesor(idFactura);
+        String nombreActividad = us.getNombreActividadFactura(idFactura);
 
         if (cantidad > netoActual + 0.01) {
             double exceso = cantidad - netoActual;
@@ -755,23 +822,48 @@ public class VentanaPagoProfesores extends JFrame {
 
         netoActual = totalPagado - totalDevuelto;
         double diferencia = netoActual - importeFactura;
+        
+        boolean esDevolucionCompleta = false;
+        boolean esDevolucionPendiente = false;
 
         if (Math.abs(diferencia) < 0.01) {
             JOptionPane.showMessageDialog(this,
                 "Devolución registrada correctamente.\nEl saldo con el profesor está equilibrado.",
                 "Devolución completa", JOptionPane.INFORMATION_MESSAGE);
+            esDevolucionCompleta = true;
         } 
         else if (diferencia > 0.01) {
             JOptionPane.showMessageDialog(this,
                     String.format("Devolución parcial.\nQuedan %.2f € por devolver.", Math.abs(diferencia)),
                 "Aviso: pago en exceso", JOptionPane.WARNING_MESSAGE);
+            esDevolucionPendiente = true;
+
         } 
         else {
             JOptionPane.showMessageDialog(this,
                 String.format("Devolución registrada.\nSe debe efecturar pago compensatorio de %.2f €. ",  Math.abs(diferencia)),
                 "Aviso: devolución incompleta", JOptionPane.WARNING_MESSAGE);
+            esDevolucionCompleta = true;
+
         }
 
+        if (esDevolucionCompleta) {
+            ec.generarEmailDevolucionCompleta(
+                nombreProfesor,
+                nombreActividad,
+                cantidad,
+                fecha,
+                Math.abs(diferencia)
+            );
+        } else if (esDevolucionPendiente) {
+            ec.generarEmailDevolucionPendiente(
+                nombreProfesor,
+                nombreActividad,
+                cantidad,
+                fecha,
+                diferencia
+            );
+        }
 
         cargarTotalesProfesor();
     }
