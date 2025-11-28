@@ -566,13 +566,24 @@ public class UserService {
 	private double ingresosReales(int idActividad) {
 	    String sql = "SELECT SUM(monto_pagado) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ?";
+	    String devoluciones = "SELECT SUM(monto_devuelto) as devuelto from devoluciones where id_actividad = ?";
 
 	    List<Map<String, Object>> r = db.executeQueryMap(sql, idActividad);
 	    if (r.isEmpty()) return 0.0;
-
+	    
+	    List<Map<String, Object>> d = db.executeQueryMap(devoluciones, idActividad);
+	    double devolucion = 0;
 	    Object val = r.get(0).get("total");
-
-	    return val == null ? 0.0 : ((Number) val).doubleValue();
+	    if(d.isEmpty()) devolucion=0;
+	    else {
+	    	Object dev = d.get(0).get("devuelto");
+	    	devolucion = dev == null? 0.0:((Number) dev).doubleValue();
+	    }
+	    
+	    double ingresos = val == null ? 0.0 : ((Number) val).doubleValue();
+	    System.out.println("Estos son los ingresos: "+ingresos);
+	    System.out.println("Estos son las devoluciones: "+ devolucion);
+	    return ingresos - devolucion;
 	}
 
 	private double ingresosEstimados(int idActividad) {
