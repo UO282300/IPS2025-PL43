@@ -444,7 +444,7 @@ public class PagosController {
 
         String f = (String) row.get("fin_inscripcion");
 
-        if (f == null) return null; // evita el NullPointerException
+        if (f == null) return null; 
 
         return LocalDate.parse(f);
     }
