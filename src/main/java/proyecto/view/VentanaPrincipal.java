@@ -35,6 +35,8 @@ public class VentanaPrincipal {
 	private JComboBox<String> comboAlumnosCancelar;
 	private JComboBox<String> comboAlumnosInscripcion;
 	private List<Map<String, Object>> listaAlumnos; // Para obtener el id real del alumno
+	private JComboBox<String> comboAceptarPlaza;
+	private List<Map<String, Object>> listaPendientes;
 	
 
 	public VentanaPrincipal() {
@@ -101,7 +103,7 @@ public class VentanaPrincipal {
                 service.crearDataBase();
             }
         });
-        pnCentro.setLayout(new GridLayout(15, 2, 2, 2));
+        pnCentro.setLayout(new GridLayout(0, 1, 2, 2));
         pnCentro.add(btnInicializarBaseDeDatos);
 
         JButton btnCargarDatosIniciales = new JButton("Cargar Datos Iniciales para Pruebas");
@@ -302,7 +304,45 @@ public class VentanaPrincipal {
             }
         });
         pnCentro.add(btnRetrasarAF);
+        
+        comboAceptarPlaza = new JComboBox<>();
+        comboAceptarPlaza.setFont(new Font("Arial", Font.PLAIN, 16));
+        //comboAceptarPlaza.setEnabled(false);
+        
+        cargarPendientesEnCombo();
+        
+        JButton btnAceptarPlaza = new JButton("Aceptar Plaza");
+        btnAceptarPlaza.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnAceptarPlaza.setEnabled(false);
+        JPanel pnAceptarPlaza = new JPanel();
+        pnAceptarPlaza.setLayout(new GridLayout(1, 2, 5, 5));
+        pnAceptarPlaza.add(comboAceptarPlaza);
+        pnAceptarPlaza.add(btnAceptarPlaza);
 
+        pnCentro.add(pnAceptarPlaza);
+        
+        comboAceptarPlaza.addPopupMenuListener(new PopupMenuListener() {
+
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                cargarPendientesEnCombo();
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {
+            }
+        });
+        
+        btnAceptarPlaza.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		aceptarPlaza();
+        	}
+        });
+        
         
         JLabel label = new JLabel("");
         pnCentro.add(label);
@@ -434,5 +474,37 @@ private void mostrarVentanaRetrasarAF() {
 	    }
 
 	    combo.setSelectedIndex(0); // mostrar por defecto primerItem
+	}
+	
+	private void cargarPendientesEnCombo() {
+	    service.actualizarPlazasExpiradas();
+
+	    listaPendientes = service.listarPlazasPendientes();
+
+	    comboAceptarPlaza.removeAllItems();
+	    comboAceptarPlaza.addItem("Seleccione alumno");
+	    
+	    if (listaPendientes == null || listaPendientes.isEmpty()) {	        
+	        return;
+	    }
+
+	    comboAceptarPlaza.setEnabled(true);
+
+	    for (Map<String, Object> p : listaPendientes) {
+	        comboAceptarPlaza.addItem(p.get("nombre") + " " + p.get("apellido"));
+	    }
+	}
+	
+	private void aceptarPlaza() {
+	    int index = comboAceptarPlaza.getSelectedIndex();
+	    if (index <= 0) return;
+	    Map<String, Object> plaza = listaPendientes.get(index - 1);
+	    int idActividad = (int) plaza.get("id_actividad");
+	    int idAlumno = (int) plaza.get("id_alumno");
+
+	    service.aceptarPlazaYMatricular(idActividad, idAlumno);
+
+	    JOptionPane.showMessageDialog(frame, "La plaza ha sido aceptada correctamente.");
+	    cargarPendientesEnCombo();
 	}
 }
