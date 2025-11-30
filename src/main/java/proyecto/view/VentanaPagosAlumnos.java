@@ -590,8 +590,8 @@ public class VentanaPagosAlumnos extends JFrame {
                 "El pago ingresado es mayor que la cantidad pendiente.\n\n" +
                 "Cantidad a pagar: %.2f euros\n" +
                 "Cantidad pendiente antes del pago: %.2f euros\n" +
-                "La matricula quedará pagada pero se generará\n" +
-                "un exceso que quedara registrado: %.2f euros\n\n" +
+                "La matricula quedará pagada pero se generará " +
+                "un exceso: %.2f euros\n\n" +
                 "Desea continuar y registrar este pago?",
                 cantidad, pendienteAntes, excesoAntes
             );
@@ -704,10 +704,10 @@ public class VentanaPagosAlumnos extends JFrame {
 
         } else { 
             mensajeConfirmacion = String.format(
-                    "Confirmar devolución parcial\n\n" +
+                    "Confirmar devolución excesiva\n\n" +
                     "Cantidad a devolver: %.2f €\n" +
                     "Pendiente antes: %.2f €\n" +
-                    "Pendiente después: %.2f €\n\n" +
+                    "Pendiente de pago compensatorio: %.2f €\n\n" +
                     "¿Desea continuar?",
                     cantidad, pendienteAntes, Math.abs(pendienteDespues)
             );

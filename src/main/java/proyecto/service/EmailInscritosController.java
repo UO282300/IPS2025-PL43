@@ -57,7 +57,7 @@ public class EmailInscritosController {
 		sb.append(generarMensajePagoPredeterminado(nombreAlumno,nombreActividad,fecha,cantidadPagada,metodo));
 
 		sb.append("\nCon este pago realizado, me congratula informarle que ya se ha pagado\n")
-		.append("su matricula completamente y con éxito, \n por lo que el ")
+		.append("su matricula completamente y con éxito, \npor lo que el ")
 		.append(fechaInicio)
 		.append(" podrá empezar el curso.\n");
 		if (pendienteDespues > 0) {
@@ -113,7 +113,7 @@ public class EmailInscritosController {
 		sb.append(generarMensajeDevolucionPredeterminado(nombreAlumno,nombreActividad,fecha,cantidadPagada,metodo));
 
 		sb.append("\nCon este pago compenstaorio realizado, me congratula informarle que ya se le ha devuelto\n")
-		.append("todo el dinero que le debíamos a causa del exceso generado en sus pagos");
+		.append("todo el dinero que le debíamos a causa del exceso generado en sus pagos.\n");
 		if (exceso > 0) {
 			sb.append("Sin embargo, ha habido una equivoquacion en dichos pagos y se le ha devuelto\n")
 			.append(Math.abs(exceso))
@@ -145,7 +145,7 @@ public class EmailInscritosController {
           .append(fecha) 
           .append("\ncorrespondiente a su matrícula en la actividad\n")
           .append(nombreActividad)
-          .append("ha sido recibido por nosotros sin ninguna incidencia.\n\n");
+          .append(" ha sido recibido por nosotros sin ninguna incidencia.\n");
 
         return sb;
     }
@@ -169,7 +169,7 @@ public class EmailInscritosController {
           .append(fecha) 
           .append("\npara compensar el exceso que sus pagos han generado en su matrícula de la actividad \"")
           .append(nombreActividad)
-          .append("\"");
+          .append("\".");
         return sb;
     }
 
