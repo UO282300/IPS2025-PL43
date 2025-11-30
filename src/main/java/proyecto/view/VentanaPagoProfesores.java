@@ -604,13 +604,8 @@ public class VentanaPagoProfesores extends JFrame {
             return;
         }
 
-        LocalDate fecha;
-        try {
-            fecha = LocalDate.parse(tfFecha.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        LocalDate fecha = validarFechaMovimientoProfesor();
+        if (fecha == null) return;
 
         Map<String, Object> factura = us.obtenerDatosFacturaPorProfesorYActividad(idProfesorSeleccionado, idActividadSeleccionada);
         int idFactura;
@@ -688,7 +683,23 @@ public class VentanaPagoProfesores extends JFrame {
                 JOptionPane.showMessageDialog(this, "Operación cancelada. No se registró el pago.", "Cancelado", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-        }
+        } else {
+            int opcion = JOptionPane.showConfirmDialog(
+                    this,
+                    String.format(
+                    		 "Se están pagando %.2f €\n Con este pago la factura quedará saldada.\n¿Desea continuar?",
+                             cantidad
+                    ),
+                    "Confirmar pago",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (opcion != JOptionPane.YES_OPTION) {
+                    JOptionPane.showMessageDialog(this, "Operación cancelada. No se registró el pago.", "Cancelado", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+            }
 
         us.registrarPagoProfesor(idProfesorSeleccionado, idFactura, idActividadSeleccionada, fecha.toString(), cantidad);
 
@@ -841,7 +852,7 @@ public class VentanaPagoProfesores extends JFrame {
         } 
         else {
             JOptionPane.showMessageDialog(this,
-                String.format("Devolución registrada.\nSe debe efecturar pago compensatorio de %.2f €. ",  Math.abs(diferencia)),
+                String.format("Devolución registrada.\nSe debe efecturar un pago compensatorio de %.2f €. ",  Math.abs(diferencia)),
                 "Aviso: devolución incompleta", JOptionPane.WARNING_MESSAGE);
             esDevolucionCompleta = true;
 
@@ -866,6 +877,56 @@ public class VentanaPagoProfesores extends JFrame {
         }
 
         cargarTotalesProfesor();
+    }
+
+    private LocalDate validarFechaMovimientoProfesor() {
+        LocalDate fechaMovimiento;
+
+        try {
+            fechaMovimiento = LocalDate.parse(tfFecha.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Formato de fecha inválido. Use yyyy-MM-dd.",
+                "Error de fecha", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+
+        LocalDate fechaHoy = us.getFechaHoy();
+
+        if (fechaMovimiento.isAfter(fechaHoy)) {
+            JOptionPane.showMessageDialog(this,
+                String.format(
+                    "No se puede registrar una fecha futura.\n\nFecha introducida: %s\nFecha actual: %s",
+                    fechaMovimiento, fechaHoy
+                ),
+                "Fecha inválida", JOptionPane.ERROR_MESSAGE
+            );
+            return null;
+        }
+
+        Map<String, Object> factura = us.obtenerDatosFacturaPorProfesorYActividad(
+            idProfesorSeleccionado,
+            idActividadSeleccionada
+        );
+
+        if (factura != null && factura.get("fecha") != null) {
+            LocalDate fechaFactura = LocalDate.parse(factura.get("fecha").toString());
+
+            if (fechaMovimiento.isBefore(fechaFactura)) {
+                JOptionPane.showMessageDialog(this,
+                    String.format(
+                        "La fecha del movimiento no puede ser anterior a la fecha de la factura.\n\n" +
+                        "Fecha factura: %s\n" +
+                        "Fecha introducida: %s",
+                        fechaFactura, fechaMovimiento
+                    ),
+                    "Fecha inválida", JOptionPane.ERROR_MESSAGE
+                );
+                return null;
+            }
+        }
+
+        return fechaMovimiento;
     }
 
 

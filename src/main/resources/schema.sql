@@ -11,6 +11,8 @@ DROP TABLE IF EXISTS PagoAlumno;
 DROP TABLE IF EXISTS DevolucionProfesor;
 DROP TABLE IF EXISTS CuotaActividad;
 DROP TABLE IF EXISTS Cuota;
+DROP TABLE IF EXISTS ListaEspera;
+DROP TABLE IF EXISTS PlazaPendiente;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -69,6 +71,7 @@ CREATE TABLE Matricula (
     numero_matriculados INTEGER NOT NULL,
     integrantes_ids TEXT,
     isRetrasada BOOLEAN DEFAULT 0,
+    monto_total DECIMAL(10,2) DEFAULT 0,
     FOREIGN KEY (id_cuota_actividad) REFERENCES CuotaActividad(id_cuota_actividad),
     
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
@@ -157,4 +160,30 @@ CREATE TABLE CuotaActividad (
 CREATE TABLE Cuota (
 	id_cuota INTEGER PRIMARY KEY AUTOINCREMENT,
 	categoria VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE ListaEspera(
+    id_lista INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_actividad INTEGER NOT NULL,
+    id_alumno INTEGER NOT NULL,
+    numero INTEGER NOT NULL,
+    activo BOOLEAN DEFAULT 0,
+    id_cuota INTEGER NOT NULL,
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad),
+    FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
+    UNIQUE (id_actividad, id_alumno),
+    UNIQUE (id_actividad, numero)
+);
+
+CREATE TABLE PlazaPendiente(
+    id_plaza_pendiente INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_actividad INTEGER NOT NULL,
+    id_alumno INTEGER NOT NULL,
+    fecha_asignacion DATE NOT NULL,
+    fecha_limite DATE NOT NULL,
+    aceptada BOOLEAN DEFAULT NULL,
+    respondida BOOLEAN Default 0,
+    FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad),
+    FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
+    UNIQUE(id_actividad, id_alumno)
 );

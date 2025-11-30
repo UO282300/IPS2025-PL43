@@ -104,7 +104,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla inscripciones
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"Profesional","Fecha matricula","Estado"},0
+            new Object[]{"Profesional","Fecha matricula","Estado","Numero"},0
         );
         tableInscripciones = new JTable(modelInscripciones);
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
@@ -186,19 +186,38 @@ public class VentanaEstadoAF extends JFrame {
         modelInscripciones.setRowCount(0);
         @SuppressWarnings("unchecked")
         List<Map<String,Object>> inscripciones = (List<Map<String,Object>>) act.get("inscripciones");
+        
         if (inscripciones != null) {
             for (Map<String,Object> ins : inscripciones) {
             	String ids = (String) ins.get("integrantes_ids");
             	List<String> id = Arrays.asList(ids.split(","));
             	for(String i: id) {
-            		Alumno a = service.getAlumnoById(i);
+            		Alumno a = service.getAlumnoById(i,"");
             		modelInscripciones.addRow(new Object[]{
                             a.getNombre(),
                             ins.get("fecha_matricula"),
-                            ins.get("estado")
+                            ins.get("estado"),
+                            ""
                         });
             	}
                 
+            }
+        }
+        
+        List<Map<String, Object>> listaEspera = service.getListaEsperaDetalles(idActividad);
+        if (listaEspera != null && !listaEspera.isEmpty()) {
+            //modelInscripciones.addRow(new Object[]{"--- LISTA DE ESPERA ---", "", "", ""});
+
+            for (Map<String,Object> le : listaEspera) {
+                Alumno a = service.getAlumnoById(le.get("id_alumno").toString(),"1");
+                int numero = (Integer) le.get("numero");
+
+                modelInscripciones.addRow(new Object[]{
+                    a.getNombre(),
+                    "",
+                    "EN ESPERA",
+                    numero
+                });
             }
         }
 

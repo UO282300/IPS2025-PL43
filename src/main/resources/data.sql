@@ -37,9 +37,9 @@ INSERT INTO CuotaActividad(id_cuota, id_actividad, valor) VALUES
 (2, 1, 200.00);
 
 -- Matrículas
-INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids) VALUES
-(1, 2, 1, '2025-07-15', 300.00, 1,1,1),
-(2, 1, 1, '2025-07-20', 0.00, 0,1,2);
+INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids,monto_total) VALUES
+(1, 2, 1, '2025-07-15', 300.00, 1,1,1,300.00),
+(2, 1, 1, '2025-07-20', 0.00, 0,1,2,300.00);
 
 
 -- Facturas profesores

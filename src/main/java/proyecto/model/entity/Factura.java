@@ -17,6 +17,7 @@ public class Factura {
 	private int plazas_ocupadas;
 	private double ing_estimados;
 	private int plazas_ocupadasPagadas;
+	private double gastosEstimados;
 	
 	
 	public Factura(int plazas) {
@@ -95,7 +96,7 @@ public class Factura {
 	public boolean estaCerrada() {
 	    System.out.println("Revisando cierre: '" + estado + "'");
 	    String e = estado.trim();
-	    return e.equals("Finalizada")|| e.equals("Cerrada");
+	    return e.equals("Finalizada")|| e.equals("Cerrada") || e.equals("Cancelada");
 	}
 
 	
@@ -111,7 +112,7 @@ public class Factura {
 		return sb.toString();
 	}
 
-	public Object toStringSin() {
+	public String toStringSin() {
 		StringBuilder sb  =new StringBuilder("---------------------------------"+"\n");
 		sb.append("Fecha de la Actividad: " + getFecha() + "\n");
 		sb.append("Nombre: " + getNombre()+ "\n");
@@ -125,7 +126,7 @@ public class Factura {
 	}
 	
 	public void setIngEstimados(double cuota) {
-		this.ing_estimados = cuota*plazas_ocupadas;
+		this.ing_estimados = cuota;
 	}
 	
 	public double getIngEstimados() {
@@ -133,19 +134,33 @@ public class Factura {
 	}
 	
 	public void calcularIngresosReales(double cuota) {
-	    this.ingresos = cuota * plazas_ocupadasPagadas;
+	    this.ingresos = cuota;
 	}
 
 	public void calcularIngresosEstimados(double cuota) {
-	    this.ing_estimados = cuota*plazas_ocupadas;
+	    this.ing_estimados = cuota;
 	}
 
-	public void calcularEstimado(double cuota) {
-	    this.estimado = getIngEstimados() - gastos;
+	public void calcularEstimado() {
+	    this.estimado = getIngEstimados() - gastosEstimados;
 	}
 
 	public void setPlazasOcupPagadas(int pagadas) {
 		this.plazas_ocupadasPagadas = pagadas;
+		
+	}
+
+	public double getGastosEstimados() {
+		return gastosEstimados;
+	}
+
+	public void setGastosEstimados(double gastos2) {
+		gastosEstimados=gastos2;
+		
+	}
+
+	public void calcularBalance() {
+		this.balance = getIngresos() - gastos;
 		
 	}
 	

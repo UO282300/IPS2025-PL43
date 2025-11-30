@@ -33,7 +33,6 @@ public class EmailInscritosController {
 		.append("efectúe más pagos para satisfacer dicha cantidad pendiente antes de ")
 		.append(fechaLimite);
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -57,7 +56,7 @@ public class EmailInscritosController {
 		sb.append(generarMensajePagoPredeterminado(nombreAlumno,nombreActividad,fecha,cantidadPagada,metodo));
 
 		sb.append("\nCon este pago realizado, me congratula informarle que ya se ha pagado\n")
-		.append("su matricula completamente y con éxito, \n por lo que el ")
+		.append("su matricula completamente y con éxito, \npor lo que el ")
 		.append(fechaInicio)
 		.append(" podrá empezar el curso.\n");
 		if (pendienteDespues > 0) {
@@ -68,7 +67,6 @@ public class EmailInscritosController {
 			.append("lo más pronto posible un pago compensatorio para satisfacer ese exceso");
 		}
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -95,7 +93,6 @@ public class EmailInscritosController {
 		.append("Lo más pronto posible efectuaremos más pagos compensatorios hasta que dicho exceso\n")
 		.append("le haya sido devuelto.");
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -105,27 +102,23 @@ public class EmailInscritosController {
             double cantidadPagada,
             LocalDate fecha,
             boolean porEfectivo,
-            double totalPagadoAntes,
-            double totalDevueltoAntes,
-            double cuota) {
+            double exceso) {
 
     	String metodo = porEfectivo ? "el efectivo" : "la transferencia";
-        double pendienteDespues = totalPagadoAntes - (totalDevueltoAntes + cantidadPagada);
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(generarMensajeDevolucionPredeterminado(nombreAlumno,nombreActividad,fecha,cantidadPagada,metodo));
 
 		sb.append("\nCon este pago compenstaorio realizado, me congratula informarle que ya se le ha devuelto\n")
-		.append("todo el dinero que le debíamos a causa del exceso generado en sus pagos");
-		if (pendienteDespues < 0) {
+		.append("todo el dinero que le debíamos a causa del exceso generado en sus pagos.\n");
+		if (exceso > 0) {
 			sb.append("Sin embargo, ha habido una equivoquacion en dichos pagos y se le ha devuelto\n")
-			.append(Math.abs(pendienteDespues))
+			.append(Math.abs(exceso))
 			.append("€ más de lo que correspondia\n")
 			.append("Debido a ello, desde COIIPA le pedimos por favor que nos efectué otro pago\n")
 			.append("para devolver el dinero de más que le hemos enviado");
 		}
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -148,7 +141,7 @@ public class EmailInscritosController {
           .append(fecha) 
           .append("\ncorrespondiente a su matrícula en la actividad\n")
           .append(nombreActividad)
-          .append("ha sido recibido por nosotros sin ninguna incidencia.\n\n");
+          .append(" ha sido recibido por nosotros sin ninguna incidencia.\n");
 
         return sb;
     }
@@ -172,7 +165,7 @@ public class EmailInscritosController {
           .append(fecha) 
           .append("\npara compensar el exceso que sus pagos han generado en su matrícula de la actividad \"")
           .append(nombreActividad)
-          .append("\"");
+          .append("\".");
         return sb;
     }
 
@@ -201,6 +194,7 @@ public class EmailInscritosController {
             System.out.println("Error guardando el email en el fichero.");
         }
     }
+
 
 
 }

@@ -110,7 +110,16 @@ public class VentanaCancelarInscripcion extends JFrame {
             int idActividad = (int) service.obtenerIdActividadPorMatricula(idMatricula);
 
             service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
-            JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " euros.");
+            
+            
+            if(service.sacarListaEspera(idActividad)) {
+            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución:"  + montoDevuelto + " euros."
+            			+ " Un usuario ha sido notificado de la nueva plaza existente");
+            }else {
+            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " euros.");
+            }
+            
+            
             cargarMatriculasAlumno();
         }
     }
