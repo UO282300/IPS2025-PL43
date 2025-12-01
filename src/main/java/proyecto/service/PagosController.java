@@ -297,6 +297,7 @@ public class PagosController {
         try {
             List<Map<String, Object>> result = db.executeQueryMap("""
                 SELECT ca.valor*m.numero_matriculados AS cuota, m.monto_pagado, m.isCancelada, m.id_actividad, m.id_alumno
+                ,m.monto_inscripcion_cancelada, m.monto_actividad_cancelada
                 FROM Matricula m
                 JOIN CuotaActividad ca ON m.id_cuota_actividad = ca.id_cuota_actividad
                 WHERE m.id_matricula = ?
@@ -308,7 +309,9 @@ public class PagosController {
             double totalPagado = ((Number) result.get(0).get("monto_pagado")).doubleValue();
             boolean isCancelada = result.get(0).get("isCancelada") != null &&
                                   ((Number) result.get(0).get("isCancelada")).intValue() == 1;
-
+            double monto_inscripcion_cancelada = ((Number) result.get(0).get("monto_inscripcion_cancelada")).doubleValue();
+            double monto_actividad_cancelada = ((Number) result.get(0).get("monto_actividad_cancelada")).doubleValue();
+            
 
             List<Map<String, Object>> devoluciones = db.executeQueryMap("""
                 SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
@@ -323,20 +326,23 @@ public class PagosController {
             double aDevolver;
 
             if (isCancelada) {
-                pendiente =0;
-                totalPagado =0;
-                totalDevuelto = 0;
-            } else {
-                pendiente = Math.max(0, cuota - neto);
+            	aDevolver = Math.max(0, neto + monto_inscripcion_cancelada - cuota);
+                aDevolver = Math.round(aDevolver * 100.0) / 100.0;
+                
+                pendiente = Math.max(0, cuota - (neto + monto_inscripcion_cancelada));
                 pendiente = Math.round(pendiente * 100.0) / 100.0;
-                totalPagado = Math.round(totalPagado * 100.0) / 100.0;
-                totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
+            } else {
+            	aDevolver = Math.max(0, neto + monto_actividad_cancelada - cuota);
+                aDevolver = Math.round(aDevolver * 100.0) / 100.0;
+                
+                pendiente = Math.max(0, cuota - (neto + monto_actividad_cancelada));
+                pendiente = Math.round(pendiente * 100.0) / 100.0;
             }
-
-            aDevolver = Math.max(0, neto - cuota);
-   
-            aDevolver = Math.round(aDevolver * 100.0) / 100.0;
-
+            
+            totalPagado = Math.round(totalPagado * 100.0) / 100.0;
+            totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
+            
+             
             datos.put("cuota", cuota);
             datos.put("total_pagado", totalPagado);
             datos.put("total_devuelto", totalDevuelto);
@@ -798,6 +804,26 @@ public class PagosController {
 	        e.printStackTrace();
 	        return "Error";
 	    }
+	}
+	public double getMontoPorDevolucion(int idMatriculaSeleccionada) {
+		 try {
+		        Map<String, Object> res = db.executeQueryMap(
+		            "SELECT isCancelada, monto_inscripcion_cancelada, monto_actividad_cancelada " +
+		            "FROM Matricula " +
+		            "WHERE id_matricula= ?",
+		            idMatriculaSeleccionada
+		        ).stream().findFirst().orElse(null);
+
+		        if (res == null) return 0;
+		        
+		        if ((Integer) res.get("isCancelada")==1) return ((Number) res.get("monto_inscripcion_cancelada")).doubleValue();
+		        
+		        return ((Number) res.get("monto_actividad_cancelada")).doubleValue();
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        return 0;
+		    }
 	}
 
 

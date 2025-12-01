@@ -383,7 +383,7 @@ public class UserService {
 
 	private boolean insertarMatricula(MensajeError msj, String id_cuota) {
 		if(!comprobarPlazasActividad()) {
-			msj.setMensaje("Añadido a la lista de espera");
+			msj.setMensaje("Aï¿½adido a la lista de espera");
 			toListaEspera(a, id_cuota);
 			System.out.println("No hay plazas");
 			return false;
@@ -978,16 +978,15 @@ public class UserService {
         else return 0;
     }
 
-    public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto) {
-        double montoPagadoActual = db.queryDouble(
-                "SELECT monto_pagado FROM Matricula WHERE id_matricula = ?", 
-                idMatricula
-            );
-        double montoTotal=montoDevuelto + montoPagadoActual;
+    public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto, boolean isInscripcion) {
         
+        if(isInscripcion) {
         db.executeUpdate("UPDATE Matricula SET isCancelada = 1 WHERE id_matricula = ?", idMatricula);
-        
-        db.executeUpdate("UPDATE Matricula SET monto_pagado = ? WHERE id_matricula = ?", montoTotal,idMatricula);
+        db.executeUpdate("UPDATE Matricula SET monto_inscripcion_cancelada = ? WHERE id_matricula = ?", montoDevuelto,idMatricula);
+        }else {
+        db.executeUpdate("UPDATE Matricula SET monto_actividad_cancelada = ? WHERE id_matricula = ?", montoDevuelto,idMatricula);
+        	     
+        }
 
     }
     
@@ -1476,7 +1475,7 @@ public class UserService {
 	        int idLista = (int) alumno.get("id_lista");
 	        int idAlumno = (int) alumno.get("id_alumno");
 
-	        System.out.println("Alumno puesto a confirmación: " + idAlumno);
+	        System.out.println("Alumno puesto a confirmaciï¿½n: " + idAlumno);
 
 	        db.executeUpdate(insertaPlaza, idActividad, idAlumno, ahora, limite);
 	        db.executeUpdate(updateLista, idLista);

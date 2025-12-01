@@ -545,7 +545,6 @@ public class VentanaPagosAlumnos extends JFrame {
         double totalPagado = estado.getOrDefault("total_pagado", 0.0);
         double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
         double montoTotalMatricula = us.getMontoTotalMatricula(idMatriculaSeleccionada);
-
         double netoActual = totalPagado - totalDevuelto;
         double pendienteAntes = Math.max(0, montoTotalMatricula - netoActual);
         double excesoAntes = Math.max(0, (netoActual + cantidad) - montoTotalMatricula);
@@ -664,10 +663,8 @@ public class VentanaPagosAlumnos extends JFrame {
 
         String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
         String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
-
-        double pendienteAntes = isCancelada
-                ? Math.max(0.0, totalPagado - totalDevuelto)
-                : Math.max(0.0, totalPagado - totalDevuelto - cuota);
+        double extra = us.getMontoPorDevolucion(idMatriculaSeleccionada);
+        double pendienteAntes =  Math.max(0.0, totalPagado + extra - totalDevuelto - cuota);
 
         double pendienteDespues = pendienteAntes - cantidad;
 

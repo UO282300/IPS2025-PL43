@@ -76,21 +76,22 @@ public class CancelarController {
             int idMatricula = (int) m.get("id_matricula");
             int idAlumno = (int) m.get("id_alumno");
 
+            Object montoObj = m.get("monto_pagado");
             double montoPagado = 0.0;
-            try {
-                Object montoObj = m.get("monto_pagado");
-                if (montoObj != null) {
-                    montoPagado = Double.parseDouble(montoObj.toString());
-                }
-            } catch (Exception e) {
-                // si hay error de formato, lo consideramos 0
+
+            if (montoObj instanceof Number) {
+                montoPagado = ((Number) montoObj).doubleValue();
+            } else if (montoObj != null) {
+                montoPagado = Double.parseDouble(montoObj.toString());
             }
 
             // Calcular devolución y registrar
             double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado, idMatricula);
-            service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
+            service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto,false);
         }
     }
+    
+    
 
     /** Comprueba si la actividad se puede cancelar según la fecha actual */
     public boolean sePuedeCancelar(LocalDate fechaHoy, LocalDate fechaInicio) {

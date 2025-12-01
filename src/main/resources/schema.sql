@@ -72,6 +72,8 @@ CREATE TABLE Matricula (
     integrantes_ids TEXT,
     isRetrasada BOOLEAN DEFAULT 0,
     monto_total DECIMAL(10,2) DEFAULT 0,
+    monto_inscripcion_cancelada DECIMAL(10,2) DEFAULT 0,
+    monto_actividad_cancelada DECIMAL(10,2) DEFAULT 0,
     FOREIGN KEY (id_cuota_actividad) REFERENCES CuotaActividad(id_cuota_actividad),
     
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),

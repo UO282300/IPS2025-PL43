@@ -200,7 +200,6 @@ public class VentanaResponsable extends JFrame {
         panelSurProfesores.add(lbEmpresa);
         
         cbEmpresa = new JComboBox<>();
-        cbEmpresa.setEditable(true);
         cbEmpresa.setEnabled(false);cargarEmpresas();
         panelSurProfesores.add(cbEmpresa);
         

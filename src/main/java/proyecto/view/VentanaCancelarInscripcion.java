@@ -109,7 +109,7 @@ public class VentanaCancelarInscripcion extends JFrame {
         if (opcion == JOptionPane.YES_OPTION) {
             int idActividad = (int) service.obtenerIdActividadPorMatricula(idMatricula);
 
-            service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto);
+            service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto,true);
             
             
             if(service.sacarListaEspera(idActividad)) {
