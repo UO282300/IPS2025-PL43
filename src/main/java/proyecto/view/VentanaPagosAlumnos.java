@@ -252,6 +252,7 @@ public class VentanaPagosAlumnos extends JFrame {
             if (idMatriculaSeleccionada > 0) {
                 actualizarCamposVisuales(rbPago.isSelected());
             }
+            
         };
 
         rbPago.addActionListener(actualizarVistaPago);
@@ -317,14 +318,25 @@ public class VentanaPagosAlumnos extends JFrame {
             Object estaPagadoObj = ins.get("esta_pagado");
 
             boolean isCancelada = isCanceladaObj != null && ((Number) isCanceladaObj).intValue() == 1;
-            boolean estaPagado = estaPagadoObj != null && ((Number) estaPagadoObj).intValue() == 1;
 
-            if (isCancelada) estado = "Cancelada";
-            else if (estaPagado) estado = "Cobrada";
-            else estado = "Pendiente";
-            
-            double totalPagado = us.getEstadoPagoAlumno(idMatricula).getOrDefault("total_pagado", 0.0);
-            double pendiente = us.getEstadoPagoAlumno(idMatricula).getOrDefault("pendiente", 0.0);
+            Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatricula);
+
+            double totalPagado = estadoPago.getOrDefault("total_pagado", 0.0);
+            double pendiente = estadoPago.getOrDefault("pendiente", 0.0);
+            double aDevolver = estadoPago.getOrDefault("a_devolver", 0.0);
+
+            if (isCancelada) {
+                estado = "Cancelada";
+            } 
+            else if (aDevolver > 0.01) {
+                estado = "Devoluciones pendientes";
+            }
+            else if (pendiente <= 0.01 && totalPagado > 0) {
+                estado = "Cobrada";
+            }
+            else {
+                estado = "Pendiente";
+            }
 
             modelInscripciones.addRow(new Object[]{
                 idMatricula, nombre, apellido, telefono, fechaMatricula, fechaLimite, estado,
@@ -659,7 +671,6 @@ public class VentanaPagosAlumnos extends JFrame {
         double totalPagado = estado.getOrDefault("total_pagado", 0.0);
         double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
         double cuota = estado.getOrDefault("cuota", 0.0);
-        boolean isCancelada = estado.getOrDefault("is_cancelada", 0.0) == 1.0;
 
         String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
         String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
@@ -765,6 +776,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	            mostrarError("Error al registrar la devolución. No se guardaron los cambios.");
 	            return false;
 	        }
+	        cargarInscripcionesPendientes();
 	        return true;
 	    }
 
