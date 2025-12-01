@@ -307,6 +307,7 @@ public class VentanaPrincipal {
         
         JButton btnFacturasProf = new JButton("Administrador - Generar Factura Profesional");
         btnFacturasProf.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnFacturasProf.setEnabled(false);
         btnFacturasProf.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mostrarVentanaGenFactProf();
@@ -316,7 +317,7 @@ public class VentanaPrincipal {
         
         comboAceptarPlaza = new JComboBox<>();
         comboAceptarPlaza.setFont(new Font("Arial", Font.PLAIN, 16));
-        //comboAceptarPlaza.setEnabled(false);
+        comboAceptarPlaza.setEnabled(false);
         
         cargarPendientesEnCombo();
         
