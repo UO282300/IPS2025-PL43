@@ -556,7 +556,7 @@ public class UserService {
 		        );
 	        
 	        double gastosEstimados = facturas.stream()
-	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("remuneracion"))))
 	                                .sum();
 	        double gastos = facturasPagadas.stream()
                     .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
