@@ -14,8 +14,8 @@ INSERT INTO Administrador(nombre, email, password) VALUES
 
 -- Profesores
 INSERT INTO Profesor(nombre, apellido, email, telefono,nif,direccion,isEmpresa) VALUES
-('Claudio', 'Perez', 'c.perez@escuela.com','1','avenida', '684321123',0),
-('Raquel', 'Perez', 'r.perez@escuela.com','1','avenida', '694321123',0);
+('Claudio', 'Perez', 'c.perez@escuela.com','1','684321123', 'avenida',0),
+('Raquel', 'Perez', 'r.perez@escuela.com','1','694321123', 'avenida', 0);
 
 
 -- Alumnos
@@ -47,7 +47,7 @@ INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricu
 (1, 2, 1, '2025-07-15', 200.00, 1,1,1,200.00),
 (2, 1, 1, '2025-07-20', 400.00, 1,1,2,400.00),
 (4, 3, 2, '2025-12-01', 300.00, 1,1,4,400.00),
-(3, 4, 2, '2025-12-01', 200.00, 1,1,3,200.00),
+(3, 4, 2, '2025-12-01', 300.00, 1,1,3,200.00),
 (5, 4, 2, '2025-12-02', 0.00, 0,1,5,200.00);
 
 -- Facturas profesores

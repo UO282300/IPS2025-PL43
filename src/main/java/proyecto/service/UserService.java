@@ -552,7 +552,7 @@ public class UserService {
 	        
 	        
 	        List<Map<String, Object>> facturas = db.executeQueryMap(
-		            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
+		            "SELECT remuneracion FROM FacturaP WHERE id_actividad = ?", idActividad
 		        );
 	        
 	        double gastosEstimados = facturas.stream()
@@ -745,7 +745,7 @@ public class UserService {
 				acabadas.add(f);
 			}
 		}
-		System.out.println("Acbadas: "+ acabadas.size());
+		System.out.println("Acabadas: "+ acabadas.size());
 		return acabadas;
 	}
 
