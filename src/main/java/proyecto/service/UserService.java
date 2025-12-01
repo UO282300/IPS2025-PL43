@@ -123,7 +123,7 @@ public class UserService {
     public List<Map<String, Object>> listarActividades() {
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, " +
-            "isClosed " +
+            "isClosed, isCancelada " +
             "FROM Actividad ORDER BY fecha_inicio"
         );
 
@@ -137,16 +137,6 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
-        	
-        	Object cancelada = act.get("isCancelada");
-            if (cancelada instanceof Number && ((Number) cancelada).intValue() == 1) {
-                return "Cancelada";
-            }
-            if (cancelada instanceof Boolean && (Boolean) cancelada) {
-                return "Cancelada";
-            }
-            
-            
             Object closed = act.get("isClosed");
             if (closed instanceof Number && ((Number) closed).intValue() == 1) {
                 return "Cerrada";
@@ -154,16 +144,21 @@ public class UserService {
             if (closed instanceof Boolean && (Boolean) closed) {
                 return "Cerrada";
             }
-            
-            
+
+        	Object cancelada = act.get("isCancelada");
+            if (cancelada instanceof Number && ((Number) cancelada).intValue() == 1) {
+                return "Cancelada";
+            }
+            if (cancelada instanceof Boolean && (Boolean) cancelada) {
+                return "Cancelada";
+            }
 
             LocalDate hoy = fechaHoy;
             LocalDate inicioIns = parseFecha((String) act.get("inicio_inscripcion"));
             LocalDate finIns = parseFecha((String) act.get("fin_inscripcion"));
             LocalDate fechaInicio = parseFecha((String) act.get("fecha_inicio"));
             LocalDate fechaFin = parseFecha((String) act.get("fecha_fin"));
-            
-           
+                    
             if (hoy.isBefore(inicioIns)) {
                 return "Planificada";
             } else if (!hoy.isBefore(inicioIns) && !hoy.isAfter(finIns)) {
@@ -799,22 +794,31 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
-	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (esta_pagado = 0 OR isCancelada = 1)";
+	    String sql = """
+	        SELECT COUNT(*) AS total 
+	        FROM Matricula 
+	        WHERE id_actividad = ? 
+	          AND isCancelada = 0
+	          AND esta_pagado = 0
+	    """;
+
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
 	    return pendientes > 0;
 	}
 	
 	public boolean actividadConMovimientosProfesores(int idActividad) {
-	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
-	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
-	    int pagos = ((Number) result.get(0).get("total")).intValue();
-	    
-	    String sql2 = "SELECT COUNT(*) AS total FROM FacturaP WHERE id_actividad = ?";
-	    List<Map<String, Object>> result2 = db.executeQueryMap(sql2, idActividad);
-	    int nProfesores = ((Number) result2.get(0).get("total")).intValue();
-	    
-	    return pagos == nProfesores;
+	    String sql = """
+	        SELECT COUNT(*) AS total
+	        FROM FacturaP f
+	        LEFT JOIN PagoProfesor p ON f.id_factura = p.id_factura
+	        WHERE f.id_actividad = ?
+	          AND f.esta_pagado = 0
+	    """;
+
+	    List<Map<String, Object>> res = db.executeQueryMap(sql, idActividad);
+	    int pendientes = ((Number) res.get(0).get("total")).intValue();
+	    return pendientes > 0;
 	}
 	
 	public boolean cerrarActividad(int idActividad) {
@@ -902,7 +906,6 @@ public class UserService {
     }
 
     public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto) {
-        LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
         double montoPagadoActual = db.queryDouble(
                 "SELECT monto_pagado FROM Matricula WHERE id_matricula = ?", 
                 idMatricula
