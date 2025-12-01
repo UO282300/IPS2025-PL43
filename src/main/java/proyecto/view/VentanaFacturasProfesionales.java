@@ -52,7 +52,7 @@ public class VentanaFacturasProfesionales extends JFrame {
 
     public VentanaFacturasProfesionales(UserService service) {
     	this.service=service;
-        setTitle("Registro de Pagos de Inscripciones");
+        setTitle("Registrar Factura a Profesionales");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1500, 800);
         setLocationRelativeTo(null);
