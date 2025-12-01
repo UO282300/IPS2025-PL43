@@ -41,7 +41,7 @@ public class CancelarController {
                 continue;
             }
 
-            // Solo añadimos las que se pueden cancelar
+            // Solo aï¿½adimos las que se pueden cancelar
             if (fechaInicio != null 
                 && hoy.isBefore(fechaInicio) 
                 && !estado.equals("Cerrada") 
@@ -68,7 +68,7 @@ public class CancelarController {
             fechaActividad = service.getFechaHoy(); // fallback por seguridad
         }
 
-        // Obtener las matrículas asociadas
+        // Obtener las matrï¿½culas asociadas
         String sqlMatriculas = "SELECT * FROM Matricula WHERE id_actividad = ?";
         List<Map<String, Object>> matriculas = service.getDb().executeQueryMap(sqlMatriculas, idActividad);
 
@@ -85,7 +85,7 @@ public class CancelarController {
                 montoPagado = Double.parseDouble(montoObj.toString());
             }
 
-            // Calcular devolución y registrar
+            // Calcular devoluciï¿½n y registrar
             double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado, idMatricula);
             service.registrarDevolucion(idMatricula, idAlumno, idActividad, montoDevuelto,false);
         }
@@ -93,7 +93,7 @@ public class CancelarController {
     
     
 
-    /** Comprueba si la actividad se puede cancelar según la fecha actual */
+    /** Comprueba si la actividad se puede cancelar segï¿½n la fecha actual */
     public boolean sePuedeCancelar(LocalDate fechaHoy, LocalDate fechaInicio) {
         return fechaHoy.isBefore(fechaInicio);
     }
@@ -101,5 +101,10 @@ public class CancelarController {
 	public String obtenerEstadoActividad(Map<String, Object> act) {
 		
 		return service.obtenerEstadoActividad(act);
+	}
+
+	public List<Map<String, Object>> listarDevolucionesPendientes() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

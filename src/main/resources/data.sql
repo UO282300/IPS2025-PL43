@@ -53,7 +53,7 @@ INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricu
 -- Facturas profesores
 INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) VALUES
 (1, 1, 'F001', '2025-09-04', 250.00, 'Claudio Perez', '12345678A', 'Calle Falsa 123', 1),
-(2, 2, '', '', 750.00, '', '', '', 0);
+(2, 2, '-1', '', 0, '', '', '', 0);
 
 INSERT INTO PagoAlumno (id_matricula,fecha_pago,cantidad,metodo_pago) VALUES
 (1,'2025-07-16',200.00,'Transferencia'),
