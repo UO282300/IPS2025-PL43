@@ -29,7 +29,7 @@ INSERT INTO Cuota(categoria) VALUES
 
 -- Actividades
 INSERT INTO Actividad(nombre, objetivos, contenidos, espacio, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, es_gratuita, total_plazas, empresa, isClosed) VALUES
-('Nuevas técnicas de Prueba','Técnicas nuevas de prueba','Tecnicas modernas para hacer test','C-02','2025-07-01','2025-07-31','2025-09-01','2025-09-03',0,10,'CodeCorp', 0);
+('Nuevas técnicas de Prueba','Técnicas nuevas de prueba','Tecnicas modernas para hacer test','C-02','2025-07-01','2025-07-31','2025-09-01','2025-09-03',0,2,'CodeCorp', 0);
 
 -- Cuotas por Actividad
 INSERT INTO CuotaActividad(id_cuota, id_actividad, valor) VALUES
@@ -37,9 +37,9 @@ INSERT INTO CuotaActividad(id_cuota, id_actividad, valor) VALUES
 (2, 1, 200.00);
 
 -- Matrículas
-INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids) VALUES
-(1, 2, 1, '2025-07-15', 300.00, 1,1,1),
-(2, 1, 1, '2025-07-20', 0.00, 0,1,2);
+INSERT INTO Matricula(id_alumno, id_cuota_actividad, id_actividad, fecha_matricula, monto_pagado, esta_pagado, numero_matriculados, integrantes_ids,monto_total) VALUES
+(1, 2, 1, '2025-07-15', 300.00, 1,1,1,300.00),
+(2, 1, 1, '2025-07-20', 0.00, 0,1,2,300.00);
 
 
 -- Facturas profesores
