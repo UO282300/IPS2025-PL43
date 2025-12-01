@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import proyecto.service.UserService;
 
@@ -21,6 +20,7 @@ public class VentanaCerrarAF extends JFrame {
     private JPanel pnBotones;
     private JButton btCerrar;
     private JButton btVolver;
+    private JPanel panelActividadesFinalizadas;
 
     private UserService service;
 
@@ -29,7 +29,7 @@ public class VentanaCerrarAF extends JFrame {
 
         setTitle("Cerrar Actividades Formativas");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(950, 700);
+        setSize(1800, 1000);
         setLocationRelativeTo(null);
 
         contentPane = new JPanel(new BorderLayout(10, 10));
@@ -38,7 +38,15 @@ public class VentanaCerrarAF extends JFrame {
         setContentPane(contentPane);
 
         contentPane.add(getTituloPanel(), BorderLayout.NORTH);
-        contentPane.add(getScrollActividades(), BorderLayout.CENTER);
+        
+        panelActividadesFinalizadas = new JPanel(new BorderLayout());
+        panelActividadesFinalizadas.add(getScrollActividades(), BorderLayout.CENTER);
+
+        JPanel pnCentral = new JPanel(new GridLayout(1, 1, 0, 10));
+        pnCentral.setBackground(new Color(230, 240, 255));
+        pnCentral.add(panelActividadesFinalizadas);
+        contentPane.add(pnCentral, BorderLayout.CENTER);
+        
         contentPane.add(getPanelBotones(), BorderLayout.SOUTH);
 
         cargarActividades();
@@ -57,7 +65,7 @@ public class VentanaCerrarAF extends JFrame {
 
     private JScrollPane getScrollActividades() {
         if (scrollActividades == null) {
-            String[] columnas = {"Nombre", "Fecha inicio", "Fecha fin", "Estado"};
+            String[] columnas = {"Nombre", "Inicio inscripcion", "Fin inscripcion", "Fecha inicio", "Fecha fin", "Gastos", "Estado"};
             modeloTabla = new DefaultTableModel(columnas, 0) {
                 private static final long serialVersionUID = 1L;
                 @Override
@@ -69,16 +77,11 @@ public class VentanaCerrarAF extends JFrame {
             tablaActividades = new JTable(modeloTabla);
             tablaActividades.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             tablaActividades.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            tablaActividades.setRowHeight(26);
+            tablaActividades.setRowHeight(40);
             tablaActividades.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-            // Centrar estado
-            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-            centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-            tablaActividades.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
-
             scrollActividades = new JScrollPane(tablaActividades);
-            scrollActividades.setBorder(new TitledBorder("Actividades finalizadas:"));
+            scrollActividades.setBorder(new TitledBorder("Actividades finalizadas o canceladas:"));
         }
         return scrollActividades;
     }
@@ -110,25 +113,58 @@ public class VentanaCerrarAF extends JFrame {
 
         for (Map<String, Object> act : actividades) {
             String estado = String.valueOf(act.get("estado"));
-            if (estado.equalsIgnoreCase("finalizada")) {
+            if (estado.equalsIgnoreCase("finalizada") || estado.equalsIgnoreCase("cancelada")) {
                 String nombre = (String) act.get("nombre");
+                String insI = String.valueOf(act.get("inicio_inscripcion"));
+                String insF = String.valueOf(act.get("fin_inscripcion"));
                 String fechaI = String.valueOf(act.get("fecha_inicio"));
                 String fechaF = String.valueOf(act.get("fecha_fin"));
-                modeloTabla.addRow(new Object[]{nombre, fechaI, fechaF, estado});
+                int idActividad = ((Number) act.get("id_actividad")).intValue();
+                String resumenGastos = obtenerResumenGastos(idActividad);
+                modeloTabla.addRow(new Object[]{nombre, insI, insF, fechaI, fechaF, resumenGastos, estado});
             }
         }
-        
+
         if (modeloTabla.getRowCount() == 0) {
-        	mostrarMensajeSinActividades("No hay actividades disponibles para cerrar.");
+            mostrarMensajeSinActividades(panelActividadesFinalizadas, "No hay actividades disponibles para cerrar.");
             btCerrar.setEnabled(false);
         } else {
+            panelActividadesFinalizadas.removeAll();
+            panelActividadesFinalizadas.add(scrollActividades, BorderLayout.CENTER);
+            panelActividadesFinalizadas.revalidate();
+            panelActividadesFinalizadas.repaint();
             btCerrar.setEnabled(true);
         }
-        
     }
     
-    private void mostrarMensajeSinActividades(String mensaje) {
-        // Reemplaza el contenido central por un panel de aviso bonito
+    private String obtenerResumenGastos(int id) {
+        try {
+            boolean pagosAlumno = service.actividadConMovimientosAlumnos(id);
+            boolean pagosProfesor = service.actividadConMovimientosProfesores(id);
+
+            StringBuilder sb = new StringBuilder("<html>");
+
+            if (pagosAlumno)
+                sb.append("- Pagos de alumnos pendientes<br>");
+
+            if (pagosProfesor)
+                sb.append("- Pagos de profesores pendientes<br>");
+
+            if (!pagosAlumno && !pagosProfesor)
+                sb.append("Todo pagado");
+
+            sb.append("</html>");
+
+            return sb.toString();
+
+        } catch (Exception ex) {
+            return "<html>Error al comprobar</html>";
+        }
+    }
+
+	private void mostrarMensajeSinActividades(JPanel contenedor, String mensaje) {
+        contenedor.removeAll();
+        
         JPanel panelMensaje = new JPanel(new GridBagLayout());
         panelMensaje.setBackground(new Color(240, 245, 255));
         
@@ -138,10 +174,10 @@ public class VentanaCerrarAF extends JFrame {
         label.setHorizontalAlignment(SwingConstants.CENTER);
         
         panelMensaje.add(label);
-        getContentPane().remove(scrollActividades);
-        getContentPane().add(panelMensaje, BorderLayout.CENTER);
-        revalidate();
-        repaint();
+        contenedor.add(panelMensaje, BorderLayout.CENTER);
+        
+        contenedor.revalidate();
+        contenedor.repaint();
     }
 
     private void cerrarActividad() {
@@ -154,7 +190,6 @@ public class VentanaCerrarAF extends JFrame {
             return;
         }
 
-        // Obtenemos el id de la actividad real a partir del nombre
         String nombreSeleccionado = (String) modeloTabla.getValueAt(filaSeleccionada, 0);
         List<Map<String, Object>> actividades = service.listarActividades();
         int idActividad = -1;
@@ -165,40 +200,47 @@ public class VentanaCerrarAF extends JFrame {
             }
         }
 
-        if (idActividad == -1) {
-            JOptionPane.showMessageDialog(this,
-                    "Error al obtener el ID de la actividad seleccionada.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        boolean pagosPendientesAlumnos = service.actividadConMovimientosAlumnos(idActividad);
+        boolean pagosPendientesProfes = service.actividadConMovimientosProfesores(idActividad);
 
-        if (service.actividadConMovimientosAlumnos(idActividad)) {
-            JOptionPane.showMessageDialog(this,
-                    "No se puede cerrar la actividad. Existen pagos pendientes de alumnos.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (pagosPendientesAlumnos || pagosPendientesProfes) {
+            String mensaje = "<html>Esta actividad tiene pagos pendientes:<br><br>";
+            if (pagosPendientesAlumnos) mensaje += "- Alumnos con pagos pendientes<br>";
+            if (pagosPendientesProfes) mensaje += "- Profesores con pagos pendientes<br>";
+            mensaje += "<br>¿Esta seguro de que desea cerrarla igualmente?</html>";
 
-        if (!service.actividadConMovimientosProfesores(idActividad)) {
-            JOptionPane.showMessageDialog(this,
-                    "No se puede cerrar la actividad. Existen pagos pendientes de profesores.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            int opcionForzada = JOptionPane.showConfirmDialog(
+                    this,
+                    mensaje,
+                    "Confirmar cierre con pagos pendientes",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
 
-        int opcion = JOptionPane.showConfirmDialog(this,
-                "Estas seguro de que deseas cerrar esta actividad?",
-                "Confirmar cierre", JOptionPane.YES_NO_OPTION);
+            if (opcionForzada != JOptionPane.YES_OPTION) {
+                return;
+            }
 
-        if (opcion == JOptionPane.YES_OPTION) {
-            if (service.cerrarActividad(idActividad)) {
-                JOptionPane.showMessageDialog(this, "Actividad cerrada correctamente.");
-                cargarActividades();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Error al cerrar la actividad.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            int opcion = JOptionPane.showConfirmDialog(this,
+                    "¿Estas seguro de que deseas cerrar esta actividad?",
+                    "Confirmar cierre",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (opcion != JOptionPane.YES_OPTION) {
+                return;
             }
         }
+        
+        if (service.cerrarActividad(idActividad)) {
+            JOptionPane.showMessageDialog(this, "Actividad cerrada correctamente.");
+            cargarActividades();
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Error al cerrar la actividad.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+        cargarActividades();
     }
 }

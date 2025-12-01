@@ -123,7 +123,7 @@ public class UserService {
     public List<Map<String, Object>> listarActividades() {
         List<Map<String,Object>> actividades = db.executeQueryMap(
             "SELECT id_actividad, nombre, inicio_inscripcion, fin_inscripcion, fecha_inicio, fecha_fin, " +
-            "isClosed " +
+            "isClosed, isCancelada " +
             "FROM Actividad ORDER BY fecha_inicio"
         );
 
@@ -137,16 +137,6 @@ public class UserService {
  // Calcula el estado de la actividad
     public String obtenerEstadoActividad(Map<String,Object> act) {
         try {
-        	
-        	Object cancelada = act.get("isCancelada");
-            if (cancelada instanceof Number && ((Number) cancelada).intValue() == 1) {
-                return "Cancelada";
-            }
-            if (cancelada instanceof Boolean && (Boolean) cancelada) {
-                return "Cancelada";
-            }
-            
-            
             Object closed = act.get("isClosed");
             if (closed instanceof Number && ((Number) closed).intValue() == 1) {
                 return "Cerrada";
@@ -154,16 +144,21 @@ public class UserService {
             if (closed instanceof Boolean && (Boolean) closed) {
                 return "Cerrada";
             }
-            
-            
+
+        	Object cancelada = act.get("isCancelada");
+            if (cancelada instanceof Number && ((Number) cancelada).intValue() == 1) {
+                return "Cancelada";
+            }
+            if (cancelada instanceof Boolean && (Boolean) cancelada) {
+                return "Cancelada";
+            }
 
             LocalDate hoy = fechaHoy;
             LocalDate inicioIns = parseFecha((String) act.get("inicio_inscripcion"));
             LocalDate finIns = parseFecha((String) act.get("fin_inscripcion"));
             LocalDate fechaInicio = parseFecha((String) act.get("fecha_inicio"));
             LocalDate fechaFin = parseFecha((String) act.get("fecha_fin"));
-            
-           
+                    
             if (hoy.isBefore(inicioIns)) {
                 return "Planificada";
             } else if (!hoy.isBefore(inicioIns) && !hoy.isAfter(finIns)) {
@@ -365,7 +360,7 @@ public class UserService {
 		return al.validarEmail();
 	}
 
-	public boolean introduce(MensajeError msj) {
+	public boolean introduce(MensajeError msj, String id_cuota) {
 		if(!comprobarPlazos()) {
 			msj.setMensaje("Fuera de plazo");
 			System.out.println("Fuera de plazo");
@@ -374,11 +369,11 @@ public class UserService {
 		insertarAlumno();
 		
 		
-		return insertarMatricula(msj);
+		return insertarMatricula(msj, id_cuota);
 		
 	}
 
-	private boolean comprobarPlazos() {
+	public boolean comprobarPlazos() {
 		LocalDate hoy = getFecha();
 	    LocalDate inicio = ac.getInicio_insc();
 	    LocalDate fin = ac.getFin_inscr();
@@ -386,9 +381,10 @@ public class UserService {
 	    return !hoy.isBefore(inicio) && !hoy.isAfter(fin);
 	}
 
-	private boolean insertarMatricula(MensajeError msj) {
+	private boolean insertarMatricula(MensajeError msj, String id_cuota) {
 		if(!comprobarPlazasActividad()) {
-			msj.setMensaje("No hay plazas disponibles");
+			msj.setMensaje("A�adido a la lista de espera");
+			toListaEspera(a, id_cuota);
 			System.out.println("No hay plazas");
 			return false;
 		}
@@ -396,14 +392,15 @@ public class UserService {
 		else {
 			insertaMatricula();
 			List<Map<String, Object>> resultado = db.executeQueryMap(
-				    "SELECT * FROM Matricula WHERE id_alumno = ? AND id_actividad = ?",
-				    a.getIdAlumno(), ac.getId_Actividad()
+				    "SELECT * FROM Matricula WHERE id_alumno = ? AND id_actividad = ?"// and id_cuota_actividad = ?"
+					,
+				    a.getIdAlumno(), ac.getId_Actividad()//, id_cuota
 				);
 			
 				if (!resultado.isEmpty()) {
 				    System.out.println(" Alumno insertado correctamente: " + resultado.get(0));
 				} else {
-				    System.out.println("No se insertÃƒÂ¯Ã‚Â¿Ã‚Â½ al alumno.");
+				    System.out.println("No se inserto al alumno.");
 				}
 			a=new Alumno();
 			ac=null;
@@ -412,6 +409,35 @@ public class UserService {
 	}
 
 	
+	private void toListaEspera(Alumno a2, String id_cuota) {
+		a = a2;
+		insertarAlumno();
+		String sqlMaxNumero = """
+		        SELECT COALESCE(MAX(numero), 0) AS max_numero
+		        FROM ListaEspera
+		        WHERE id_actividad = ?
+		    """;
+		List<Map<String, Object>> result = db.executeQueryMap(sqlMaxNumero, ac.getId_Actividad());
+		int numero = 1;
+		if (!result.isEmpty()) {
+			numero = ((Number) result.get(0).get("max_numero")).intValue() + 1;
+		}
+		
+		String sqlInsert = """
+		        INSERT OR IGNORE INTO ListaEspera (id_actividad, id_alumno, numero, id_cuota)
+				VALUES (?, ?, ?, ?)
+		        """;
+			
+			db.executeUpdate(sqlInsert, ac.getId_Actividad(), a.getIdAlumno(), numero++, id_cuota);
+			String sqlId = "SELECT last_insert_rowid() AS id";
+	        List<Map<String, Object>> idResult = db.executeQueryMap(sqlId);
+	        if (!idResult.isEmpty()) {
+	            int idLista = ((Number) idResult.get(0).get("id")).intValue();
+	            System.out.println("Alumno " + a.getNombre() + " agregado a lista de espera con id_lista = " + idLista);
+	        }
+		
+	}
+
 	public List<Actividad> recuperarActividades(){
 		return listaActividades.getActividades(fechaHoy, db);
 	}
@@ -435,7 +461,6 @@ public class UserService {
 
 	private void insertaMatricula() {
 		String cuota ="SELECT valor from CuotaActividad where id_cuota_actividad = ?";
-		
 		List<Object[]> result = db.executeQueryArray(cuota, a.getId_cuota());
 		
 		if (result.isEmpty()) {
@@ -588,7 +613,7 @@ public class UserService {
 
 	private double ingresosEstimados(int idActividad) {
 	    String sql = "SELECT SUM(monto_total) AS total FROM Matricula " +
-	                 "WHERE id_actividad = ?";
+	                 "WHERE id_actividad = ? and isCancelada = 0";
 
 	    List<Map<String, Object>> r = db.executeQueryMap(sql, idActividad);
 	    if (r.isEmpty()) return 0.0;
@@ -842,22 +867,31 @@ public class UserService {
 	}
 	
 	public boolean actividadConMovimientosAlumnos(int idActividad) {
-	    String sql = "SELECT COUNT(*) AS total FROM Matricula WHERE id_actividad = ? AND (esta_pagado = 0 OR isCancelada = 1)";
+	    String sql = """
+	        SELECT COUNT(*) AS total 
+	        FROM Matricula 
+	        WHERE id_actividad = ? 
+	          AND isCancelada = 0
+	          AND esta_pagado = 0
+	    """;
+
 	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
 	    int pendientes = ((Number) result.get(0).get("total")).intValue();
 	    return pendientes > 0;
 	}
 	
 	public boolean actividadConMovimientosProfesores(int idActividad) {
-	    String sql = "SELECT COUNT(*) AS total FROM PagoProfesor WHERE id_actividad = ?";
-	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
-	    int pagos = ((Number) result.get(0).get("total")).intValue();
-	    
-	    String sql2 = "SELECT COUNT(*) AS total FROM FacturaP WHERE id_actividad = ?";
-	    List<Map<String, Object>> result2 = db.executeQueryMap(sql2, idActividad);
-	    int nProfesores = ((Number) result2.get(0).get("total")).intValue();
-	    
-	    return pagos == nProfesores;
+	    String sql = """
+	        SELECT COUNT(*) AS total
+	        FROM FacturaP f
+	        LEFT JOIN PagoProfesor p ON f.id_factura = p.id_factura
+	        WHERE f.id_actividad = ?
+	          AND f.esta_pagado = 0
+	    """;
+
+	    List<Map<String, Object>> res = db.executeQueryMap(sql, idActividad);
+	    int pendientes = ((Number) res.get(0).get("total")).intValue();
+	    return pendientes > 0;
 	}
 	
 	public boolean cerrarActividad(int idActividad) {
@@ -945,7 +979,6 @@ public class UserService {
     }
 
     public void registrarDevolucion(int idMatricula, int idAlumno, int idActividad, double montoDevuelto) {
-        LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
         double montoPagadoActual = db.queryDouble(
                 "SELECT monto_pagado FROM Matricula WHERE id_matricula = ?", 
                 idMatricula
@@ -1196,11 +1229,6 @@ public class UserService {
             int totalPersonas, MensajeError msj,int id_cuotaA) {
 
 		
-		if (totalPersonas < 2) {
-			msj.setMensaje("Un grupo debe tener al menos 2 personas");
-			return false;
-		}
-
 		if (totalPersonas > 50) { 
 			msj.setMensaje("El grupo no puede exceder 50 personas");
 			return false;
@@ -1276,7 +1304,7 @@ public class UserService {
 			
 	}
 
-	public Alumno getAlumnoById(String i) {
+	public Alumno getAlumnoById(String i,String id_cuota) {
 		List<Map<String, Object>> resultados = db.executeQueryMap(
 		        "SELECT * FROM Alumno WHERE id_alumno = ?", 
 		        i
@@ -1294,7 +1322,9 @@ public class UserService {
 		    alumno.setCorreo((String) fila.get("email"));
 		    alumno.setNumeroTf((String) fila.get("telefono"));
 		    alumno.setPerteneceDB((Integer) fila.get("es_interno"));
-		    
+		    if(id_cuota.isBlank() || id_cuota==null) {}
+		    else
+		    alumno.setId_Cuota(Integer.parseInt(id_cuota));
 		    return alumno;
 	}
 
@@ -1358,5 +1388,195 @@ public class UserService {
 	    }
 	}
 
+	public void toListaEspera(List<Alumno> aEspera, String id_cuota) {
+		insertarAlumnos(aEspera);
+		String sqlMaxNumero = """
+		        SELECT COALESCE(MAX(numero), 0) AS max_numero
+		        FROM ListaEspera
+		        WHERE id_actividad = ?
+		    """;
+		List<Map<String, Object>> result = db.executeQueryMap(sqlMaxNumero, ac.getId_Actividad());
+		int numero = 1;
+		if (!result.isEmpty()) {
+			numero = ((Number) result.get(0).get("max_numero")).intValue() + 1;
+		}
 
+		for (Alumno alumno : aEspera) {
+			String sqlInsert = """
+		        INSERT OR IGNORE INTO ListaEspera (id_actividad, id_alumno, numero, id_cuota)
+				VALUES (?, ?, ?, ?)
+		        """;
+			
+			db.executeUpdate(sqlInsert, ac.getId_Actividad(), alumno.getIdAlumno(), numero++,id_cuota);
+			String sqlId = "SELECT last_insert_rowid() AS id";
+	        List<Map<String, Object>> idResult = db.executeQueryMap(sqlId);
+	        if (!idResult.isEmpty()) {
+	            int idLista = ((Number) idResult.get(0).get("id")).intValue();
+	            System.out.println("Alumno " + alumno.getNombre() + " agregado a lista de espera con id_lista = " + idLista);
+	        }
+		}
+		
+	}
+	
+	public List<Map<String, Object>> getListaEsperaDetalles(int idActividad) {
+	    List<Map<String, Object>> lista = new ArrayList<>();
+
+	    String sql = """
+	        SELECT id_alumno, numero
+	        FROM ListaEspera
+	        WHERE id_actividad = ? and activo = 0
+	        ORDER BY numero ASC
+	    """;
+
+	    List<Map<String, Object>> resultados = db.executeQueryMap(sql, idActividad);
+	    for (Map<String, Object> row : resultados) {
+	        Map<String, Object> detalle = new HashMap<>();
+	        int idAlumno = ((Number) row.get("id_alumno")).intValue();
+	        detalle.put("id_alumno", idAlumno);
+	        int numero = ((Number) row.get("numero")).intValue();
+	        detalle.put("numero", numero);
+
+	        lista.add(detalle);
+	    }
+
+	    return lista;
+	}
+
+	public boolean sacarListaEspera(int idActividad) {
+		Map<String, Object> detalles = getActividadDetalles(idActividad);
+		if (detalles == null) return false;
+        int plazasDisponibles = (int) detalles.get("plazas_disponibles");
+        if (plazasDisponibles <= 0) {
+        	 return false;
+		}
+		
+		String sql = """
+				SELECT * FROM ListaEspera WHERE id_actividad = ? and activo = 0
+			    ORDER BY numero ASC 
+			    LIMIT ?""";
+
+		List<Map<String, Object>> resultados = db.executeQueryMap(sql, idActividad,plazasDisponibles);
+
+		if (resultados.isEmpty()) {
+			return false;
+		}
+		LocalDate ahora = fechaHoy;
+		LocalDate limite = ahora.plusDays(2);
+		String insertaPlaza = """
+		      INSERT INTO PlazaPendiente(id_actividad, id_alumno, fecha_asignacion, fecha_limite)
+		      VALUES (?, ?, ?, ?)""";
+
+		String updateLista = """
+		        UPDATE ListaEspera
+		        SET activo = 1
+		        WHERE id_lista = ?
+		    """;
+		for (Map<String, Object> alumno : resultados) {
+
+	        int idLista = (int) alumno.get("id_lista");
+	        int idAlumno = (int) alumno.get("id_alumno");
+
+	        System.out.println("Alumno puesto a confirmaci�n: " + idAlumno);
+
+	        db.executeUpdate(insertaPlaza, idActividad, idAlumno, ahora, limite);
+	        db.executeUpdate(updateLista, idLista);
+	    }
+		return true;	
+	}
+	
+	public void actualizarPlazasExpiradas() {
+	    String sql = """
+	        SELECT * FROM PlazaPendiente
+	        WHERE respondida = 0
+	    """;
+
+	    List<Map<String, Object>> pendientes = db.executeQueryMap(sql);
+
+	    for (Map<String, Object> plaza : pendientes) {
+	        LocalDate fechaLimite = LocalDate.parse((String) plaza.get("fecha_limite"));
+	        System.out.println("La fecha limite es: " + fechaLimite.toString());
+	        if (fechaLimite.isBefore(fechaHoy)) {
+	            int idActividad = (int) plaza.get("id_actividad");
+	            int idAlumno = (int) plaza.get("id_alumno");
+
+	            String update = """
+	                UPDATE PlazaPendiente
+	                SET respondida = 1, aceptada = 0
+	                WHERE id_actividad = ? AND id_alumno = ?
+	            """;
+	            db.executeUpdate(update, idActividad, idAlumno);
+	            sacarListaEspera(idActividad);
+	        }
+	    }
+	}
+	
+	public List<Map<String,Object>> listarPlazasPendientes() {
+	    String sql = """
+	        SELECT pp.*, a.nombre, a.apellido
+	        FROM PlazaPendiente pp
+	        JOIN Alumno a ON a.id_alumno = pp.id_alumno
+	        WHERE pp.respondida = 0
+	    """;
+
+	    return db.executeQueryMap(sql);
+	}
+	
+	public void aceptarPlazaYMatricular(int idActividad, int idAlumno) {
+	    String sql = """
+	        UPDATE PlazaPendiente
+	        SET respondida = 1, aceptada = 1
+	        WHERE id_actividad = ? AND id_alumno = ?
+	    """;
+	    db.executeUpdate(sql, idActividad, idAlumno);
+	    String cuotas = """
+	    		Select id_cuota from ListaEspera where id_alumno = ?
+	    		""";
+	    List<Map<String,Object>> resultados = db.executeQueryMap(cuotas, idAlumno);
+	    MensajeError msj = new MensajeError();
+	    
+	    System.out.println("El id de la actividad que intento matricular es: " + idActividad);
+	    ac = getActividad(String.valueOf(idActividad));
+	    if (!resultados.isEmpty()) {
+	        Map<String,Object> fila = resultados.get(0);
+
+	        Integer idCuota = ((Number) fila.get("id_cuota")).intValue();
+	        a = getAlumnoById(String.valueOf(idAlumno),String.valueOf(idCuota));
+	        insertarMatricula(msj, String.valueOf(idCuota));
+	    }	    
+	}
+
+	private Actividad getActividad(String valueOf) {
+		String sql = "SELECT * FROM Actividad WHERE id_actividad = ?";
+		    
+		List<Map<String, Object>> resultado = db.executeQueryMap(sql, valueOf);
+		    
+		if (resultado.isEmpty()) {
+			return null;
+		}
+		    
+		Map<String, Object> fila = resultado.get(0);
+		  
+		Actividad actividad = new Actividad();
+		actividad.setId_Actividad((int) fila.get("id_actividad"));
+		actividad.setNombre((String) fila.get("nombre"));
+		actividad.setObjetivos((String) fila.get("objetivos"));
+		actividad.setContenidos((String) fila.get("contenidos"));
+		actividad.setEspacio((String) fila.get("espacio"));
+		  
+		
+		if (fila.get("fecha_inicio") != null) {
+			actividad.setFechaInicio(LocalDate.parse(fila.get("fecha_inicio").toString()));
+		}
+		if (fila.get("fecha_fin") != null) {
+		    actividad.setFechaFin(LocalDate.parse(fila.get("fecha_fin").toString()));
+		}
+		if (fila.get("inicio_inscripcion") != null) {
+		    actividad.setInicio_insc(LocalDate.parse(fila.get("inicio_inscripcion").toString()));
+		}
+		if (fila.get("fin_inscripcion") != null) {
+		    actividad.setFin_inscr(LocalDate.parse(fila.get("fin_inscripcion").toString()));
+		}
+		actividad.setPlazas(fila.get("total_plazas") != null ? (int) fila.get("total_plazas") : 0);
+		return actividad;
+	}
 }

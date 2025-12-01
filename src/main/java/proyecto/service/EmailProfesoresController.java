@@ -26,8 +26,7 @@ public class EmailProfesoresController {
 		sb.append("\nSin embargo, debo informarle que con este pago aún nos quedan ")
 		.append(pendienteDespues)
 		.append(" € pendientes por pagarle para que su cobro esté completo.\n")
-		.append("Nos aseguraremos de efectuar pagos próximamente para pagarle la cantidad pendiente\n");
-		System.out.println(sb.toString());
+		.append("Nos aseguraremos de efectuar pagos próximamente para pagarle la cantidad pendiente.\n");
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -48,16 +47,15 @@ public class EmailProfesoresController {
 		sb.append(generarMensajePagoPredeterminado(nombreProfesor,nombreActividad,fecha,cantidadPagada));
 
 		sb.append("\nCon este pago realizado, me congratula informarle que ya usted ya ha cobrado\n")
-		.append("todo el dinero que figuraba en su factura.");
+		.append("todo el dinero que figuraba en su factura.\n");
 		if (pendienteDespues > 0) {
-			sb.append("Sin embargo, debo informarle que usted ha pagado en total\n")
+			sb.append("Sin embargo, debo informarle que ha habido un error en los pagos y usted ha cobrado\n")
 			.append(pendienteDespues)
-			.append("€ más de lo que correspondia\n")
-			.append("Debido a ello, desde COIIPA nos encargaremos de efectuarle\n")
-			.append("lo más pronto posible un pago compensatorio para satisfacer ese exceso");
+			.append("€ más de lo que correspondia.\n")
+			.append("Debido a ello, le pedimos por favor que nos efectúe unos pagos compensatorios\n")
+			.append("lo más pronto posible para satisfacer ese exceso.");
 		}
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -78,7 +76,6 @@ public class EmailProfesoresController {
 		.append(" € pendientes por compersar.\n")
 		.append("Esperamos que usted efectúe otros pagos compensatorios para satisfacer dicha deuda próximamente");
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -98,11 +95,10 @@ public class EmailProfesoresController {
 		if (diferencia > 0) {
 			sb.append("Sin embargo, se ha detectado una incidencia en dichos pagos, generándose un exceso de\n")
 			.append(Math.abs(diferencia))
-			.append("€ más de lo que correspondia\n")
-			.append("Debido a ello, desde COIIPA le enviaremos más pagos para saldar ese exceso\n");
+			.append("€ más de lo que correspondia.\n")
+			.append("Debido a ello, desde COIIPA le enviaremos más pagos para saldar ese exceso.\n");
 		}
 		
-		System.out.println(sb.toString());
 		
 		guardarEmailEnFichero(sb.toString());
 	}
@@ -121,8 +117,9 @@ public class EmailProfesoresController {
           .append(String.format("%.2f €", cantidad))
           .append(" el día ")
           .append(fecha) 
-          .append("\npara saldar su cobro por impartir el curso \"")
-          .append(nombreActividad);
+          .append("\npara saldar su cobro por impartir el curso ")
+          .append(nombreActividad)
+          .append(".");
 
         return sb;
     }
@@ -142,8 +139,9 @@ public class EmailProfesoresController {
           .append(" el día ")
           .append(fecha) 
           .append("\npara compensar el exceso que hemos generado por error al pagar\n")
-          .append("la factura correspondiente por impartir")
-          .append(nombreActividad);
+          .append("la factura correspondiente por impartir ")
+          .append(nombreActividad)
+          .append(".");
         return sb;
     }
 

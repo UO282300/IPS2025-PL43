@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -250,8 +251,7 @@ public class VentanaInscripcion extends JFrame {
 	            cbCuotas.addItem(new CuotaItem(id, descripcion));
 	            }
 
-	        actualizarInfoPlazas();
-	        actualizarEstadoBotonInscribir();
+	        actualizarInfoPlazas();	        
 	    }
 	}
 	
@@ -329,7 +329,12 @@ public class VentanaInscripcion extends JFrame {
 	    	pnCuotas.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 30));
 	        
 	        cbCuotas = new JComboBox<>();
-	        
+	        cbCuotas.addItemListener(e -> {
+	            if (e.getStateChange() == ItemEvent.SELECTED) {
+	                CuotaItem item = (CuotaItem) e.getItem();
+	                System.out.println("Seleccionada cuota: " + item.getId());
+	            }
+	        });
 	        pnCuotas.add(cbCuotas);
 	    }
 	    return pnCuotas;
@@ -408,7 +413,7 @@ public class VentanaInscripcion extends JFrame {
 	private void updateData() {
 		MensajeError msj = new MensajeError();
 		msj.setMensaje("NO se ha podido hacer la matricula.");
-		if (service.introduce(msj)) {
+		if (service.introduce(msj,String.valueOf(((CuotaItem)cbCuotas.getSelectedItem()).getId()))) {
 			JOptionPane.showMessageDialog(null,
 					"Inscripcion realizada correctamente. Se debe pagar en un plazo de 48 horas.",
 					"Inscripcion Realizada", JOptionPane.INFORMATION_MESSAGE);
@@ -829,25 +834,83 @@ public class VentanaInscripcion extends JFrame {
 	    } else {
 	        
 	        if (service.getAct() != null) {
-	            int plazasDisponibles = service.obtenerPlazasDisponibles(service.getAct().getId_Actividad());
-	            boolean puedeInscribir = !integrantesTemporales.isEmpty() && 
-	                                   integrantesTemporales.size() <= plazasDisponibles;
+	            //int plazasDisponibles = service.obtenerPlazasDisponibles(service.getAct().getId_Actividad());
+	            //boolean puedeInscribir = !integrantesTemporales.isEmpty() && 
+	                                  // integrantesTemporales.size() <= plazasDisponibles;
 	            
-	            getBtnInscribirGrupo().setEnabled(puedeInscribir);
-	            
-	            if (integrantesTemporales.size() > plazasDisponibles) {
-	                getLbContadorGrupo().setText("Integrantes: " + integrantesTemporales.size() + " (Plazas insuficientes!)");
-	                getLbContadorGrupo().setForeground(Color.RED);
-	            } else {
-	                getLbContadorGrupo().setText("Integrantes: " + integrantesTemporales.size());
-	                getLbContadorGrupo().setForeground(Color.BLACK);
-	            }
+	            getBtnInscribirGrupo().setEnabled(true);
 	        } else {
 	            getBtnInscribirGrupo().setEnabled(false);
 	        }
 	    }
 	}
 	
+	private void checkEleccion(int plazasDisponibles) {
+		if (integrantesTemporales.size() > plazasDisponibles) {
+
+		    String mensaje = 
+		        "Solo hay " + plazasDisponibles + " plazas disponibles.\n" +
+		        "Pero el grupo tiene " + integrantesTemporales.size() + " personas.\n\n" +
+		        "Seleccione una opción:\n" +
+		        " 1 - Inscribir a los que tengan plaza y poner el resto en lista de espera\n" +
+		        " 2 - Modificar el grupo (volver atrás y quitar personas)\n" +
+		        " 3 - Cancelar inscripción\n";
+
+		    Object[] opciones = {
+		        "1. Inscribir y lista de espera",
+		        "2. Modificar grupo",
+		        "3. Cancelar"
+		    };
+
+		    int opcion = JOptionPane.showOptionDialog(
+		        this,
+		        mensaje,
+		        "Plazas insuficientes",
+		        JOptionPane.DEFAULT_OPTION,
+		        JOptionPane.WARNING_MESSAGE,
+		        null,
+		        opciones,
+		        opciones[0]
+		    );
+
+		    if (opcion == 0) {
+
+		       
+		        List<Alumno> aEspera = new ArrayList<>();
+
+		        for (int i = plazasDisponibles; i < integrantesTemporales.size(); i++) {
+		            aEspera.add(integrantesTemporales.get(i));
+		        }
+		        
+		        integrantesTemporales.removeAll(aEspera);
+		        System.out.println("El id de la cuota pasada es :" + String.valueOf(((CuotaItem)cbCuotas.getSelectedItem()).getId()));
+		        service.toListaEspera(aEspera,String.valueOf(((CuotaItem)cbCuotas.getSelectedItem()).getId()));
+		        
+		        JOptionPane.showMessageDialog(
+		            this,
+		            "Inscritos: " + integrantesTemporales.size() + "\n" +
+		            "En lista de espera: " + aEspera.size(),
+		            "Inscripción completada",
+		            JOptionPane.INFORMATION_MESSAGE
+		        );
+
+		    }
+		    else if (opcion == 1) {
+		        return;
+		    }
+		    else {
+		        JOptionPane.showMessageDialog(
+		            this,
+		            "Inscripción cancelada.",
+		            "Cancelado",
+		            JOptionPane.INFORMATION_MESSAGE
+		        );
+		        return;
+		    }
+		}
+		
+	}
+
 	private boolean validarAlumno(Alumno alumno, boolean mostrarMensajes) {
 	    if (alumno.getNombre() == null || alumno.getNombre().trim().isEmpty()) {
 	        if (mostrarMensajes) {
@@ -938,71 +1001,78 @@ public class VentanaInscripcion extends JFrame {
 	        JOptionPane.showMessageDialog(this, "Seleccione una actividad primero", "Error", JOptionPane.ERROR_MESSAGE);
 	        return;
 	    }
+	    if(!service.comprobarPlazos()) {
+	    	JOptionPane.showMessageDialog(this, "Fuera de plazo", "Error", JOptionPane.ERROR_MESSAGE);
+	    	return;
+	    }
 	    
-	    
-	    Alumno responsable = integrantesTemporales.get(0);
-	    	    
-	    
-	    int totalPersonas = integrantesTemporales.size();
 	    int plazasDisponibles = service.obtenerPlazasDisponibles(service.getAct().getId_Actividad());
-	    
-	    if (totalPersonas > plazasDisponibles) {
-	        JOptionPane.showMessageDialog(this, 
-	            "No hay suficientes plazas. Necesita " + totalPersonas + " pero solo hay " + plazasDisponibles, 
-	            "Error", JOptionPane.ERROR_MESSAGE);
-	        return;
+        
+	    checkEleccion(plazasDisponibles);
+	    actualizarEstadoBotonInscribir();
+	    if(integrantesTemporales.size()>0) {
+	    	Alumno responsable = integrantesTemporales.get(0);
+    	    
+		    
+		    int totalPersonas = integrantesTemporales.size();
+		    
+		    if (totalPersonas > plazasDisponibles) {
+		        JOptionPane.showMessageDialog(this, 
+		            "No hay suficientes plazas. Necesita " + totalPersonas + " pero solo hay " + plazasDisponibles, 
+		            "Error", JOptionPane.ERROR_MESSAGE);
+		        return;
+		    }
+		    
+		    
+		    StringBuilder resumen = new StringBuilder();
+		    resumen.append("¿Esta seguro de inscribir a ").append(totalPersonas).append(" personas?\n\n");
+		    resumen.append("RESPONSABLE: ").append(integrantesTemporales.get(0).getNombre())
+		           .append(" ").append(integrantesTemporales.get(0).getApellido())
+		           .append(" (").append(integrantesTemporales.get(0).getCorreo()).append(")\n\n");
+		    
+		    if (totalPersonas >= 1) {
+		        resumen.append("INTEGRANTES:\n");
+		        for (int i = 1; i < integrantesTemporales.size(); i++) {
+		            Alumno a = integrantesTemporales.get(i);
+		            resumen.append("- ").append(a.getNombre()).append(" ").append(a.getApellido())
+		                   .append(" (").append(a.getCorreo()).append(")\n");
+		        }
+		    }
+		    
+		    int confirmacion = JOptionPane.showConfirmDialog(this,
+		        resumen.toString(),
+		        "Confirmar Inscripcion Grupal",
+		        JOptionPane.YES_NO_OPTION);
+		    
+		    if (confirmacion != JOptionPane.YES_OPTION) {
+		        return;
+		    }		    
+		    try {
+		        service.setIntegrantesGrupo(new ArrayList<>(integrantesTemporales));
+		        service.setAlumnoResponsable(responsable);
+		        MensajeError msj = new MensajeError();
+		        msj.setMensaje("NO se ha podido hacer la matricula grupal.");
+		        
+		        if (service.introduceGrupo(msj)) {
+		            JOptionPane.showMessageDialog(this,
+		                "Inscripcion grupal realizada para " + totalPersonas + " personas.\nSe debe pagar en 48 horas.",
+		                "Inscripcion Exitosa", JOptionPane.INFORMATION_MESSAGE);
+		            
+		            
+		            integrantesTemporales.clear();
+		            modeloIntegrantes.clear();
+		            actualizarContadorGrupo();
+		            cargarActividades();
+		            cargarElementosFormulario();
+		            getRdbtIndividual().setSelected(true);
+		        } else {
+		            JOptionPane.showMessageDialog(this, msj.getMensaje(), "Error", JOptionPane.ERROR_MESSAGE);
+		        }
+		    } catch (Exception e) {
+		        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		    }
 	    }
 	    
-	    
-	    StringBuilder resumen = new StringBuilder();
-	    resumen.append("¿Esta seguro de inscribir a ").append(totalPersonas).append(" personas?\n\n");
-	    resumen.append("RESPONSABLE: ").append(integrantesTemporales.get(0).getNombre())
-	           .append(" ").append(integrantesTemporales.get(0).getApellido())
-	           .append(" (").append(integrantesTemporales.get(0).getCorreo()).append(")\n\n");
-	    
-	    if (totalPersonas > 1) {
-	        resumen.append("INTEGRANTES:\n");
-	        for (int i = 1; i < integrantesTemporales.size(); i++) {
-	            Alumno a = integrantesTemporales.get(i);
-	            resumen.append("- ").append(a.getNombre()).append(" ").append(a.getApellido())
-	                   .append(" (").append(a.getCorreo()).append(")\n");
-	        }
-	    }
-	    
-	    int confirmacion = JOptionPane.showConfirmDialog(this,
-	        resumen.toString(),
-	        "Confirmar Inscripcion Grupal",
-	        JOptionPane.YES_NO_OPTION);
-	    
-	    if (confirmacion != JOptionPane.YES_OPTION) {
-	        return;
-	    }
-	    
-	    
-	    try {
-	        service.setIntegrantesGrupo(new ArrayList<>(integrantesTemporales));
-	        service.setAlumnoResponsable(responsable);
-	        MensajeError msj = new MensajeError();
-	        msj.setMensaje("NO se ha podido hacer la matricula grupal.");
-	        
-	        if (service.introduceGrupo(msj)) {
-	            JOptionPane.showMessageDialog(this,
-	                "Inscripcion grupal realizada para " + totalPersonas + " personas.\nSe debe pagar en 48 horas.",
-	                "Inscripcion Exitosa", JOptionPane.INFORMATION_MESSAGE);
-	            
-	            
-	            integrantesTemporales.clear();
-	            modeloIntegrantes.clear();
-	            actualizarContadorGrupo();
-	            cargarActividades();
-	            cargarElementosFormulario();
-	            getRdbtIndividual().setSelected(true);
-	        } else {
-	            JOptionPane.showMessageDialog(this, msj.getMensaje(), "Error", JOptionPane.ERROR_MESSAGE);
-	        }
-	    } catch (Exception e) {
-	        JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-	    }
 	}
 
 
