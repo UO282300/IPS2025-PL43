@@ -439,7 +439,7 @@ public class UserService {
 		List<Object[]> result = db.executeQueryArray(cuota, a.getId_cuota());
 		
 		if (result.isEmpty()) {
-	        throw new RuntimeException("No se encontró el valor de la cuota para id: " + a.getId_cuota());
+	        throw new RuntimeException("No se encontrï¿½ el valor de la cuota para id: " + a.getId_cuota());
 	    }
 		
 		double valor = Double.valueOf(result.get(0)[0].toString());
@@ -940,7 +940,7 @@ public class UserService {
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
         montoPagado=Math.min(montoPagado,cuota);
         if (diasFaltan >= 7) return montoPagado;
-        else if (diasFaltan >= 3) return montoPagado * 0.5;
+        else if (diasFaltan >= 3) return cuota * 0.5;
         else return 0;
     }
 
@@ -1223,7 +1223,7 @@ public class UserService {
 
 		Double valor = null;
 		if (result.isEmpty()) {
-			msj.setMensaje("No se encontró el valor de la cuota");
+			msj.setMensaje("No se encontrï¿½ el valor de la cuota");
 		    return false;
 		}
 		valor = Double.valueOf(result.get(0)[0].toString());
