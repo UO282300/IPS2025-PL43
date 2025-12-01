@@ -220,13 +220,13 @@ public class VentanaPrincipal {
         pnCentro.add(pnCancelarInscripciones);
         pnCancelarInscripciones.setLayout(new GridLayout(0, 2, 0, 0));
 
-        // === Combo de alumnos ===
+        // Combo de alumnos
         comboAlumnosCancelar = new JComboBox<>();
         comboAlumnosCancelar.setFont(new Font("Arial", Font.PLAIN, 16));
         comboAlumnosCancelar.setEnabled(false);
         pnCancelarInscripciones.add(comboAlumnosCancelar);
 
-        // === Botï¿½n cancelar inscripciones ===
+        // Boton cancelar inscripciones
         JButton btnCancelarInscripciones = new JButton("Profesional - Cancelar Inscripciones");
         btnCancelarInscripciones.setFont(new Font("Arial", Font.PLAIN, 16));
         btnCancelarInscripciones.setEnabled(false);
@@ -251,7 +251,7 @@ public class VentanaPrincipal {
 
             @Override
             public void popupMenuCanceled(PopupMenuEvent e) {
-                // No hace falta nada aquí
+                // No hace falta nada aquï¿½
             }
         });
         
@@ -295,6 +295,16 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btnCancelarAF);
         
+        JButton btnPendientesDev = new JButton("Responsable - Consultar devoluciones pendientes tras cancelacion");
+        btnPendientesDev.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnPendientesDev.setEnabled(false);
+        btnPendientesDev.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		mostrarVentanaPendientesDev();
+        	}
+        });
+        pnCentro.add(btnPendientesDev);
+        
         JButton btnRetrasarAF = new JButton("Responsable - Retrasar Actividad");
         btnRetrasarAF.setFont(new Font("Arial", Font.PLAIN, 16));
         btnRetrasarAF.setEnabled(false);
@@ -304,6 +314,8 @@ public class VentanaPrincipal {
             }
         });
         pnCentro.add(btnRetrasarAF);
+        
+        
         
         JButton btnFacturasProf = new JButton("Administrador - Generar Factura Profesional");
         btnFacturasProf.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -441,6 +453,14 @@ public class VentanaPrincipal {
 	    VentanaCancelarAF vCAF = new VentanaCancelarAF(service);
 	    vCAF.setLocationRelativeTo(null);
 	    vCAF.setVisible(true);
+	}
+	
+
+	private void mostrarVentanaPendientesDev() {
+		VentanaDevolucionesPendientes vDP = new VentanaDevolucionesPendientes(service);
+	    vDP.setLocationRelativeTo(null);
+	    vDP.setVisible(true);
+		
 	}
 	
 private void mostrarVentanaRetrasarAF() {
