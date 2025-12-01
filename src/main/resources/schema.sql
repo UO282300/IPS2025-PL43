@@ -95,6 +95,7 @@ CREATE TABLE FacturaP (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
     id_profesor INTEGER NOT NULL,
     id_actividad INTEGER NOT NULL,
+    remuneracion INTEGER NOT NULL DEFAULT 0,
     numero_factura VARCHAR(50) NOT NULL,
     fecha_factura DATE NOT NULL,
     cantidad DECIMAL(10,2) NOT NULL,

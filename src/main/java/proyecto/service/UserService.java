@@ -1069,10 +1069,10 @@ public class UserService {
 	public void insertFacturaP(Integer idProfesor, int idActividad, String numeroFactura, String fechaFactura,
 			double remuneracion, String emisorNombre, String emisorNif, String emisorDireccion) {
 		try {
-			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, "
+			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, remuneracion, numero_factura, "
 					+ "fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) "
 					+ "VALUES (?,?,?,?,?,?,?,?, ?)";
-		    db.executeUpdate(sql, idProfesor, idActividad, -1, "", 
+		    db.executeUpdate(sql, idProfesor, idActividad, remuneracion, -1, "", 
 		    		0, "", "", "", 0);
 		} catch (ApplicationException e) {
 			System.out.println("Error al insertar profesor: " + e.getMessage());
