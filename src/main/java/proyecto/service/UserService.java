@@ -1578,4 +1578,87 @@ public class UserService {
 		actividad.setPlazas(fila.get("total_plazas") != null ? (int) fila.get("total_plazas") : 0);
 		return actividad;
 	}
+	
+	public List<Map<String, Object>> listarTodosLosCursos() {
+        return db.executeQueryMap(
+            """
+            SELECT 
+                a.id_actividad,
+                a.nombre,
+                a.inicio_inscripcion,
+                a.fin_inscripcion,
+                a.fecha_inicio,
+                a.fecha_fin,
+                a.total_plazas,
+                a.isClosed,
+                a.isCancelada
+            FROM Actividad a
+            ORDER BY a.fecha_inicio
+            """
+        );
+    }
+
+	public double getTotalPagado(int idMatricula) {
+		String sql = """
+				SELECT monto_pagado FROM Matricula WHERE id_matricula = ?
+				""";
+		List<Map<String, Object>> rows = db.executeQueryMap(sql, idMatricula);
+
+		if (rows == null || rows.isEmpty()) {
+		    return 0.0;
+		}
+		Map<String, Object> row = rows.get(0);
+		Object total = row.get("monto_pagado");
+
+		if (total == null) return 0.0;
+
+		return ((Number) total).doubleValue();
+	}
+
+	public double getTotal(int idMatricula) {
+		String sql = """
+				SELECT monto_total FROM Matricula WHERE id_matricula = ?
+				""";
+		List<Map<String, Object>> rows = db.executeQueryMap(sql, idMatricula);
+
+		if (rows == null || rows.isEmpty()) {
+		    return 0.0;
+		}
+		Map<String, Object> row = rows.get(0);
+		Object total = row.get("monto_total");
+
+		if (total == null) return 0.0;
+
+		return ((Number) total).doubleValue();
+	}
+
+	public boolean getFacturada(int idMatricula) {
+		String sql = """
+				SELECT * FROM FacturaProfesional WHERE id_matricula = ?
+				""";
+		List<Map<String, Object>> filas = db.executeQueryMap(sql, idMatricula);
+		if(filas == null || filas.isEmpty()) return false;
+		else return true;
+	}
+
+	public boolean generaFactura(double cantidad, LocalDate fechaMovimiento, String numero, int idMatricula) {
+		String sql ="""
+				INSERT INTO facturaProfesional (numero_factura,fecha,id_matricula,facturada)
+				values (?, ?, ?, ?)
+				""";
+		try {
+	        db.executeUpdate(
+	            sql,
+	            numero,
+	            fechaMovimiento.toString(),
+	            idMatricula,
+	            1
+	        );
+	        return true;
+	    } catch (Exception e) {
+	        System.out.println("No se pudo generar la factura");
+	        return false;
+	    }
+		
+	}
 }

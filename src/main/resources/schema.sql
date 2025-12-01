@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS CuotaActividad;
 DROP TABLE IF EXISTS Cuota;
 DROP TABLE IF EXISTS ListaEspera;
 DROP TABLE IF EXISTS PlazaPendiente;
+DROP TABLE IF EXISTS FacturaProfesional;
 
 --Luego se anyaden las nuevas
 CREATE TABLE Administrador (
@@ -188,4 +189,13 @@ CREATE TABLE PlazaPendiente(
     FOREIGN KEY (id_actividad) REFERENCES Actividad(id_actividad),
     FOREIGN KEY (id_alumno) REFERENCES Alumno(id_alumno),
     UNIQUE(id_actividad, id_alumno)
+);
+
+CREATE TABLE FacturaProfesional(
+    id_factura_profesional INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_matricula INTEGER NOT NULL,
+    fecha DATE NOT NULL,
+    numero_factura VARCHAR NOT NULL UNIQUE,
+    facturada BOOLEAN NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula)
 );
