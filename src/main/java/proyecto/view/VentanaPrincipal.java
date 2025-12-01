@@ -305,6 +305,15 @@ public class VentanaPrincipal {
         });
         pnCentro.add(btnRetrasarAF);
         
+        JButton btnFacturasProf = new JButton("Administrador - Generar Factura Profesional");
+        btnFacturasProf.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnFacturasProf.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                mostrarVentanaGenFactProf();
+            }
+        });
+        pnCentro.add(btnFacturasProf);
+        
         comboAceptarPlaza = new JComboBox<>();
         comboAceptarPlaza.setFont(new Font("Arial", Font.PLAIN, 16));
         //comboAceptarPlaza.setEnabled(false);
@@ -354,7 +363,14 @@ public class VentanaPrincipal {
         frame.setVisible(true);
     }
 
-    private void cargaFecha() {
+    private void mostrarVentanaGenFactProf() {
+		VentanaFacturasProfesionales vG = new VentanaFacturasProfesionales(service);
+		vG.setLocationRelativeTo(null);
+		vG.setVisible(true);
+		
+	}
+
+	private void cargaFecha() {
 		service.setFecha(txtFechaHoy.getText());
 		txtFechaHoy.setText("");
 		lblFechaCargada.setText("Fecha cargada: " + service.getFecha());
