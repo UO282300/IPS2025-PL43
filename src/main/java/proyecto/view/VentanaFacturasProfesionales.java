@@ -212,11 +212,14 @@ public class VentanaFacturasProfesionales extends JFrame {
                 return; 
             }
         }
+        if(isFacturada()) {
+        	mostrarError("Ya está facturada");
+        }
         if(generaFactura(cantidad,fechaMovimiento,numeroFact)) {
     		mostrarInfo("Factura generada correctamente");
     		cargarInscripcionesPendientes();
     	}else {
-    		mostrarError("No se ha podido generar la factura");
+    		mostrarError("Ya existe factura con ese numero");
     	}
 	}
 
@@ -228,9 +231,13 @@ public class VentanaFacturasProfesionales extends JFrame {
 			return numero;
 		}
 	}
-
+	
+	
+	private boolean isFacturada() {
+		return service.getFacturada(idMatriculaSeleccionada);
+	}
+	
 	private boolean generaFactura(double cantidad, LocalDate fechaMovimiento, String numero) {
-		if(service.getFacturada(idMatriculaSeleccionada)) return false;
 		return service.generaFactura(cantidad,fechaMovimiento, numero, idMatriculaSeleccionada);	
 	}
 
@@ -368,8 +375,8 @@ public class VentanaFacturasProfesionales extends JFrame {
             String apellido = partes.length > 1 ? partes[1] : "";
             String estado;
             boolean facturada = service.getFacturada(idMatricula);
-            if(facturada) estado = "facturado";
-            else estado = "sin facturar";
+            if(facturada) estado = "Facturado";
+            else estado = "Sin facturar";
             
             double totalPagado = service.getTotalPagado(idMatricula);
             double total = service.getTotal(idMatricula);
