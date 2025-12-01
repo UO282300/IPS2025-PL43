@@ -1,4 +1,5 @@
 ----- NUEVO EMAIL -----
+<<<<<<< HEAD
 Estimado/a Claudio,
 
 Soy Rosa, la secretaria del COIIPA. Le escribo para notificarle de que hemos recibido
@@ -205,6 +206,15 @@ todo el dinero que figuraba en su factura.Sin embargo, debo informarle que ha ha
 10.0€ más de lo que correspondia.
 Debido a ello, le pedimos por favor que nos efectúe unos pagos compensatorios
 lo más pronto posible para satisfacer ese exceso.
+=======
+Estimado/a Raquel,
+
+Soy Rosa, la secretaria del COIIPA. Le escribo para informarle de que ya le hemos enviado
+un pago con un importe de 200,00 € el día 2025-11-15
+para saldar su cobro por impartir el curso "Nuevas t�cnicas de Prueba
+Con este pago realizado, me congratula informarle que ya usted ya ha cobrado
+todo el dinero que figuraba en su factura.
+>>>>>>> refs/remotes/origin/#32517
 
 Por favor, si tiene alguna duda o quiere que le confirme 
 cualquier información acerca de sus pagos o factura, 
