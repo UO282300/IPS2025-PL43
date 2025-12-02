@@ -33,14 +33,15 @@ public class VentanaRetrasarAF extends JFrame {
         setLocationRelativeTo(null);
 
         // --- Tabla ---
+        // Modificado para añadir "Fin Inscripcion" antes de "Inicio"
         modeloTabla = new DefaultTableModel(
-                new Object[]{"ID", "Nombre", "Inicio", "Fin", "Estado", "Accion"}, 0
+                new Object[]{"ID", "Nombre", "Fin Inscripcion", "Inicio", "Fin", "Estado", "Accion"}, 0
         ) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 5; // solo columna de acción editable
+                return column == 6; // solo columna de acción editable (ahora índice 6)
             }
         };
 
@@ -80,11 +81,14 @@ public class VentanaRetrasarAF extends JFrame {
         for (Map<String, Object> act : actividades) {
             int id = (int) act.get("id_actividad");
             String nombre = String.valueOf(act.get("nombre"));
+            // Nuevo: obtenemos fin_inscripcion y lo ponemos antes de fecha_inicio
+            String finInscripcion = act.get("fin_inscripcion") != null ? String.valueOf(act.get("fin_inscripcion")) : "";
             String inicio = String.valueOf(act.get("fecha_inicio"));
             String fin = String.valueOf(act.get("fecha_fin"));
             String estado = controller.obtenerEstadoActividad(act);
 
-            modeloTabla.addRow(new Object[]{id, nombre, inicio, fin, estado, "Retrasar"});
+            // Ajustado el orden: id, nombre, finInscripcion, inicio, fin, estado, accion
+            modeloTabla.addRow(new Object[]{id, nombre, finInscripcion, inicio, fin, estado, "Retrasar"});
         }
     }
 
@@ -99,7 +103,7 @@ public class VentanaRetrasarAF extends JFrame {
 
         if (confirm != JOptionPane.YES_OPTION) return;
 
-      
+
         LocalDate finInscripcion = parseFecha(tfFinInscripcion.getText());
         LocalDate fechaInicio = parseFecha(tfFechaInicio.getText());
         LocalDate fechaFin = parseFecha(tfFechaFin.getText());

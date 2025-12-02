@@ -588,7 +588,7 @@ public class UserService {
 	    return listaActividades;
 	}
 	
-	private double ingresosReales(int idActividad) {
+	public double ingresosReales(int idActividad) {
 	    String sql = "SELECT SUM(monto_pagado) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ?";
 	    String devoluciones = "SELECT SUM(monto_devuelto) as devuelto from devoluciones where id_actividad = ?";
@@ -611,7 +611,7 @@ public class UserService {
 	    return ingresos - devolucion;
 	}
 
-	private double ingresosEstimados(int idActividad) {
+	public double ingresosEstimados(int idActividad) {
 	    String sql = "SELECT SUM(monto_total) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ? and isCancelada = 0";
 
@@ -1684,5 +1684,32 @@ public class UserService {
 	        return false;
 	    }
 		
+	}
+
+	
+
+	public double getGastosEstimados(int idActividad) {
+		 List<Map<String, Object>> facturas = db.executeQueryMap(
+		            "SELECT remuneracion FROM FacturaP WHERE id_actividad = ?", idActividad
+		        );
+		
+		double gastosEstimados = facturas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("remuneracion"))))
+                .sum();
+		return gastosEstimados;
+	}
+
+	public double getGastosConfirmados(int idActividad) {
+		 List<Map<String, Object>> facturasPagadas = db.executeQueryMap(
+		            "SELECT cantidad FROM PagoProfesor WHERE id_actividad = ?", idActividad
+		        );
+		        List<Map<String, Object>> devolucionesProfesor = db.executeQueryMap(
+		        		"select cantidad from DevolucionProfesor where id_actividad = ?", idActividad);
+
+		double gastos = facturasPagadas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+                .sum() - devolucionesProfesor.stream().mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad")))).sum();
+   
+		return gastos;
 	}
 }
