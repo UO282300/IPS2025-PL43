@@ -29,8 +29,8 @@ CREATE TABLE Profesor (
     apellido VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     telefono VARCHAR(20),
-    nif VARCHAR(20) NOT NULL,
-    direccion VARCHAR(255) NOT NULL,
+    nif VARCHAR(20),
+    direccion VARCHAR(255),
     isEmpresa BOOLEAN DEFAULT 0
 );
 

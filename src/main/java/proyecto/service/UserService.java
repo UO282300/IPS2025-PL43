@@ -588,7 +588,7 @@ public class UserService {
 	    return listaActividades;
 	}
 	
-	private double ingresosReales(int idActividad) {
+	public double ingresosReales(int idActividad) {
 	    String sql = "SELECT SUM(monto_pagado) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ?";
 	    String devoluciones = "SELECT SUM(monto_devuelto) as devuelto from devoluciones where id_actividad = ?";
@@ -611,7 +611,7 @@ public class UserService {
 	    return ingresos - devolucion;
 	}
 
-	private double ingresosEstimados(int idActividad) {
+	public double ingresosEstimados(int idActividad) {
 	    String sql = "SELECT SUM(monto_total) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ? and isCancelada = 0";
 
@@ -866,33 +866,128 @@ public class UserService {
 	    );
 	}
 	
-	public boolean actividadConMovimientosAlumnos(int idActividad) {
-	    String sql = """
-	        SELECT COUNT(*) AS total 
-	        FROM Matricula 
-	        WHERE id_actividad = ? 
-	          AND isCancelada = 0
-	          AND esta_pagado = 0
-	    """;
+	public Map<String, Boolean> obtenerPendientesActividadTexto(int idActividad) {
+	    Map<String, Boolean> datos = new HashMap<>();
 
-	    List<Map<String, Object>> result = db.executeQueryMap(sql, idActividad);
-	    int pendientes = ((Number) result.get(0).get("total")).intValue();
-	    return pendientes > 0;
+	    datos.put("pagos_alumnos", false);
+	    datos.put("pagos_profes", false);
+	    datos.put("dev_alumnos", false);
+	    datos.put("dev_profes", false);
+
+	    try {
+	        List<Map<String, Object>> act = db.executeQueryMap("""
+	            SELECT isCancelada 
+	            FROM Actividad
+	            WHERE id_actividad = ?
+	        """, idActividad);
+
+	        boolean esCancelada = ((Number) act.get(0).get("isCancelada")).intValue() == 1;
+	    	
+	        List<Map<String, Object>> inscripciones = db.executeQueryMap("""
+	            SELECT id_matricula
+	            FROM Matricula
+	            WHERE id_actividad = ?
+	        """, idActividad);
+
+	        for (Map<String, Object> ins : inscripciones) {
+	            int idMat = ((Number) ins.get("id_matricula")).intValue();
+	            Map<String, Double> est = getEstadoPagoAlumno(idMat);
+	            if (est == null) continue;
+
+	            if (est.getOrDefault("pendiente", 0.0) > 0 && !esCancelada)
+	                datos.put("pagos_alumnos", true);
+
+	            if (est.getOrDefault("a_devolver", 0.0) > 0)
+	                datos.put("dev_alumnos", true);
+	        }
+
+	        List<Map<String, Object>> profesPendientes = db.executeQueryMap("""
+	            SELECT COUNT(*) AS total
+	            FROM FacturaP f 
+	            LEFT JOIN PagoProfesor p ON f.id_factura = p.id_factura
+	            WHERE f.id_actividad = ?
+	              AND f.esta_pagado = 0
+	        """, idActividad);
+
+	        if (((Number) profesPendientes.get(0).get("total")).intValue() > 0 && !esCancelada) {
+	            datos.put("pagos_profes", true);
+	        }
+
+	        datos.put("dev_profes", false);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return datos;
 	}
 	
-	public boolean actividadConMovimientosProfesores(int idActividad) {
-	    String sql = """
-	        SELECT COUNT(*) AS total
-	        FROM FacturaP f
-	        LEFT JOIN PagoProfesor p ON f.id_factura = p.id_factura
-	        WHERE f.id_actividad = ?
-	          AND f.esta_pagado = 0
-	    """;
+	private Map<String, Double> getEstadoPagoAlumno(int idMatricula) {
+        Map<String, Double> datos = new HashMap<>();
 
-	    List<Map<String, Object>> res = db.executeQueryMap(sql, idActividad);
-	    int pendientes = ((Number) res.get(0).get("total")).intValue();
-	    return pendientes > 0;
-	}
+        try {
+            List<Map<String, Object>> result = db.executeQueryMap("""
+                SELECT ca.valor*m.numero_matriculados AS cuota, m.monto_pagado, m.isCancelada, m.id_actividad, m.id_alumno
+                ,m.monto_inscripcion_cancelada, m.monto_actividad_cancelada
+                FROM Matricula m
+                JOIN CuotaActividad ca ON m.id_cuota_actividad = ca.id_cuota_actividad
+                WHERE m.id_matricula = ?
+            """, idMatricula);
+
+            if (result.isEmpty()) return null;
+
+            double cuota = ((Number) result.get(0).get("cuota")).doubleValue();
+            double totalPagado = ((Number) result.get(0).get("monto_pagado")).doubleValue();
+            boolean isCancelada = result.get(0).get("isCancelada") != null &&
+                                  ((Number) result.get(0).get("isCancelada")).intValue() == 1;
+            double monto_inscripcion_cancelada = ((Number) result.get(0).get("monto_inscripcion_cancelada")).doubleValue();
+            double monto_actividad_cancelada = ((Number) result.get(0).get("monto_actividad_cancelada")).doubleValue();
+            
+
+            List<Map<String, Object>> devoluciones = db.executeQueryMap("""
+                SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
+                FROM Devoluciones
+                WHERE id_matricula = ?
+            """, idMatricula);
+
+            double totalDevuelto = ((Number) devoluciones.get(0).get("total_devuelto")).doubleValue();
+
+            double neto = totalPagado - totalDevuelto;
+            double pendiente;
+            double aDevolver;
+
+            if (isCancelada) {
+            	aDevolver = Math.max(0, neto + monto_inscripcion_cancelada - cuota);
+                aDevolver = Math.round(aDevolver * 100.0) / 100.0;
+                
+                pendiente = Math.max(0, cuota - (neto + monto_inscripcion_cancelada));
+                pendiente = Math.round(pendiente * 100.0) / 100.0;
+            } else {
+            	aDevolver = Math.max(0, neto + monto_actividad_cancelada - cuota);
+                aDevolver = Math.round(aDevolver * 100.0) / 100.0;
+                
+                pendiente = Math.max(0, cuota - (neto + monto_actividad_cancelada));
+                pendiente = Math.round(pendiente * 100.0) / 100.0;
+            }
+            
+            totalPagado = Math.round(totalPagado * 100.0) / 100.0;
+            totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
+            
+             
+            datos.put("cuota", cuota);
+            datos.put("total_pagado", totalPagado);
+            datos.put("total_devuelto", totalDevuelto);
+            datos.put("pendiente", pendiente);
+            datos.put("a_devolver", aDevolver);
+            datos.put("is_cancelada", isCancelada ? 1.0 : 0.0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return datos;
+    }
 	
 	public boolean cerrarActividad(int idActividad) {
 	    try {
@@ -904,7 +999,6 @@ public class UserService {
 	    }
 	}
 	
-	// Lista las actividades filtradas por estado
     public List<Map<String, Object>> listarActividadesPorEstado(String estado) {
         String sql = """
             SELECT *
@@ -912,10 +1006,8 @@ public class UserService {
             ORDER BY fecha_inicio
         """;
 
-        // Obtenemos todas las actividades
         List<Map<String, Object>> actividades = db.executeQueryMap(sql);
 
-        // Filtramos las que coincidan con el estado solicitado
         java.util.List<Map<String, Object>> filtradas = new java.util.ArrayList<>();
         for (Map<String, Object> act : actividades) {
             String estadoActual = obtenerEstadoActividad(act);
@@ -1052,11 +1144,11 @@ public class UserService {
 	public boolean cargarProfesor(String nombre, String apellidos, String email, String telefono) {
 		try {
 	        String sql = """
-	            INSERT INTO Profesor (nombre, apellido, email, telefono)
-	            VALUES (?, ?, ?, ?)
+	            INSERT INTO Profesor (nombre, apellido, email, telefono, nif, direccion)
+	            VALUES (?, ?, ?, ?, ?, ?)
 	            """;
 
-	        db.executeUpdate(sql, nombre, apellidos, email, telefono);
+	        db.executeUpdate(sql, nombre, apellidos, email, telefono, "N/A", "N/A");
 
 	        System.out.println("Profesor aÃ±adido correctamente: " + nombre + " " + apellidos);
 	        return true;
@@ -1390,8 +1482,8 @@ public class UserService {
 
 	    // Insertar la empresa como profesor con isEmpresa = 1
 	    try {
-	        String sql = "INSERT INTO Profesor (nombre, apellido, email, telefono, isEmpresa) "
-	                   + "VALUES (?, '', ?, '', 1)";
+	        String sql = "INSERT INTO Profesor (nombre, apellido, email, nif, direccion, isEmpresa) "
+	                   + "VALUES (?, '', ?, '','', 1)";
 	        db.executeUpdate(sql, empresaTexto, email);
 
 	        // Recuperar el id_profesor recién insertado
@@ -1704,5 +1796,32 @@ public class UserService {
 	        return false;
 	    }
 		
+	}
+
+	
+
+	public double getGastosEstimados(int idActividad) {
+		 List<Map<String, Object>> facturas = db.executeQueryMap(
+		            "SELECT remuneracion FROM FacturaP WHERE id_actividad = ?", idActividad
+		        );
+		
+		double gastosEstimados = facturas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("remuneracion"))))
+                .sum();
+		return gastosEstimados;
+	}
+
+	public double getGastosConfirmados(int idActividad) {
+		 List<Map<String, Object>> facturasPagadas = db.executeQueryMap(
+		            "SELECT cantidad FROM PagoProfesor WHERE id_actividad = ?", idActividad
+		        );
+		        List<Map<String, Object>> devolucionesProfesor = db.executeQueryMap(
+		        		"select cantidad from DevolucionProfesor where id_actividad = ?", idActividad);
+
+		double gastos = facturasPagadas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+                .sum() - devolucionesProfesor.stream().mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad")))).sum();
+   
+		return gastos;
 	}
 }

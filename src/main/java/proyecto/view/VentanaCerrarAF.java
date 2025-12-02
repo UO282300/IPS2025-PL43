@@ -65,7 +65,14 @@ public class VentanaCerrarAF extends JFrame {
 
     private JScrollPane getScrollActividades() {
         if (scrollActividades == null) {
-            String[] columnas = {"Nombre", "Inicio inscripcion", "Fin inscripcion", "Fecha inicio", "Fecha fin", "Gastos", "Estado"};
+            String[] columnas = {
+            	    "Nombre", 
+            	    "Fecha inicio", 
+            	    "Fecha fin",
+            	    "Estado", 
+            	    "Pagos Pendientes", 
+            	    "Devoluciones Pendientes"
+            	};
             modeloTabla = new DefaultTableModel(columnas, 0) {
                 private static final long serialVersionUID = 1L;
                 @Override
@@ -113,16 +120,40 @@ public class VentanaCerrarAF extends JFrame {
 
         for (Map<String, Object> act : actividades) {
             String estado = String.valueOf(act.get("estado"));
-            if (estado.equalsIgnoreCase("finalizada") || estado.equalsIgnoreCase("cancelada")) {
-                String nombre = (String) act.get("nombre");
-                String insI = String.valueOf(act.get("inicio_inscripcion"));
-                String insF = String.valueOf(act.get("fin_inscripcion"));
-                String fechaI = String.valueOf(act.get("fecha_inicio"));
-                String fechaF = String.valueOf(act.get("fecha_fin"));
-                int idActividad = ((Number) act.get("id_actividad")).intValue();
-                String resumenGastos = obtenerResumenGastos(idActividad);
-                modeloTabla.addRow(new Object[]{nombre, insI, insF, fechaI, fechaF, resumenGastos, estado});
+            if (!estado.equalsIgnoreCase("finalizada") &&
+                !estado.equalsIgnoreCase("cancelada")) {
+                continue;
             }
+
+            String nombre = (String) act.get("nombre");
+            String fechaI = String.valueOf(act.get("fecha_inicio"));
+            String fechaF = String.valueOf(act.get("fecha_fin"));
+            int idActividad = ((Number) act.get("id_actividad")).intValue();
+
+            Map<String, Boolean> pend = service.obtenerPendientesActividadTexto(idActividad);
+
+            StringBuilder pagos = new StringBuilder("<html>");
+            if (pend.get("pagos_alumnos")) pagos.append("- alumnos pendientes<br>");
+            if (pend.get("pagos_profes"))  pagos.append("- profesores pendientes<br>");
+            if (!pend.get("pagos_alumnos") && !pend.get("pagos_profes"))
+                pagos.append("-");
+            pagos.append("</html>");
+
+            StringBuilder devol = new StringBuilder("<html>");
+            if (pend.get("dev_alumnos")) devol.append("- alumnos pendientes<br>");
+            if (pend.get("dev_profes"))  devol.append("- profesores pendientes<br>");
+            if (!pend.get("dev_alumnos") && !pend.get("dev_profes"))
+                devol.append("-");
+            devol.append("</html>");
+
+            modeloTabla.addRow(new Object[]{
+                nombre,
+                fechaI,
+                fechaF,
+                estado,
+                pagos.toString(),
+                devol.toString()
+            });
         }
 
         if (modeloTabla.getRowCount() == 0) {
@@ -136,33 +167,9 @@ public class VentanaCerrarAF extends JFrame {
             btCerrar.setEnabled(true);
         }
     }
+
     
-    private String obtenerResumenGastos(int id) {
-        try {
-            boolean pagosAlumno = service.actividadConMovimientosAlumnos(id);
-            boolean pagosProfesor = service.actividadConMovimientosProfesores(id);
-
-            StringBuilder sb = new StringBuilder("<html>");
-
-            if (pagosAlumno)
-                sb.append("- Pagos de alumnos pendientes<br>");
-
-            if (pagosProfesor)
-                sb.append("- Pagos de profesores pendientes<br>");
-
-            if (!pagosAlumno && !pagosProfesor)
-                sb.append("Todo pagado");
-
-            sb.append("</html>");
-
-            return sb.toString();
-
-        } catch (Exception ex) {
-            return "<html>Error al comprobar</html>";
-        }
-    }
-
-	private void mostrarMensajeSinActividades(JPanel contenedor, String mensaje) {
+    private void mostrarMensajeSinActividades(JPanel contenedor, String mensaje) {
         contenedor.removeAll();
         
         JPanel panelMensaje = new JPanel(new GridBagLayout());
@@ -200,13 +207,15 @@ public class VentanaCerrarAF extends JFrame {
             }
         }
 
-        boolean pagosPendientesAlumnos = service.actividadConMovimientosAlumnos(idActividad);
-        boolean pagosPendientesProfes = service.actividadConMovimientosProfesores(idActividad);
+        Map<String, Boolean> pend = service.obtenerPendientesActividadTexto(idActividad);
 
-        if (pagosPendientesAlumnos || pagosPendientesProfes) {
-            String mensaje = "<html>Esta actividad tiene pagos pendientes:<br><br>";
-            if (pagosPendientesAlumnos) mensaje += "- Alumnos con pagos pendientes<br>";
-            if (pagosPendientesProfes) mensaje += "- Profesores con pagos pendientes<br>";
+        boolean pagosPendAlumnos = pend.get("pagos_alumnos");
+        boolean pagosPendProfes = pend.get("pagos_profes");
+        boolean devolPendAlumnos = pend.get("dev_alumnos");
+        boolean devolPendProfes = pend.get("dev_profes");
+
+        if (pagosPendAlumnos || pagosPendProfes || devolPendAlumnos || devolPendProfes) {
+            String mensaje = "<html>Esta actividad tiene pagos pendientes.<br><br>";
             mensaje += "<br>¿Esta seguro de que desea cerrarla igualmente?</html>";
 
             int opcionForzada = JOptionPane.showConfirmDialog(

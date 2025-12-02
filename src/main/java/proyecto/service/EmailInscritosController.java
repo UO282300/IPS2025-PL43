@@ -135,7 +135,7 @@ public class EmailInscritosController {
         sb.append("Estimado/a ").append(nombreAlumno).append(",\n\n");
         sb.append("Soy Rosa, la secretaria del COIIPA. Le escribo para informarle de que el pago mediante ")
           .append(metodo.toLowerCase())
-          .append("\n que usted ha emitidio por importe de ")
+          .append("\nque usted ha emitidio por importe de ")
           .append(String.format("%.2f €", cantidad))
           .append(" el día ")
           .append(fecha) 

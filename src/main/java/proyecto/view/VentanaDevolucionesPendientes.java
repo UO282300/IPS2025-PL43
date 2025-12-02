@@ -47,7 +47,7 @@ public class VentanaDevolucionesPendientes extends JFrame {
                 "Nombre",
                 "Apellido",
                 "Acción Formativa",
-                "Pendiente (€)"
+                "Pendiente (euros)"
         }, 0) {
             private static final long serialVersionUID = 1L;
 

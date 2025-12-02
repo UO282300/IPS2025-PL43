@@ -27,7 +27,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
-import proyecto.service.EmailInscritosController;
 import proyecto.service.EmailProfesoresController;
 import proyecto.service.PagosController;
 import proyecto.service.UserService;
@@ -153,7 +152,6 @@ public class VentanaPagoProfesores extends JFrame {
     }
 
 
-    @SuppressWarnings("serial")
 	private void initTablaCursos(JPanel panel) {
     	modelCursos = new DefaultTableModel(
     		    new Object[]{
@@ -194,7 +192,6 @@ public class VentanaPagoProfesores extends JFrame {
         });
     }
 
-    @SuppressWarnings("serial")
 	private void initTablaProfesores(JPanel panel) {
     	modelProfesores = new DefaultTableModel(
     		    new Object[]{"ID Profesor", "Nombre", "Apellidos", "Telefono", "Total pagado", "Pendiente"}, 
@@ -284,7 +281,6 @@ public class VentanaPagoProfesores extends JFrame {
             return;
         }
 
-        LocalDate hoy = us.getFechaHoy();
 
         for (Map<String, Object> curso : cursos) {
             int id = ((Number) curso.get("id_actividad")).intValue();
@@ -303,29 +299,9 @@ public class VentanaPagoProfesores extends JFrame {
                     ? LocalDate.parse(curso.get("fecha_fin").toString())
                     : null;
             int totalPlazas = curso.get("total_plazas") != null ? ((Number) curso.get("total_plazas")).intValue() : 0;
-            boolean isClosed = curso.get("isClosed") != null && ((Number) curso.get("isClosed")).intValue() == 1;
-            boolean isCancelada = curso.get("isCancelada") != null && ((Number) curso.get("isCancelada")).intValue() == 1;
 
-            String estado;
-            if (isClosed) {
-                estado = "Cerrada";
-            } else if (isCancelada) {
-                estado = "Cancelada";
-            } else if (inicioInscripcion != null && finInscripcion != null &&
-                       !hoy.isBefore(inicioInscripcion) && !hoy.isAfter(finInscripcion)) {
-                estado = "Periodo de inscripción";
-            } else if (fechaInicio != null && fechaFin != null &&
-                       !hoy.isBefore(fechaInicio) && !hoy.isAfter(fechaFin)) {
-                estado = "En curso";
-            } else if (finInscripcion != null && fechaInicio != null &&
-                       hoy.isAfter(finInscripcion) && hoy.isBefore(fechaInicio)) {
-                estado = "Por empezar";
-            } else if (fechaFin != null && hoy.isAfter(fechaFin)) {
-                estado = "Cursada";
-            } else {
-                estado = "Sin actividad";
-            }
-
+            String estado = us.obtenerEstadoActividad(curso);
+            
             modelCursos.addRow(new Object[]{
                 id,
                 nombre,
@@ -451,7 +427,6 @@ public class VentanaPagoProfesores extends JFrame {
 
 
     
-    @SuppressWarnings("serial")
     private void initTablaMovimientos(JPanel panel) {
         modelMovimientos = new DefaultTableModel(
             new Object[]{"Fecha", "Cantidad", "Tipo"}, 0
