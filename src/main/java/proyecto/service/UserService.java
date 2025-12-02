@@ -1390,8 +1390,8 @@ public class UserService {
 
 	    // Insertar la empresa como profesor con isEmpresa = 1
 	    try {
-	        String sql = "INSERT INTO Profesor (nombre, apellido, email, telefono, isEmpresa) "
-	                   + "VALUES (?, '', ?, '', 1)";
+	        String sql = "INSERT INTO Profesor (nombre, apellido, email, nif, direccion, isEmpresa) "
+	                   + "VALUES (?, '', ?, '','', 1)";
 	        db.executeUpdate(sql, empresaTexto, email);
 
 	        // Recuperar el id_profesor recién insertado
