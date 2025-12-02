@@ -1071,7 +1071,7 @@ public class UserService {
 		try {
 			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, remuneracion, numero_factura, "
 					+ "fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) "
-					+ "VALUES (?,?,?,?,?,?,?,?, ?)";
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?)";
 		    db.executeUpdate(sql, idProfesor, idActividad, remuneracion, -1, "", 
 		    		0, "", "", "", 0);
 		} catch (ApplicationException e) {

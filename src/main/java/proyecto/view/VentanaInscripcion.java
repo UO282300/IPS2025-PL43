@@ -238,6 +238,8 @@ public class VentanaInscripcion extends JFrame {
 	    List<Map<String, Object>> cuotas = service.listarCuotasPorActividad(idActividad);
 
 	    if (cuotas.isEmpty()) {
+	    	service.cargarCuota("Gratuito");
+	    	service.asociarCuotaActividad(service.getAct().getId_Actividad(),"Gratuito",0.0);
 	        cbCuotas.addItem(new CuotaItem(-1, "No hay cuotas disponibles"));
 	        cbCuotas.setEnabled(false);
 	    } else {
@@ -301,7 +303,7 @@ public class VentanaInscripcion extends JFrame {
 
 	        
 	        String rangoCuotas = service.obtenerRangoCuotasPorActividad(act.getId_Actividad());
-
+	        if(rangoCuotas.equals("-"))rangoCuotas="0.0";
 	        modeloActividades.addRow(new Object[]{
 	            act.getNombre(),
 	            act.getObjetivos(),
