@@ -97,7 +97,6 @@ public class VentanaPagosAlumnos extends JFrame {
         return panelCentral;
     }
 
-    @SuppressWarnings("serial")
 	private JScrollPane crearTablaActividades() {
     	modelActividades = new DefaultTableModel(
     		    new Object[]{
@@ -125,7 +124,6 @@ public class VentanaPagosAlumnos extends JFrame {
     }
 
 
-    @SuppressWarnings("serial")
 	private JScrollPane crearTablaInscripciones() {
     	modelInscripciones = new DefaultTableModel(
     		    new Object[]{
@@ -152,7 +150,6 @@ public class VentanaPagosAlumnos extends JFrame {
         return scroll;
     }
 
-    @SuppressWarnings("serial")
 	private JScrollPane crearTablaMovimientos() {
         modelMovimientos = new DefaultTableModel(
             new Object[]{"Fecha", "Tipo", "Metodo", "Cantidad (€)"}, 0
@@ -315,7 +312,6 @@ public class VentanaPagosAlumnos extends JFrame {
 
             String estado;
             Object isCanceladaObj = ins.get("isCancelada");
-            Object estaPagadoObj = ins.get("esta_pagado");
 
             boolean isCancelada = isCanceladaObj != null && ((Number) isCanceladaObj).intValue() == 1;
 
@@ -464,8 +460,6 @@ public class VentanaPagosAlumnos extends JFrame {
             return;
         }
 
-        LocalDate hoy = us.getFechaHoy();
-
         for (Map<String, Object> act : actividades) {
             int id = ((Number) act.get("id_actividad")).intValue();
             String nombre = (String) act.get("nombre");
@@ -495,30 +489,7 @@ public class VentanaPagosAlumnos extends JFrame {
                 plazasDisponibles = totalPlazas;
             }
 
-
-
-            boolean isClosed = act.get("isClosed") != null && ((Number) act.get("isClosed")).intValue() == 1;
-            boolean isCancelada = act.get("isCancelada") != null && ((Number) act.get("isCancelada")).intValue() == 1;
-
-            String estado;
-            if (isClosed) {
-                estado = "Cerrada";
-            } else if (isCancelada) {
-                estado = "Cancelada";
-            } else if (inicioInscripcion != null && finInscripcion != null &&
-                       !hoy.isBefore(inicioInscripcion) && !hoy.isAfter(finInscripcion)) {
-                estado = "Periodo de inscripción";
-            } else if (fechaInicio != null && fechaFin != null &&
-                       !hoy.isBefore(fechaInicio) && !hoy.isAfter(fechaFin)) {
-                estado = "En curso";
-            } else if (finInscripcion != null && fechaInicio != null &&
-                       hoy.isAfter(finInscripcion) && hoy.isBefore(fechaInicio)) {
-                estado = "Por empezar";
-            } else if (fechaFin != null && hoy.isAfter(fechaFin)) {
-                estado = "Cursada";
-            } else {
-                estado = "Sin actividad";
-            }
+            String estado = us.obtenerEstadoActividad(detalles);
 
             modelActividades.addRow(new Object[]{
                 id,

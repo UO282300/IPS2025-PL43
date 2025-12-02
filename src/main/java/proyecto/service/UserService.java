@@ -999,7 +999,6 @@ public class UserService {
 	    }
 	}
 	
-	// Lista las actividades filtradas por estado
     public List<Map<String, Object>> listarActividadesPorEstado(String estado) {
         String sql = """
             SELECT *
@@ -1007,10 +1006,8 @@ public class UserService {
             ORDER BY fecha_inicio
         """;
 
-        // Obtenemos todas las actividades
         List<Map<String, Object>> actividades = db.executeQueryMap(sql);
 
-        // Filtramos las que coincidan con el estado solicitado
         java.util.List<Map<String, Object>> filtradas = new java.util.ArrayList<>();
         for (Map<String, Object> act : actividades) {
             String estadoActual = obtenerEstadoActividad(act);

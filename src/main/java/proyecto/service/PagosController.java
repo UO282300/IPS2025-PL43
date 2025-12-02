@@ -60,6 +60,7 @@ public class PagosController {
         return LocalDate.parse(fechaStr);
     }
     
+    
     public Map<String, Object> getActividadDetalles(int idActividad) {
         Map<String,Object> resultado = new HashMap<>();
 
