@@ -213,7 +213,8 @@ public class VentanaFacturasProfesionales extends JFrame {
             }
         }
         if(isFacturada()) {
-        	mostrarError("Ya estï¿½ facturada");
+        	mostrarError("Ya está facturada");
+        	return;
         }
         if(generaFactura(cantidad,fechaMovimiento,numeroFact)) {
     		mostrarInfo("Factura generada correctamente");
