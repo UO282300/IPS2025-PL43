@@ -1623,20 +1623,40 @@ public class UserService {
     }
 
 	public double getTotalPagado(int idMatricula) {
-		String sql = """
-				SELECT monto_pagado FROM Matricula WHERE id_matricula = ?
-				""";
-		List<Map<String, Object>> rows = db.executeQueryMap(sql, idMatricula);
+		//String sql = """
+		//		SELECT monto_pagado FROM Matricula WHERE id_matricula = ?
+		//		""";
+		//List<Map<String, Object>> rows = db.executeQueryMap(sql, idMatricula);
 
-		if (rows == null || rows.isEmpty()) {
-		    return 0.0;
+		//if (rows == null || rows.isEmpty()) {
+		//    return 0.0;
+		//}
+		//Map<String, Object> row = rows.get(0);
+		//Object total = row.get("monto_pagado");
+
+		//if (total == null) return 0.0;
+
+		//return ((Number) total).doubleValue();
+		String sql = "SELECT monto_pagado AS total FROM Matricula " +
+                "WHERE id_matricula = ?";
+		String devoluciones = "SELECT SUM(monto_devuelto) as devuelto from devoluciones where id_matricula = ?";
+
+		List<Map<String, Object>> r = db.executeQueryMap(sql, idMatricula);
+		if (r.isEmpty()) return 0.0;
+   
+		List<Map<String, Object>> d = db.executeQueryMap(devoluciones, idMatricula);
+		double devolucion = 0;
+		Object val = r.get(0).get("total");
+		if(d.isEmpty()) devolucion=0;
+		else {
+			Object dev = d.get(0).get("devuelto");
+			devolucion = dev == null? 0.0:((Number) dev).doubleValue();
 		}
-		Map<String, Object> row = rows.get(0);
-		Object total = row.get("monto_pagado");
-
-		if (total == null) return 0.0;
-
-		return ((Number) total).doubleValue();
+   
+		double ingresos = val == null ? 0.0 : ((Number) val).doubleValue();
+		System.out.println("Estos son los ingresos: "+ingresos);
+		System.out.println("Estos son las devoluciones: "+ devolucion);
+		return ingresos - devolucion;
 	}
 
 	public double getTotal(int idMatricula) {

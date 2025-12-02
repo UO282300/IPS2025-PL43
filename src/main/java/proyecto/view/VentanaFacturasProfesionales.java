@@ -195,7 +195,7 @@ public class VentanaFacturasProfesionales extends JFrame {
         if (cantidad == null) return;
         LocalDate fechaMovimiento = validarFecha();
         if (fechaMovimiento == null) {
-        	mostrarError("La fecha seleccionada no es correcta");
+        	//mostrarError("La fecha seleccionada no es correcta");
         	return;
         }
         double pagado = service.getTotalPagado(idMatriculaSeleccionada);
@@ -444,7 +444,7 @@ public class VentanaFacturasProfesionales extends JFrame {
 
         if (fechaMovimiento.isBefore(fechaMatricula)) {
             mostrarError(String.format(
-                "La fecha del movimiento no puede ser anterior a la fecha de matricula.\n\n" +
+                "La fecha de la factura no puede ser anterior a la fecha de matricula.\n\n" +
                 "Fecha matrícula: %s\n" +
                 "Fecha introducida: %s",
                 fechaMatricula, fechaMovimiento
