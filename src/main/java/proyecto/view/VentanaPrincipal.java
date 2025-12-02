@@ -22,7 +22,6 @@ import javax.swing.JTextField;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import proyecto.service.CancelarController;
 import proyecto.service.UserService;
 
 public class VentanaPrincipal {

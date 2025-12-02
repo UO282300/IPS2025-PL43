@@ -106,14 +106,16 @@ public class CancelarController {
 	            m.id_matricula,
 	            m.monto_inscripcion_cancelada,
 	            m.monto_actividad_cancelada,
-	            IFNULL((
-	                SELECT SUM(d.monto_devuelto)
-	                FROM Devoluciones d
-	                WHERE d.id_matricula = m.id_matricula
-	            ), 0) AS total_devuelto
+	            m.monto_pagado,
+	            m.isCancelada,
+	            ca.valor * m.numero_matriculados AS cuota,
+	            IFNULL((SELECT SUM(d.monto_devuelto)
+	                    FROM Devoluciones d
+	                    WHERE d.id_matricula = m.id_matricula), 0) AS total_devuelto
 	        FROM Matricula m
 	        JOIN Alumno a ON a.id_alumno = m.id_alumno
 	        JOIN Actividad act ON act.id_actividad = m.id_actividad
+	        JOIN CuotaActividad ca ON m.id_cuota_actividad = ca.id_cuota_actividad
 	        ORDER BY a.apellido, a.nombre;
 	    """;
 
@@ -122,31 +124,40 @@ public class CancelarController {
 
 	    for (Map<String, Object> row : lista) {
 
-	        double ins = row.get("monto_inscripcion_cancelada") != null
-	                     ? ((Number) row.get("monto_inscripcion_cancelada")).doubleValue()
-	                     : 0.0;
+	        double cuota = ((Number) row.get("cuota")).doubleValue();
+	        double pagado = ((Number) row.get("monto_pagado")).doubleValue();
+	        double devuelto = ((Number) row.get("total_devuelto")).doubleValue();
 
-	        double act = row.get("monto_actividad_cancelada") != null
-	                     ? ((Number) row.get("monto_actividad_cancelada")).doubleValue()
-	                     : 0.0;
+	        double neto = pagado - devuelto;
 
-	        double devuelto = row.get("total_devuelto") != null
-	                         ? ((Number) row.get("total_devuelto")).doubleValue()
-	                         : 0.0;
+	        boolean isCancelada = ((Number) row.get("isCancelada")).intValue() == 1;
 
-	        double pendiente = ins + act - devuelto;
+	        double montoIns = row.get("monto_inscripcion_cancelada") != null
+	                ? ((Number) row.get("monto_inscripcion_cancelada")).doubleValue()
+	                : 0.0;
 
-	        if (pendiente <= 0.01) continue; // ignorar si ya está devuelto completamente
+	        double montoAct = row.get("monto_actividad_cancelada") != null
+	                ? ((Number) row.get("monto_actividad_cancelada")).doubleValue()
+	                : 0.0;
+
+	        double aDevolver;
+
+	        if (isCancelada) {
+	            aDevolver = Math.max(0, neto + montoIns - cuota);
+	        } else {
+	            aDevolver = Math.max(0, neto + montoAct - cuota);
+	        }
+
+	        if (aDevolver <= 0.01) continue;
 
 	        resultado.add(Map.of(
-	            "nombre", row.get("nombre"),
-	            "apellido", row.get("apellido"),
-	            "actividad", row.get("actividad"),
-	            "pendiente", pendiente
+	                "nombre", row.get("nombre"),
+	                "apellido", row.get("apellido"),
+	                "actividad", row.get("actividad"),
+	                "pendiente", aDevolver
 	        ));
 	    }
 
 	    return resultado;
 	}
-
 }
