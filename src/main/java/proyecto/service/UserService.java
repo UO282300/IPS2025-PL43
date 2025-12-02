@@ -552,11 +552,11 @@ public class UserService {
 	        
 	        
 	        List<Map<String, Object>> facturas = db.executeQueryMap(
-		            "SELECT cantidad FROM FacturaP WHERE id_actividad = ?", idActividad
+		            "SELECT remuneracion FROM FacturaP WHERE id_actividad = ?", idActividad
 		        );
 	        
 	        double gastosEstimados = facturas.stream()
-	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+	                                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("remuneracion"))))
 	                                .sum();
 	        double gastos = facturasPagadas.stream()
                     .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
@@ -588,7 +588,7 @@ public class UserService {
 	    return listaActividades;
 	}
 	
-	private double ingresosReales(int idActividad) {
+	public double ingresosReales(int idActividad) {
 	    String sql = "SELECT SUM(monto_pagado) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ?";
 	    String devoluciones = "SELECT SUM(monto_devuelto) as devuelto from devoluciones where id_actividad = ?";
@@ -611,7 +611,7 @@ public class UserService {
 	    return ingresos - devolucion;
 	}
 
-	private double ingresosEstimados(int idActividad) {
+	public double ingresosEstimados(int idActividad) {
 	    String sql = "SELECT SUM(monto_total) AS total FROM Matricula " +
 	                 "WHERE id_actividad = ? and isCancelada = 0";
 
@@ -745,7 +745,7 @@ public class UserService {
 				acabadas.add(f);
 			}
 		}
-		System.out.println("Acbadas: "+ acabadas.size());
+		System.out.println("Acabadas: "+ acabadas.size());
 		return acabadas;
 	}
 
@@ -1031,22 +1031,45 @@ public class UserService {
         LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
 
         String sql = """
-            SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha_inicio AS fecha, 
+            SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha_inicio AS fecha,
                    m.monto_pagado, m.isCancelada, a.fecha_inicio
-            FROM Matricula m 
+            FROM Matricula m
             JOIN Actividad a ON m.id_actividad = a.id_actividad
             WHERE m.id_alumno = ? AND m.isCancelada = 0
             ORDER BY a.fecha_inicio
             """;
 
         List<Map<String, Object>> matriculas = db.executeQueryMap(sql, idAlumno);
-
-        // Filtrar según fecha_inicio > fechaHoy
         List<Map<String, Object>> filtradas = new ArrayList<>();
+
         for (Map<String, Object> m : matriculas) {
             String fechaInicioStr = (String) m.get("fecha_inicio");
             LocalDate fechaInicio = fechaInicioStr != null ? LocalDate.parse(fechaInicioStr.split("T")[0]) : null;
+
             if (fechaInicio != null && hoy.isBefore(fechaInicio)) {
+
+                int idMatricula = ((Number)m.get("id_matricula")).intValue();
+                double totalPagado = ((Number)m.get("monto_pagado")).doubleValue();
+
+                // Obtener total devuelto
+                List<Map<String, Object>> devoluciones = db.executeQueryMap("""
+                    SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
+                    FROM Devoluciones
+                    WHERE id_matricula = ?
+                """, idMatricula);
+
+                double totalDevuelto = ((Number)devoluciones.get(0).get("total_devuelto")).doubleValue();
+
+                // Calcular neto
+                double neto = totalPagado - totalDevuelto;
+                neto = Math.round(neto * 100.0) / 100.0;
+
+                // Insertar neto en el map
+                m.put("neto", neto);
+
+                // Si no quieres mostrar monto_pagado, puedes eliminarlo
+                m.remove("monto_pagado");
+
                 filtradas.add(m);
             }
         }
@@ -1069,7 +1092,7 @@ public class UserService {
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
         montoPagado=Math.min(montoPagado,cuota);
         if (diasFaltan >= 7) return montoPagado;
-        else if (diasFaltan >= 3) return cuota * 0.5;
+        else if (diasFaltan >= 3 && montoPagado>=cuota*0.5) return cuota * 0.5;
         else return 0;
     }
 
@@ -1164,11 +1187,12 @@ public class UserService {
 	public void insertFacturaP(Integer idProfesor, int idActividad, String numeroFactura, String fechaFactura,
 			double remuneracion, String emisorNombre, String emisorNif, String emisorDireccion) {
 		try {
-			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, numero_factura, "
+			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, remuneracion, numero_factura, "
 					+ "fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) "
-					+ "VALUES (?,?,?,?,?,?,?,?, ?)";
-		    db.executeUpdate(sql, idProfesor, idActividad, numeroFactura, fechaFactura, 
-		    		remuneracion, emisorNombre, emisorNif, emisorDireccion, 0);
+					+ "VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+		    db.executeUpdate(sql, idProfesor, idActividad, remuneracion, -1, "", 
+		    		0, "", "", "", 0);
 		} catch (ApplicationException e) {
 			System.out.println("Error al insertar profesor: " + e.getMessage());
 		}		
@@ -1755,5 +1779,32 @@ public class UserService {
 	        return false;
 	    }
 		
+	}
+
+	
+
+	public double getGastosEstimados(int idActividad) {
+		 List<Map<String, Object>> facturas = db.executeQueryMap(
+		            "SELECT remuneracion FROM FacturaP WHERE id_actividad = ?", idActividad
+		        );
+		
+		double gastosEstimados = facturas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("remuneracion"))))
+                .sum();
+		return gastosEstimados;
+	}
+
+	public double getGastosConfirmados(int idActividad) {
+		 List<Map<String, Object>> facturasPagadas = db.executeQueryMap(
+		            "SELECT cantidad FROM PagoProfesor WHERE id_actividad = ?", idActividad
+		        );
+		        List<Map<String, Object>> devolucionesProfesor = db.executeQueryMap(
+		        		"select cantidad from DevolucionProfesor where id_actividad = ?", idActividad);
+
+		double gastos = facturasPagadas.stream()
+                .mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad"))))
+                .sum() - devolucionesProfesor.stream().mapToDouble(x -> Double.parseDouble(String.valueOf(x.get("cantidad")))).sum();
+   
+		return gastos;
 	}
 }

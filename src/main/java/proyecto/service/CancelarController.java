@@ -63,7 +63,6 @@ public class CancelarController {
         } else {
             fechaActividad = service.getFechaHoy(); // fallback por seguridad
         }
-
         // Obtener las matriculas asociadas
         String sqlMatriculas = "SELECT * FROM Matricula WHERE id_actividad = ?";
         List<Map<String, Object>> matriculas = service.getDb().executeQueryMap(sqlMatriculas, idActividad);

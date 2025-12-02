@@ -58,7 +58,7 @@ public class VentanaEstadoAF extends JFrame {
         panelFiltro.add(new JLabel("Filtrar por estado:"));
         comboEstado = new JComboBox<>(new DefaultComboBoxModel<>(new String[]{
             "Todas", "Planificada", "En periodo de inscripcion",
-            "Inscripcion cerrada", "Cerrada", "Cancelada"
+            "Inscripcion cerrada", "Cerrada", "Cancelada","En curso","Finalizada"
         }));
         panelFiltro.add(comboEstado);
         JButton btnFiltrar = new JButton("Aplicar filtro");
@@ -104,7 +104,7 @@ public class VentanaEstadoAF extends JFrame {
 
         // Tabla inscripciones
         modelInscripciones = new DefaultTableModel(
-            new Object[]{"Profesional","Fecha matricula","Estado","Numero"},0
+            new Object[]{"Profesional","Fecha matricula","Estado","Posicion si esta en lista de espera"},0
         );
         tableInscripciones = new JTable(modelInscripciones);
         JScrollPane scrollInscripciones = new JScrollPane(tableInscripciones);
@@ -223,8 +223,10 @@ public class VentanaEstadoAF extends JFrame {
 
         
         // Finanzas: calcular a partir de FacturaP
-        double ingresosEstimados = 600;
-        double ingresosConfirmados = 300;
+        double ingresosEstimados = service.ingresosEstimados(idActividad);
+        double ingresosConfirmados = service.ingresosReales(idActividad);
+        double gastosEstimados=service.getGastosEstimados(idActividad);
+        double gastosConfirmados =service.getGastosConfirmados(idActividad);
         @SuppressWarnings("unchecked")
         List<Map<String,Object>> facturas = (List<Map<String,Object>>) act.get("facturas");
         if (facturas != null) {
@@ -238,7 +240,7 @@ public class VentanaEstadoAF extends JFrame {
 
         txtIngresosEstimados.setText(String.valueOf(ingresosEstimados));
         txtIngresosConfirmados.setText(String.valueOf(ingresosConfirmados));
-        txtGastosEstimados.setText("800");
-        txtGastosConfirmados.setText("500");
+        txtGastosEstimados.setText(String.valueOf(gastosEstimados));
+        txtGastosConfirmados.setText(String.valueOf(gastosConfirmados));
     }
 }
