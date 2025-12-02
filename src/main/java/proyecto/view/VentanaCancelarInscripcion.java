@@ -86,7 +86,7 @@ public class VentanaCancelarInscripcion extends JFrame {
             modelMatriculas.addRow(new Object[]{
                     m.get("actividad"),
                     m.get("fecha"),
-                    m.get("monto_pagado"),
+                    m.get("neto"),
                     "Cancelar"
             });
         }
@@ -98,12 +98,15 @@ public class VentanaCancelarInscripcion extends JFrame {
         String nombreActividad = modelMatriculas.getValueAt(row, 0).toString();
         LocalDate fechaActividad = LocalDate.parse(modelMatriculas.getValueAt(row, 1).toString());
         double montoPagado = Double.parseDouble(modelMatriculas.getValueAt(row, 2).toString());
-
+        int id_cuota = service.getDb().queryInt( "SELECT id_cuota_actividad FROM Matricula WHERE id_matricula = ?", idMatricula);
+    	double cuota = service.getDb().queryDouble("SELECT valor FROM CuotaActividad WHERE id_cuota_actividad = ?", id_cuota);
+    	
         double montoDevuelto = service.calcularMontoDevolucion(fechaActividad, montoPagado, idMatricula);
 
+        double resto = Math.max(0.0, montoPagado - cuota);
         String msg = "¿Desea cancelar la inscripcion a '" + nombreActividad + "'?\n" +
-                     "Se devolveran " + String.format("%.2f", montoDevuelto) + " euros.\n" +
-                     "Si hubiera habido pagos incorrectos, el importe se abonara aunque no figure en este monto.";
+                     "Se devolveran " + String.format("%.2f", montoDevuelto) + " euros por la cancelación.\n" +
+                     "Se devolveran " + String.format("%.2f",resto) + " euros por pagos atrasados.\n";
         int opcion = JOptionPane.showConfirmDialog(this, msg, "Confirmar cancelacion", JOptionPane.YES_NO_OPTION);
 
         if (opcion == JOptionPane.YES_OPTION) {
@@ -113,10 +116,10 @@ public class VentanaCancelarInscripcion extends JFrame {
             
             
             if(service.sacarListaEspera(idActividad)) {
-            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución:"  + montoDevuelto + " euros."
+            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución:"  + (montoDevuelto + resto) + " euros."
             			+ " Un usuario ha sido notificado de la nueva plaza existente");
             }else {
-            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " + montoDevuelto + " euros.");
+            	JOptionPane.showMessageDialog(this, "Inscripción cancelada correctamente.\nDevolución: " +( montoDevuelto + resto)+ " euros.");
             }
             
             

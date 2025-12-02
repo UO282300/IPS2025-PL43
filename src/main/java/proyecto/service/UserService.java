@@ -936,22 +936,45 @@ public class UserService {
         LocalDate hoy = fechaHoy != null ? fechaHoy : LocalDate.now();
 
         String sql = """
-            SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha_inicio AS fecha, 
+            SELECT m.id_matricula, m.id_actividad, a.nombre AS actividad, a.fecha_inicio AS fecha,
                    m.monto_pagado, m.isCancelada, a.fecha_inicio
-            FROM Matricula m 
+            FROM Matricula m
             JOIN Actividad a ON m.id_actividad = a.id_actividad
             WHERE m.id_alumno = ? AND m.isCancelada = 0
             ORDER BY a.fecha_inicio
             """;
 
         List<Map<String, Object>> matriculas = db.executeQueryMap(sql, idAlumno);
-
-        // Filtrar según fecha_inicio > fechaHoy
         List<Map<String, Object>> filtradas = new ArrayList<>();
+
         for (Map<String, Object> m : matriculas) {
             String fechaInicioStr = (String) m.get("fecha_inicio");
             LocalDate fechaInicio = fechaInicioStr != null ? LocalDate.parse(fechaInicioStr.split("T")[0]) : null;
+
             if (fechaInicio != null && hoy.isBefore(fechaInicio)) {
+
+                int idMatricula = ((Number)m.get("id_matricula")).intValue();
+                double totalPagado = ((Number)m.get("monto_pagado")).doubleValue();
+
+                // Obtener total devuelto
+                List<Map<String, Object>> devoluciones = db.executeQueryMap("""
+                    SELECT IFNULL(SUM(monto_devuelto), 0) AS total_devuelto
+                    FROM Devoluciones
+                    WHERE id_matricula = ?
+                """, idMatricula);
+
+                double totalDevuelto = ((Number)devoluciones.get(0).get("total_devuelto")).doubleValue();
+
+                // Calcular neto
+                double neto = totalPagado - totalDevuelto;
+                neto = Math.round(neto * 100.0) / 100.0;
+
+                // Insertar neto en el map
+                m.put("neto", neto);
+
+                // Si no quieres mostrar monto_pagado, puedes eliminarlo
+                m.remove("monto_pagado");
+
                 filtradas.add(m);
             }
         }
@@ -974,7 +997,7 @@ public class UserService {
         long diasFaltan = java.time.temporal.ChronoUnit.DAYS.between(fechaHoy, fechaActividad);
         montoPagado=Math.min(montoPagado,cuota);
         if (diasFaltan >= 7) return montoPagado;
-        else if (diasFaltan >= 3) return cuota * 0.5;
+        else if (diasFaltan >= 3 && montoPagado>=cuota*0.5) return cuota * 0.5;
         else return 0;
     }
 
@@ -1071,7 +1094,7 @@ public class UserService {
 		try {
 			String sql = "INSERT INTO FacturaP(id_profesor, id_actividad, remuneracion, numero_factura, "
 					+ "fecha_factura, cantidad, emisor_nombre, emisor_nif, emisor_direccion, esta_pagado) "
-					+ "VALUES (?,?,?,?,?,?,?,?, ?)";
+					+ "VALUES (?,?,?,?,?,?,?,?,?, ?)";
 		    db.executeUpdate(sql, idProfesor, idActividad, remuneracion, -1, "", 
 		    		0, "", "", "", 0);
 		} catch (ApplicationException e) {

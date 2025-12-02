@@ -15,6 +15,7 @@ public class PagosController {
 	private Database db;
 	private LocalDate fechaHoy;
 	public static final double LIMITE_EFECTIVO = 100;
+	public Map<Integer, Double> saldos = new HashMap<Integer,Double>();
 	
 	public PagosController (UserService us) {
 		this.fechaHoy = us.getFechaHoy();
@@ -291,7 +292,7 @@ public class PagosController {
     
 
     
-    public Map<String, Double> getEstadoPagoAlumno(int idMatricula) {
+    public Map<String, Double> getEstadoPagoAlumno(int idMatricula, boolean devolviendo) {
         Map<String, Double> datos = new HashMap<>();
 
         try {
@@ -327,17 +328,30 @@ public class PagosController {
 
             if (isCancelada) {
             	aDevolver = Math.max(0, neto + monto_inscripcion_cancelada - cuota);
+            	if(devolviendo && monto_inscripcion_cancelada < cuota && monto_inscripcion_cancelada>0 && neto >0) {
+            		if(saldos.containsKey(idMatricula)) {
+            			aDevolver = saldos.get(idMatricula);
+            		}else {
+            			aDevolver=monto_inscripcion_cancelada;
+            		}
+            		
+            	}
                 aDevolver = Math.round(aDevolver * 100.0) / 100.0;
-                
-                pendiente = Math.max(0, cuota - (neto + monto_inscripcion_cancelada));
+                pendiente =0;
                 pendiente = Math.round(pendiente * 100.0) / 100.0;
+                
             } else {
             	aDevolver = Math.max(0, neto + monto_actividad_cancelada - cuota);
+            	if(devolviendo && monto_actividad_cancelada < cuota && monto_actividad_cancelada>0 && neto >0) {
+            		aDevolver=neto;
+            	}
+            	
                 aDevolver = Math.round(aDevolver * 100.0) / 100.0;
-                
-                pendiente = Math.max(0, cuota - (neto + monto_actividad_cancelada));
+                pendiente = Math.max(0, cuota - neto - monto_actividad_cancelada );
                 pendiente = Math.round(pendiente * 100.0) / 100.0;
+                
             }
+           
             
             totalPagado = Math.round(totalPagado * 100.0) / 100.0;
             totalDevuelto = Math.round(totalDevuelto * 100.0) / 100.0;
@@ -349,6 +363,8 @@ public class PagosController {
             datos.put("pendiente", pendiente);
             datos.put("a_devolver", aDevolver);
             datos.put("is_cancelada", isCancelada ? 1.0 : 0.0);
+            datos.put("monto_actividad_cancelada", monto_actividad_cancelada);
+            datos.put("monto_inscripcion_cancelada", monto_inscripcion_cancelada);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -366,12 +382,13 @@ public class PagosController {
             String metodoPago = porEfectivo ? "Efectivo" : "Transferencia";
 
             Map<String, Object> info = db.executeQueryMap(
-                "SELECT id_alumno, id_actividad FROM Matricula WHERE id_matricula = ?",
+                "SELECT id_alumno, id_actividad, monto_inscripcion_cancelada FROM Matricula WHERE id_matricula = ?",
                 idMatricula
             ).get(0);
 
             int idAlumno = ((Number) info.get("id_alumno")).intValue();
             int idActividad = ((Number) info.get("id_actividad")).intValue();
+            double monto_inscripcion_cancelada = ((Number) info.get("monto_inscripcion_cancelada")).doubleValue();
 
             db.executeUpdate("""
                 INSERT INTO Devoluciones 
@@ -386,7 +403,13 @@ public class PagosController {
                 montoDevuelto,
                 metodoPago
             );
-
+            if(saldos.containsKey(idMatricula)) {
+            	double actual = saldos.getOrDefault(idMatricula, 0.0);
+            	saldos.put(idMatricula, actual - montoDevuelto);
+            }else {
+            	saldos.put(idMatricula, monto_inscripcion_cancelada - montoDevuelto);
+            }
+            
             return true;
 
         } catch (Exception e) {

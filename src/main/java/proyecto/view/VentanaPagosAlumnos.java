@@ -319,7 +319,7 @@ public class VentanaPagosAlumnos extends JFrame {
 
             boolean isCancelada = isCanceladaObj != null && ((Number) isCanceladaObj).intValue() == 1;
 
-            Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatricula);
+            Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatricula,rbDevolucion.isSelected());
 
             double totalPagado = estadoPago.getOrDefault("total_pagado", 0.0);
             double pendiente = estadoPago.getOrDefault("pendiente", 0.0);
@@ -380,7 +380,7 @@ public class VentanaPagosAlumnos extends JFrame {
         LocalDate fechaMovimiento = validarFecha();
         if (fechaMovimiento == null) return;
 
-        Map<String, Double> estado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
+        Map<String, Double> estado = us.getEstadoPagoAlumno(idMatriculaSeleccionada,rbDevolucion.isSelected());
         if (estado == null) {
             mostrarError("No se pudo obtener la informacion de pago del alumno.");
             return;
@@ -627,7 +627,7 @@ public class VentanaPagosAlumnos extends JFrame {
         mostrarInfo(String.format("Pago registrado correctamente.\n\nSe pagaron %.2f euros.", cantidad));
 
 
-        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
+        Map<String, Double> nuevoEstado = us.getEstadoPagoAlumno(idMatriculaSeleccionada,rbDevolucion.isSelected());
         if (nuevoEstado == null) return;
         
         if (esPagoCompleto) ec.generarEmailMatriculaCompleta(
@@ -667,15 +667,33 @@ public class VentanaPagosAlumnos extends JFrame {
             ));
             return;
         }
-
+        double isCancelada = estado.getOrDefault("is_cancelada", 0.0);
         double totalPagado = estado.getOrDefault("total_pagado", 0.0);
         double totalDevuelto = estado.getOrDefault("total_devuelto", 0.0);
         double cuota = estado.getOrDefault("cuota", 0.0);
-
+        double monto_actividad_cancelada = estado.getOrDefault("monto_actividad_cancelada", 0.0);
+        double monto_inscripcion_cancelada = estado.getOrDefault("monto_inscripcion_cancelada", 0.0);
         String nombreAlumno = us.getNombreAlumno(idMatriculaSeleccionada);
         String nombreActividad = us.getNombreActividad(idMatriculaSeleccionada);
         double extra = us.getMontoPorDevolucion(idMatriculaSeleccionada);
         double pendienteAntes =  Math.max(0.0, totalPagado + extra - totalDevuelto - cuota);
+        
+        if(isCancelada==1.0) {
+        	if( monto_inscripcion_cancelada < cuota && monto_inscripcion_cancelada>0 && totalPagado - totalDevuelto >0) {
+        		if(us.saldos.containsKey(idMatriculaSeleccionada)) {
+        			pendienteAntes=us.saldos.get(idMatriculaSeleccionada);
+        		}else {
+        			pendienteAntes=monto_inscripcion_cancelada;
+        		}
+        	}
+        }else {
+        	if( monto_actividad_cancelada < cuota && monto_actividad_cancelada>0 && totalPagado - totalDevuelto >0) {
+        		pendienteAntes=totalPagado - totalDevuelto;
+        	}
+        }
+        
+        
+        
 
         double pendienteDespues = pendienteAntes - cantidad;
 
@@ -783,7 +801,7 @@ public class VentanaPagosAlumnos extends JFrame {
 	    private void actualizarCamposVisuales(boolean esPago) {
 	        if (idMatriculaSeleccionada <= 0) return;
 
-	        Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatriculaSeleccionada);
+	        Map<String, Double> estadoPago = us.getEstadoPagoAlumno(idMatriculaSeleccionada,rbDevolucion.isSelected());
 	        if (estadoPago == null) return;
 
 	        double totalPagado = estadoPago.getOrDefault("total_pagado", 0.0);
