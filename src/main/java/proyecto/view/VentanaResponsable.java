@@ -180,11 +180,18 @@ public class VentanaResponsable extends JFrame {
         chckEmpresa = new JCheckBox("Impartido por empresa");
         chckEmpresa.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		lbEmpresa.setEnabled(true);
-        		cbEmpresa.setEnabled(true);
-        		chckNuevaEmpresa.setEnabled(true);
-        		lbRemu.setEnabled(true);
-        		txtRemu.setEnabled(true);
+  
+        		lbEmpresa.setEnabled(chckEmpresa.isSelected());
+        		cbEmpresa.setEnabled(chckEmpresa.isSelected());
+        		chckNuevaEmpresa.setEnabled(chckEmpresa.isSelected());
+        		lbRemu.setEnabled(chckEmpresa.isSelected());
+        		txtRemu.setEnabled(chckEmpresa.isSelected());
+        		
+        		if(!chckEmpresa.isSelected()) {
+        			chckNuevaEmpresa.setSelected(false);
+        			txtEmpresa.setEnabled(false);
+            		lbNuevaEmpresa.setEnabled(false);
+        		}
         	}
         });
         panelTop.add(chckEmpresa);
@@ -206,9 +213,18 @@ public class VentanaResponsable extends JFrame {
         chckNuevaEmpresa = new JCheckBox("Nueva");
         chckNuevaEmpresa.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		lbNuevaEmpresa.setEnabled(true);
+        		if(chckNuevaEmpresa.isSelected()) {
+        			lbNuevaEmpresa.setEnabled(true);
+            		txtEmpresa.setEnabled(true);
+            		lbEmpresa.setEnabled(false);
+            		cbEmpresa.setEnabled(false);
+        		}else {
+        			lbNuevaEmpresa.setEnabled(false);
+            		txtEmpresa.setEnabled(false);
+            		lbEmpresa.setEnabled(true);
+            		cbEmpresa.setEnabled(true);
+        		}
         		
-        		txtEmpresa.setEnabled(true);
         		
         	}
         });
@@ -550,8 +566,8 @@ public class VentanaResponsable extends JFrame {
         			 idEmpresa = mapaEmpresas.get(empresaTexto);
         		 }
                   
-        		 String numeroFactura = "AUTO-" + idActividad + "-" + (0);
-                 String fechaFactura = LocalDate.now().toString();
+        		 String numeroFactura = "-1";
+                 String fechaFactura = "";
 
                  String emisorNombre = empresaTexto;
                  String emisorNif = "N/A";
