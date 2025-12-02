@@ -52,7 +52,7 @@ public class VentanaFacturasProfesionales extends JFrame {
 
     public VentanaFacturasProfesionales(UserService service) {
     	this.service=service;
-        setTitle("Registro de Pagos de Inscripciones");
+        setTitle("Registrar Factura a Profesionales");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1500, 800);
         setLocationRelativeTo(null);
@@ -69,7 +69,7 @@ public class VentanaFacturasProfesionales extends JFrame {
     }
 
     private JLabel crearTitulo() {
-        JLabel lblTitulo = new JLabel("Registrar Pagos y Devoluciones de Alumnos", SwingConstants.CENTER);
+        JLabel lblTitulo = new JLabel("Registrar Factura a Profesionales", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 20));
         lblTitulo.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         return lblTitulo;
@@ -117,7 +117,7 @@ public class VentanaFacturasProfesionales extends JFrame {
 
         modelInscripciones = new DefaultTableModel(
             new Object[]{"Id","Nombre", "Apellido", "Estado",
-                "Total pagado (€)", "Pago Total (€)"}, 0
+                "Total pagado (ï¿½)", "Pago Total (ï¿½)"}, 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -139,14 +139,14 @@ public class VentanaFacturasProfesionales extends JFrame {
     private JPanel crearPanelFactura() {
         JPanel panel = new JPanel(new GridLayout(3, 2, 15, 15));
         panel.setBorder(BorderFactory.createTitledBorder("Factura"));
-        panel.add(new JLabel("Número de factura:"));
+        panel.add(new JLabel("Nï¿½mero de factura:"));
         tfNumeroFactura = new JTextField();
         panel.add(tfNumeroFactura);
-        panel.add(new JLabel("Fecha de emisión:"));
+        panel.add(new JLabel("Fecha de emisiï¿½n:"));
         tfFechaFactura = new JTextField();
         panel.add(tfFechaFactura);
 
-        panel.add(new JLabel("Importe (€):"));
+        panel.add(new JLabel("Importe (ï¿½):"));
         tfImporteFactura = new JTextField();
         tfImporteFactura.setEditable(false);
         panel.add(tfImporteFactura);
@@ -203,8 +203,8 @@ public class VentanaFacturasProfesionales extends JFrame {
 
             int opcion = JOptionPane.showConfirmDialog(
                     this,
-                    "El pago no está completo.\n¿Desea generar la factura igualmente?",
-                    "Confirmar generación",
+                    "El pago no estï¿½ completo.\nï¿½Desea generar la factura igualmente?",
+                    "Confirmar generaciï¿½n",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
@@ -213,7 +213,7 @@ public class VentanaFacturasProfesionales extends JFrame {
             }
         }
         if(isFacturada()) {
-        	mostrarError("Ya está facturada");
+        	mostrarError("Ya estï¿½ facturada");
         }
         if(generaFactura(cantidad,fechaMovimiento,numeroFact)) {
     		mostrarInfo("Factura generada correctamente");
@@ -267,7 +267,7 @@ public class VentanaFacturasProfesionales extends JFrame {
     protected void cargarFacturaAlumno() {
     	tfFechaFactura.setText(service.getFechaHoy().toString());
     	double total = service.getTotal(idMatriculaSeleccionada);
-    	tfImporteFactura.setText(total + " €");
+    	tfImporteFactura.setText(total + " ï¿½");
 		
 	}
 
